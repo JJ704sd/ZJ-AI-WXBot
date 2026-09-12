@@ -22,3 +22,6 @@ logs/
 .venv/
 __pycache__/
 *.pyc
+
+# Read-only reference checkouts and local assessment runs
+.research/
