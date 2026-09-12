@@ -1,0 +1,24 @@
+# Local credentials and account configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Chat data, exports and original attachments
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.zip
+*.zip.temp
+decrypted/
+exports/
+runtime/
+logs/
+
+# Local Python environments and caches
+.venv/
+__pycache__/
+*.pyc
