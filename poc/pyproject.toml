@@ -1,0 +1,28 @@
+[project]
+name = "wechat-agent-poc"
+version = "0.1.0"
+description = "Minimal personal-WeChat text AI Agent PoC with human approval"
+requires-python = ">=3.11"
+dependencies = [
+    "zstandard>=0.23.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+sqlcipher = [
+    "sqlcipher3>=0.6.2",
+]
+
+[project.scripts]
+wechat-agent-poc = "wechat_agent_poc.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]

@@ -8,9 +8,11 @@
 
 本轮基于 Chat-Lab 最新代码，优先评估“同一个个人微信账号的本地数据库读取 → Chat-Lab 分析 → 独立桌面发送 → 原混合群”。已用合成数据复现部分读取边界；取数兼容性、连续完整读取和实际发送仍需验证。桌面同时收发保留为备选。
 
-当前仓库保存评估文档、证据和离线验证脚本，不包含可直接运行的机器人程序，也不包含原始聊天记录、数据库、账号凭据或附件压缩包。
+当前仓库保存评估文档、证据、离线验证脚本，以及 `poc/` 中的**离线**个人微信文本 Agent PoC。该 PoC 默认 `offline`，不含原始聊天记录、数据库、账号凭据或附件压缩包；真实取数、原群发送和在线模型闭环仍待授权后的实机阶段。
 
 ## 阅读入口
+
+2026-09-14 已确认最小 PoC 范围，新增 [实现 spec v0.1](./specs/personal-wechat-agent-poc-v0.1.md) 和 [完整实施提示词](./specs/personal-wechat-agent-implementation-prompt-v0.1.md)。采用独立测试账号、单个企微外部测试群、合成消息与人工逐条确认发送；文档交付不表示实机验证已完成。
 
 | 文档 | 内容 |
 |---|---|
@@ -19,6 +21,7 @@
 | [第二轮：企微读取证据](./evidence/round2-wecom-ingest.md) | 本地快照／解析及官方存档可借鉴之处 |
 | [第二轮：分析复用证据](./evidence/round2-analysis-reuse.md) | 新事件、上下文、模型分析和主动回复之间的缺口 |
 | [离线边界探针](./verification/verify_wechat_read_assumptions.py) | 对指定参考源码运行合成实验，不读取实际聊天库 |
+| [个微 PoC（offline）](./poc/README.md) | 本地 mock/合成实现、审批 CLI 与离线测试；实机 R0–R4 见 [poc/evidence/offline-verification.md](./poc/evidence/offline-verification.md) |
 | [第一轮：群聊机器人可行性验证](./群聊机器人可行性验证.md) | 初始结论、候选路线、最小实验及通过标准 |
 | [第一轮：Chat-Lab 源码审查](./evidence/chatlab-audit.md) | 旧版已有能力、发送缺口及固定提交源码引用 |
 | [附件静态审查](./evidence/archive-audit.md) | ZIP 工具用途、互通会话过滤及复用限制 |

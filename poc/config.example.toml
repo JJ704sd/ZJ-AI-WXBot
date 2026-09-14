@@ -1,0 +1,44 @@
+# Personal WeChat text AI Agent PoC — no secrets.
+# Default mode is offline. Live database open, process key extraction, and
+# unattended send are not enabled by this file.
+
+mode = "offline"
+data_dir = ".local/poc"
+lookback_seconds = 120
+context_limit = 20
+max_draft_chars = 500
+approval_ttl_seconds = 300
+operator = "local-operator"
+# Re-measure on the test machine. 4.1.13.65 is a 2026-09-12 document baseline only.
+wechat_version_recorded = ""
+receivers = []
+
+[account]
+alias = "test-wechat-a"
+wxid = ""
+data_root = ""
+self_sender_key = ""
+# Authorized existing key reference only. "none" blocks SQLCipher.
+# A DB key may unlock more than the bound group; the program still queries
+# only that group plus identity maps.
+authorized_key_ref = "none"
+
+[group]
+alias = "test-external-group"
+conversation_key = "synthetic_group@openim"
+binding_version = "bv-1"
+member_features = ["synthetic_wecom_member", "synthetic_wechat_member"]
+display_name = "合成测试群"
+required_detail_tokens = ["合成测试群", "external-poc"]
+
+[model]
+provider = "mock"
+endpoint = ""
+model_name = ""
+credential_source = "none"
+
+[adapters]
+# mock | sqlite_plain | sqlcipher_readonly
+reader = "mock"
+# mock | desktop_stub
+sender = "mock"

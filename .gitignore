@@ -25,3 +25,9 @@ __pycache__/
 
 # Read-only reference checkouts and local assessment runs
 .research/
+
+# PoC runtime data (events, approvals, local evidence). Never commit source DBs or keys.
+.local/
+
+# Test caches
+.pytest_cache/
