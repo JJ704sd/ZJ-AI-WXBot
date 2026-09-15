@@ -110,7 +110,7 @@ def test_unescaped_msgsource_still_reads_atuserlist():
     decision = classify_mention(
         self_sender_key=SELF,
         fields={"packed_info_data": bytes.fromhex("081010025800"), "source": messy},
-        text="@示例本人 小小豪，收到请回复，over",
+        text="@示例本人 示例文本，收到请回复，over",
     )
     assert decision.mention_self == "true"
     assert decision.mentioned_keys == (SELF,)
@@ -126,7 +126,7 @@ def test_zstd_source_atuserlist_is_true():
     decision = classify_mention(
         self_sender_key=SELF,
         fields={"packed_info_data": bytes.fromhex("081010025800"), "source": blob},
-        text="@示例本人 小小豪，收到请回复，over",
+        text="@示例本人 示例文本，收到请回复，over",
     )
     assert decision.mention_self == "true"
     assert decision.mentioned_keys == (SELF,)

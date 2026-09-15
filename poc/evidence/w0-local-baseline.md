@@ -107,7 +107,7 @@ spec 文件从 `C:\Users\Example\Downloads\` 原样复制，源/目标 SHA-256 �
 | G-SEND | 未执行 | 缺真实窗口/发送适配与双端接收人 |
 | G-MODEL | 未执行 | `model.provider=mock`，无授权凭据 |
 
-spec §11.2 示例路径为 `D:\ZJ-AI-WXBOT\poc`；本机可运行目录是 `D:\path\to\ZJ-AI-WXBot\poc`。未按该错误路径执行命令。
+spec §11.2 使用示例路径 `D:\path\to\ZJ-AI-WXBot\poc`；执行时应替换为实际 checkout 路径。未按固定示例路径执行命令。
 
 ## 本文件之后
 

@@ -4,7 +4,7 @@
 
 | 文档项 | 内容 |
 |---|---|
-| 项目 | ZJ-AI-WXBot；用户本地目录 `D:\ZJ-AI-WXBOT` |
+| 项目 | ZJ-AI-WXBot；用户本地目录 `D:\path\to\ZJ-AI-WXBot` |
 | 版本与日期 | v0.2；2026-09-14 |
 | 文档状态 | 实施规范草案；待实现、补证与实机验收 |
 | 固定代码基线 | `a9d7415e44b585457d5c5d0a5c47b12974cd32ac` |
@@ -424,7 +424,7 @@ status / verdict / blocker / pause_reason / operator
 以下入口来自固定版本的运行与验证文档；在用户本地已有环境中执行，本文没有实际运行这些命令。不新增虚构的 live CLI，也不通过示例自动修改模式。[S4]
 
 ```powershell
-Set-Location -LiteralPath 'D:\ZJ-AI-WXBOT\poc'
+Set-Location -LiteralPath 'D:\path\to\ZJ-AI-WXBot\poc'
 uv run pytest
 uv run wechat-agent-poc --config config.example.toml status
 uv run wechat-agent-poc --config config.example.toml r0-check

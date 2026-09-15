@@ -61,6 +61,10 @@ def load_window_observer(observer: str, path: Path | None) -> WindowObserver | N
         if path is None:
             raise HaltError(Halt("WINDOW_MISMATCH", "window.observation_path is required", {"submit_stage": "not_sent"}))
         return ManualFileWindowObserver(path)
+    if observer == "weixin_ui":
+        from wechat_agent_poc.wechat_ui import WeixinUiWindowObserver
+
+        return WeixinUiWindowObserver()
     raise HaltError(
         Halt(
             "WINDOW_MISMATCH",

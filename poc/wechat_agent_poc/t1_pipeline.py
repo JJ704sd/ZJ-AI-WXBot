@@ -213,7 +213,17 @@ def execute_t1(
         )
         visible_ids = [int(item["source_message_id"]) for item in rows if item["source_message_id"] is not None]
         new_ids = [int(item["source_message_id"]) for item in new_rows if item["source_message_id"] is not None]
-        ingest_verdict = "通过当前限定场景" if len(new_rows) >= 20 and len(set(new_ids)) == 20 else "部分通过且有限制"
+        wecom_tags = sorted(
+            {token for row in new_rows for token in row.get("sample_tokens", []) if str(token).startswith("T1-W-")}
+        )
+        personal_tags = sorted(
+            {token for row in new_rows for token in row.get("sample_tokens", []) if str(token).startswith("T1-P-")}
+        )
+        t2_tags = sorted(
+            {token for row in new_rows for token in row.get("sample_tokens", []) if str(token).startswith("T2-")}
+        )
+        numbered_ok = len(wecom_tags) == 10 and len(personal_tags) == 10 and len(set(new_ids)) >= 20
+        ingest_verdict = "通过当前限定场景" if numbered_ok and wal_visible else "部分通过且有限制"
         record["stages"]["G-INGEST"] = {
             "verdict": ingest_verdict,
             "prior_watermark_local_id": prior_watermark or None,
@@ -224,8 +234,11 @@ def execute_t1(
             "events": new_rows,
             "mention_scan": rows,
             "wal_committed_frames_visible": wal_visible,
-            "numbered_sample_count": 0,
-            "note": "numbered T1 20/20 requires participant samples; this run does not mint collection rows",
+            "numbered_sample_count": len(wecom_tags) + len(personal_tags),
+            "numbered_wecom_tags": wecom_tags,
+            "numbered_personal_tags": personal_tags,
+            "t2_sample_tags": t2_tags,
+            "note": "numbered T1 20/20 requires 10 T1-W + 10 T1-P unique tokens and 20 unique native ids; this run does not mint collection rows",
         }
         record["verdict"] = (
             "通过当前限定场景"
@@ -309,6 +322,7 @@ def _read_bound_messages(
                     "mention_all": mention.mention_all,
                     "text_len": len(decoded.text or "") if decoded.sendable else 0,
                     "parse_status": decoded.status,
+                    "sample_tokens": _sample_tokens(decoded.text or ""),
                     "mention_columns_present": mention_cols,
                     "packed_info_bytes": len(blob),
                     "packed_info_prefix": blob[:12].hex() if blob else "",
@@ -326,6 +340,10 @@ def _read_bound_messages(
         return rows
     finally:
         conn.close()
+
+
+def _sample_tokens(text: str) -> list[str]:
+    return list(dict.fromkeys(re.findall(r"\b(T1-W-\d{2}|T1-P-\d{2}|T2-\d{2})\b", text or "")))
 
 
 def _as_blob(value: Any) -> bytes:

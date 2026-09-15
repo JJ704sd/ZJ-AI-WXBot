@@ -34,7 +34,10 @@ class DesktopStubSender:
 
 
 class ObservedDesktopSender:
-    """Requires a live-observed window. Does not drive WeChat UI until allow_live_send is armed."""
+    """Requires a live-observed window. UI typing is off unless ui_send is provided."""
+
+    def __init__(self, ui_send=None):
+        self.ui_send = ui_send
 
     def send_text(self, binding: Binding, text: str, window: WindowState | None) -> SendResult:
         if window is None or window.located_by in {"binding_map", "config_synthetic", "name_search_only"}:
@@ -45,13 +48,15 @@ class ObservedDesktopSender:
                     {"submit_stage": "not_sent"},
                 )
             )
-        raise HaltError(
-            Halt(
-                "WINDOW_MISMATCH",
-                "live UI send is not armed; observation contract is recorded only",
-                {"submit_stage": "not_sent", "binding_version": binding.binding_version, "text_len": len(text)},
+        if self.ui_send is None:
+            raise HaltError(
+                Halt(
+                    "WINDOW_MISMATCH",
+                    "live UI send is not armed; observation contract is recorded only",
+                    {"submit_stage": "not_sent", "binding_version": binding.binding_version, "text_len": len(text)},
+                )
             )
-        )
+        return self.ui_send(binding, text, window)
 
 
 def parse_time(value: str) -> datetime:

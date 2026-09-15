@@ -14,6 +14,7 @@ from wechat_agent_poc.r0_pipeline import execute_r0
 from wechat_agent_poc.secrets_out import scrub_json
 from wechat_agent_poc.t0_check import t0_from_path
 from wechat_agent_poc.t1_pipeline import execute_t1
+from wechat_agent_poc.t4_pipeline import assert_t4_send_permitted, t4_from_path
 from wechat_agent_poc.probe import probe_machine
 from wechat_agent_poc.reader import SqlcipherReader, SqlitePlainReader
 from wechat_agent_poc.responder import Responder, load_model_client
@@ -38,6 +39,9 @@ def main(argv: list[str] | None = None) -> int:
     t2.add_argument("--self-sender-key", required=True)
     t2.add_argument("--field", action="append", default=[], help="name=value structured mention field")
     t2.add_argument("--text", default="")
+    sub.add_parser("t4-check")
+    t4s = sub.add_parser("t4-send")
+    t4s.add_argument("--index", type=int, choices=(1, 2, 3), required=True)
     run = sub.add_parser("run")
     run.add_argument("--cycles", type=int, default=1)
     run.add_argument("--seconds", type=float, default=30)
@@ -70,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
     config = load_config(args.config)
     assert_mode_lock(config)
     store = None
-    if args.cmd not in {"t0-check", "t2-scan", "t1-read"}:
+    if args.cmd not in {"t0-check", "t2-scan", "t1-read", "t4-check", "t4-send"}:
         store = Store(config.store_path)
         store.bind_namespace(state_namespace(config))
     if args.cmd == "status":
@@ -161,6 +165,34 @@ def main(argv: list[str] | None = None) -> int:
             fields[name] = value
         decision = classify_mention(self_sender_key=args.self_sender_key, fields=fields, text=args.text)
         print(json.dumps(scrub_json(decision.as_dict()), ensure_ascii=False, indent=2))
+        return 0
+    if args.cmd == "t4-check":
+        report = t4_from_path(args.config)
+        print(json.dumps(scrub_json(report), ensure_ascii=False, indent=2))
+        return 0
+    if args.cmd == "t4-send":
+        from wechat_agent_poc.t4_pipeline import execute_t4_send
+
+        try:
+            record = execute_t4_send(config, args.index)
+        except HaltError as exc:
+            print(
+                json.dumps(
+                    {
+                        "blocked": True,
+                        "phase": "T4",
+                        "index": args.index,
+                        "submit_stage": exc.halt.details.get("submit_stage") if exc.halt.details else "not_sent",
+                        "message": exc.halt.message,
+                        "details": exc.halt.details,
+                        "model_called": 0,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 2
+        print(json.dumps(scrub_json(record), ensure_ascii=False, indent=2))
         return 0
     if args.cmd == "pause":
         store.pause("operator")
@@ -257,6 +289,10 @@ def _sender(config):
     if config.adapters.sender == "desktop_stub":
         return DesktopStubSender()
     if config.adapters.sender == "desktop_observed":
+        if config.allow_live_send:
+            from wechat_agent_poc.wechat_ui import send_observed_text
+
+            return ObservedDesktopSender(ui_send=send_observed_text)
         return ObservedDesktopSender()
     raise ConfigError(f"unsupported sender {config.adapters.sender}")
 

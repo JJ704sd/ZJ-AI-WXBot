@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from typing import Any, Literal, Mapping
+import re
 
 SCHEMA_VERSION = "1"
 MODES = ("offline", "read_only", "draft_only", "manual_send")
@@ -57,6 +58,19 @@ class Binding:
         if window.get("account_wxid") != self.account_wxid and window.get("account_alias") != self.account_alias:
             return False, "account_mismatch"
         name = str(window.get("display_name") or "")
+        located = str(window.get("located_by") or "")
+        if located == "uia_selected_chat_title":
+            observed = re.sub(r"\s*\(\d+\)\s*$", "", name).strip()
+            if observed != self.display_name:
+                return False, "group_renamed"
+            if window.get("focus") is False:
+                return False, "focus_changed"
+            conversation = str(window.get("conversation_key") or "")
+            if conversation and conversation != self.conversation_key:
+                return False, "conversation_mismatch"
+            if window.get("rebuilt") is True:
+                return False, "window_rebuilt"
+            return True, "ok"
         if name and name != self.display_name:
             return False, "group_renamed"
         details = str(window.get("details") or "")
