@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from pathlib import Path
 from typing import Any, Callable
@@ -293,6 +294,7 @@ def _read_bound_messages(
                 extracted = extract_protobuf_strings(blob) or []
                 proto_ids = [item for item in extracted if MEMBER_KEY_RE.fullmatch(item)]
             source_text = decode_sqlite_text(source_blob).text or "" if source_blob else ""
+            shape = _source_shape(source_text, self_sender_key)
             rows.append(
                 {
                     "event_key": event_key(account_alias, "message_0", table, local_id, conversation_key),
@@ -309,15 +311,16 @@ def _read_bound_messages(
                     "parse_status": decoded.status,
                     "mention_columns_present": mention_cols,
                     "packed_info_bytes": len(blob),
-                    "packed_info_prefix": blob[:24].hex() if blob else "",
+                    "packed_info_prefix": blob[:12].hex() if blob else "",
                     "packed_info_member_ids": proto_ids[:8],
                     "packed_info_fields": _protobuf_varints(blob)[:12],
                     "source_bytes": len(source_blob),
-                    "source_prefix": source_blob[:48].hex() if source_blob else "",
                     "source_has_atuserlist": "atuserlist" in source_text.lower(),
+                    "source_has_atuserlist_tag": bool(re.search(r"<atuserlist\b", source_text, flags=re.I)),
                     "source_has_self_key": bool(self_sender_key) and self_sender_key in source_text,
                     "source_has_notify_all": "notify@all" in source_text.lower(),
                     "body_has_display_at": "@" in (decoded.text or ""),
+                    **shape,
                 }
             )
         return rows
@@ -333,6 +336,45 @@ def _as_blob(value: Any) -> bytes:
     if isinstance(value, str) and value:
         return value.encode("utf-8")
     return b""
+
+
+def _mask_ids(text: str, self_sender_key: str) -> str:
+    masked = text
+    if self_sender_key:
+        masked = masked.replace(self_sender_key, "{self}")
+    masked = re.sub(r"wxid_[A-Za-z0-9_-]+", "{wxid}", masked)
+    masked = re.sub(r"\d+@openim", "{openim}", masked)
+    masked = re.sub(r"[0-9a-fA-F]{16,}", "{hex}", masked)
+    return masked
+
+
+def _classify_inner(inner: str, self_sender_key: str) -> str:
+    token = (inner or "").strip()
+    if not token:
+        return "empty"
+    if self_sender_key and token == self_sender_key:
+        return "self"
+    if token.lower() in {"notify@all", "@all", "all"}:
+        return "all"
+    if re.fullmatch(r"(wxid_[A-Za-z0-9_-]+|\d+@openim)", token):
+        return "other_member"
+    return f"unparsed_len_{len(token)}"
+
+
+def _source_shape(source_text: str, self_sender_key: str) -> dict[str, Any]:
+    tags = list(dict.fromkeys(re.findall(r"<([A-Za-z_][\w:.-]*)", source_text)))[:24]
+    idx = source_text.lower().find("atuserlist")
+    window = ""
+    if idx >= 0:
+        window = _mask_ids(source_text[max(0, idx - 24) : idx + 80], self_sender_key)
+    inners = re.findall(r"<atuserlist\b[^>]*>(.*?)</atuserlist>", source_text, flags=re.I | re.S)
+    attrs = re.findall(r"\batuserlist\s*=\s*[\"']([^\"']+)[\"']", source_text, flags=re.I)
+    return {
+        "source_tags": tags,
+        "source_atuserlist_window": window,
+        "source_atuserlist_inners": [_classify_inner(item, self_sender_key) for item in inners[:4]],
+        "source_atuserlist_attrs": [_classify_inner(item, self_sender_key) for item in attrs[:4]],
+    }
 
 
 def _protobuf_varints(blob: bytes) -> list[dict[str, int]]:
