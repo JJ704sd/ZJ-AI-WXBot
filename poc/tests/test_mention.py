@@ -117,6 +117,22 @@ def test_unescaped_msgsource_still_reads_atuserlist():
     assert decision.source_field == "source"
 
 
+def test_zstd_source_atuserlist_is_true():
+    import zstandard
+
+    xml = f"<msgsource>\n\t<atuserlist>{SELF}</atuserlist>\n</msgsource>".encode("utf-8")
+    blob = zstandard.ZstdCompressor().compress(xml)
+    assert blob.startswith(b"\x28\xb5\x2f\xfd")
+    decision = classify_mention(
+        self_sender_key=SELF,
+        fields={"packed_info_data": bytes.fromhex("081010025800"), "source": blob},
+        text="@示例本人 小小豪，收到请回复，over",
+    )
+    assert decision.mention_self == "true"
+    assert decision.mentioned_keys == (SELF,)
+    assert decision.source_field == "source"
+
+
 def test_reader_uses_packed_info_not_body(tmp_path: Path):
     config = make_config(tmp_path, account={"self_sender_key": SELF, "wxid": ACCOUNT})
     message_dir = account_dir(tmp_path / "data", ACCOUNT)

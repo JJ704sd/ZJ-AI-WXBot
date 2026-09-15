@@ -10,6 +10,7 @@ from typing import Any, Literal, Mapping
 
 from wechat_agent_poc.chat_room_codec import MEMBER_KEY_RE, extract_protobuf_strings
 from wechat_agent_poc.models import MentionSelf
+from wechat_agent_poc.text_decode import decode_sqlite_text
 
 MENTION_ALL_KEYS = frozenset(
     {
@@ -297,6 +298,9 @@ def _as_text_or_bytes(value: Any) -> tuple[str, bytes] | None:
         value = bytes(value)
     if isinstance(value, (bytes, bytearray)):
         raw = bytes(value)
+        decoded = decode_sqlite_text(raw)
+        if decoded.status == "ok" and decoded.text:
+            return decoded.text, raw
         try:
             return raw.decode("utf-8"), raw
         except UnicodeDecodeError:
