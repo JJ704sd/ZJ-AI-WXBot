@@ -79,6 +79,44 @@ def test_live_packed_info_without_member_ids_is_false_not_unknown():
     assert decision.mention_self == "false"
 
 
+def test_empty_packed_info_does_not_hide_source_atuserlist():
+    decision = classify_mention(
+        self_sender_key=SELF,
+        fields={
+            "packed_info_data": bytes.fromhex("081010025800"),
+            "source": f"<msgsource><atuserlist>{SELF}</atuserlist></msgsource>",
+        },
+        text="@示例本人 收到请回复",
+    )
+    assert decision.mention_self == "true"
+    assert decision.source_field == "source"
+    assert decision.mentioned_keys == (SELF,)
+    fake = classify_mention(
+        self_sender_key=SELF,
+        fields={
+            "packed_info_data": bytes.fromhex("081010025800"),
+            "source": "<msgsource></msgsource>",
+        },
+        text="@示例本人 收到请回复",
+    )
+    assert fake.mention_self == "false"
+
+
+def test_unescaped_msgsource_still_reads_atuserlist():
+    messy = (
+        "<msgsource><signature>a & b</signature>"
+        f"<atuserlist>{SELF}</atuserlist></msgsource>"
+    )
+    decision = classify_mention(
+        self_sender_key=SELF,
+        fields={"packed_info_data": bytes.fromhex("081010025800"), "source": messy},
+        text="@示例本人 小小豪，收到请回复，over",
+    )
+    assert decision.mention_self == "true"
+    assert decision.mentioned_keys == (SELF,)
+    assert decision.source_field == "source"
+
+
 def test_reader_uses_packed_info_not_body(tmp_path: Path):
     config = make_config(tmp_path, account={"self_sender_key": SELF, "wxid": ACCOUNT})
     message_dir = account_dir(tmp_path / "data", ACCOUNT)

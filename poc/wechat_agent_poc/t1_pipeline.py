@@ -23,6 +23,7 @@ from wechat_agent_poc.locator import (
 )
 from wechat_agent_poc.mention import STRUCTURED_FIELD_NAMES, classify_mention
 from wechat_agent_poc.models import Halt, HaltError, event_key
+from wechat_agent_poc.text_decode import decode_sqlite_text
 from wechat_agent_poc.page_cipher import apply_encrypted_wal, decrypt_bytes
 from wechat_agent_poc.r0_pipeline import _cleanup, _derived_keys, _integrity, _write_json
 from wechat_agent_poc.session_map import quoted_ident, resolve_msg_table
@@ -193,7 +194,8 @@ def execute_t1(
                 authorization_ref=auth,
             )
             record["binding"]["written"] = True
-        prior_watermark = 5 if conversation_key == "example_group@chatroom" else 0
+        bound_key = str(config.binding.conversation_key or "")
+        prior_watermark = 5 if conversation_key and conversation_key == bound_key else 0
         rows = _read_bound_messages(
             copies[TARGET_MESSAGE],
             conversation_key,
@@ -203,7 +205,7 @@ def execute_t1(
         new_rows = [
             item
             for item in rows
-            if prior_watermark and int(item["source_message_id"] or 0) > prior_watermark
+            if int(item["source_message_id"] or 0) > prior_watermark
         ]
         wal_visible = any(
             int(item.get("committed_frames") or 0) > 0 and item.get("file") == TARGET_MESSAGE for item in wal_reports
@@ -219,6 +221,7 @@ def execute_t1(
             "new_events": len(new_rows),
             "unique_native_ids": sorted(set(new_ids)),
             "events": new_rows,
+            "mention_scan": rows,
             "wal_committed_frames_visible": wal_visible,
             "numbered_sample_count": 0,
             "note": "numbered T1 20/20 requires participant samples; this run does not mint collection rows",
@@ -281,18 +284,15 @@ def _read_bound_messages(
             is_self = "unknown"
             if self_sender_key and sender:
                 is_self = "true" if sender == self_sender_key else "false"
-            blob = b""
-            packed = fields.get("packed_info_data") or fields.get("packed_info")
-            if isinstance(packed, (bytes, bytearray)):
-                blob = bytes(packed)
-            elif isinstance(packed, str):
-                blob = packed.encode("utf-8")
+            blob = _as_blob(fields.get("packed_info_data") or fields.get("packed_info"))
+            source_blob = _as_blob(fields.get("source") or fields.get("msgsource") or fields.get("message_source"))
             proto_ids = []
             if blob:
-                from wechat_agent_poc.chat_room_codec import extract_protobuf_strings, MEMBER_KEY_RE
+                from wechat_agent_poc.chat_room_codec import MEMBER_KEY_RE, extract_protobuf_strings
 
                 extracted = extract_protobuf_strings(blob) or []
                 proto_ids = [item for item in extracted if MEMBER_KEY_RE.fullmatch(item)]
+            source_text = decode_sqlite_text(source_blob).text or "" if source_blob else ""
             rows.append(
                 {
                     "event_key": event_key(account_alias, "message_0", table, local_id, conversation_key),
@@ -309,10 +309,64 @@ def _read_bound_messages(
                     "parse_status": decoded.status,
                     "mention_columns_present": mention_cols,
                     "packed_info_bytes": len(blob),
-                    "packed_info_prefix": blob[:16].hex() if blob else "",
+                    "packed_info_prefix": blob[:24].hex() if blob else "",
                     "packed_info_member_ids": proto_ids[:8],
+                    "packed_info_fields": _protobuf_varints(blob)[:12],
+                    "source_bytes": len(source_blob),
+                    "source_prefix": source_blob[:48].hex() if source_blob else "",
+                    "source_has_atuserlist": "atuserlist" in source_text.lower(),
+                    "source_has_self_key": bool(self_sender_key) and self_sender_key in source_text,
+                    "source_has_notify_all": "notify@all" in source_text.lower(),
+                    "body_has_display_at": "@" in (decoded.text or ""),
                 }
             )
         return rows
     finally:
         conn.close()
+
+
+def _as_blob(value: Any) -> bytes:
+    if isinstance(value, memoryview):
+        value = bytes(value)
+    if isinstance(value, (bytes, bytearray)):
+        return bytes(value)
+    if isinstance(value, str) and value:
+        return value.encode("utf-8")
+    return b""
+
+
+def _protobuf_varints(blob: bytes) -> list[dict[str, int]]:
+    from wechat_agent_poc.chat_room_codec import _read_varint
+
+    index = 0
+    fields: list[dict[str, int]] = []
+    while index < len(blob) and len(fields) < 16:
+        tag, index = _read_varint(blob, index)
+        if tag is None:
+            break
+        field_num = tag >> 3
+        wire = tag & 7
+        if wire == 0:
+            value, index = _read_varint(blob, index)
+            if value is None:
+                break
+            fields.append({"field": field_num, "wire": wire, "value": value})
+        elif wire == 2:
+            length, index = _read_varint(blob, index)
+            if length is None or index + length > len(blob):
+                break
+            fields.append({"field": field_num, "wire": wire, "length": length})
+            index += length
+        elif wire == 1:
+            if index + 8 > len(blob):
+                break
+            fields.append({"field": field_num, "wire": wire})
+            index += 8
+        elif wire == 5:
+            if index + 4 > len(blob):
+                break
+            fields.append({"field": field_num, "wire": wire})
+            index += 4
+        else:
+            break
+    return fields

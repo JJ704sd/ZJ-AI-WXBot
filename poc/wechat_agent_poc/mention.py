@@ -61,8 +61,8 @@ def classify_mention(
     text: str | None = None,
 ) -> MentionDecision:
     payload = dict(fields or {})
-    structured = _first_structured_field(payload)
-    if structured is None:
+    candidates = list(_iter_structured_fields(payload))
+    if not candidates:
         return MentionDecision(
             mention_self="unknown",
             mentioned_keys=(),
@@ -70,27 +70,33 @@ def classify_mention(
             source_field=None,
             reason="mention_field_absent",
         )
-    name, value = structured
-    parsed = _parse_structured_value(value, field_name=name)
-    if parsed is None:
-        return MentionDecision(
-            mention_self="unknown",
-            mentioned_keys=(),
-            mention_all=False,
-            source_field=name,
-            reason="mention_parse_failed",
-        )
-    keys, mention_all, reason = parsed
-    if mention_all:
-        return MentionDecision("false", keys, True, name, "mention_all")
-    if not keys:
-        return MentionDecision("false", (), False, name, "structured_empty")
-    unique = tuple(dict.fromkeys(keys))
-    if not self_sender_key:
-        return MentionDecision("unknown", unique, False, name, "self_sender_key_missing")
-    if unique == (self_sender_key,):
-        return MentionDecision("true", unique, False, name, "structured_self_only")
-    return MentionDecision("false", unique, False, name, "structured_not_self_only")
+    empty_name: str | None = None
+    failed_name: str | None = None
+    for name, value in candidates:
+        parsed = _parse_structured_value(value, field_name=name)
+        if parsed is None:
+            failed_name = failed_name or name
+            continue
+        keys, mention_all, _reason = parsed
+        if mention_all:
+            return MentionDecision("false", keys, True, name, "mention_all")
+        if keys:
+            unique = tuple(dict.fromkeys(keys))
+            if not self_sender_key:
+                return MentionDecision("unknown", unique, False, name, "self_sender_key_missing")
+            if unique == (self_sender_key,):
+                return MentionDecision("true", unique, False, name, "structured_self_only")
+            return MentionDecision("false", unique, False, name, "structured_not_self_only")
+        empty_name = empty_name or name
+    if empty_name:
+        return MentionDecision("false", (), False, empty_name, "structured_empty")
+    return MentionDecision(
+        mention_self="unknown",
+        mentioned_keys=(),
+        mention_all=False,
+        source_field=failed_name,
+        reason="mention_parse_failed",
+    )
 
 
 def strip_display_mentions(text: str | None) -> str:
@@ -101,21 +107,26 @@ def strip_display_mentions(text: str | None) -> str:
     return " ".join(cleaned.split())
 
 
-def _first_structured_field(fields: Mapping[str, Any]) -> tuple[str, Any] | None:
+def _iter_structured_fields(fields: Mapping[str, Any]) -> list[tuple[str, Any]]:
     lowered = {str(key).lower(): (str(key), value) for key, value in fields.items()}
+    found: list[tuple[str, Any]] = []
     for name in STRUCTURED_FIELD_NAMES:
-        if name in lowered:
-            original, value = lowered[name]
-            if value is None:
-                continue
-            if isinstance(value, (bytes, bytearray)) and not bytes(value):
-                continue
-            if isinstance(value, str) and not value.strip():
-                continue
-            if isinstance(value, (list, tuple, dict)) and len(value) == 0:
-                return original, value
-            return original, value
-    return None
+        if name not in lowered:
+            continue
+        original, value = lowered[name]
+        if value is None:
+            continue
+        if isinstance(value, (bytes, bytearray)) and not bytes(value):
+            continue
+        if isinstance(value, str) and not value.strip():
+            continue
+        found.append((original, value))
+    return found
+
+
+def _first_structured_field(fields: Mapping[str, Any]) -> tuple[str, Any] | None:
+    items = _iter_structured_fields(fields)
+    return items[0] if items else None
 
 
 def _parse_structured_value(value: Any, *, field_name: str) -> tuple[tuple[str, ...], bool, str] | None:
@@ -174,8 +185,15 @@ def _parse_structured_value(value: Any, *, field_name: str) -> tuple[tuple[str, 
 
 def _parse_top_level_xml_atuserlist(text: str) -> tuple[tuple[str, ...], bool] | None:
     stripped = text.strip()
-    if not stripped.startswith("<"):
+    if "<" not in stripped:
         return None
+    parsed = _parse_et_atuserlist(stripped)
+    if parsed is not None:
+        return parsed
+    return _parse_regex_atuserlist(stripped)
+
+
+def _parse_et_atuserlist(stripped: str) -> tuple[tuple[str, ...], bool] | None:
     try:
         wrapped = stripped if stripped.startswith("<?xml") else f"<root>{stripped}</root>"
         root = ET.fromstring(wrapped)
@@ -192,13 +210,44 @@ def _parse_top_level_xml_atuserlist(text: str) -> tuple[tuple[str, ...], bool] |
         return (), False
     if not nodes:
         return None
+    return _tokens_from_parts([(node.text or "") for node in nodes])
+
+
+def _parse_regex_atuserlist(text: str) -> tuple[tuple[str, ...], bool] | None:
+    if not re.search(r"</?atuser(?:list)?\b", text, flags=re.I):
+        return None
+    stripped = re.sub(
+        r"<(refermsg|quotedmessage|quote|appmsg)\b[^>]*>.*?</\1>",
+        " ",
+        text,
+        flags=re.I | re.S,
+    )
+    chunks = [
+        (cdata or plain)
+        for cdata, plain in re.findall(
+            r"<atuserlist\b[^>]*>(?:<!\[CDATA\[(.*?)\]\]>|([^<]*))</atuserlist>",
+            stripped,
+            flags=re.I | re.S,
+        )
+    ]
+    chunks.extend(
+        (cdata or plain)
+        for cdata, plain in re.findall(
+            r"<atuser\b[^>]*>(?:<!\[CDATA\[(.*?)\]\]>|([^<]*))</atuser>",
+            stripped,
+            flags=re.I | re.S,
+        )
+    )
+    if not chunks:
+        return (), False
+    return _tokens_from_parts(chunks)
+
+
+def _tokens_from_parts(parts: list[str]) -> tuple[tuple[str, ...], bool]:
     tokens: list[str] = []
     mention_all = False
-    for node in nodes:
-        body = (node.text or "").strip()
-        if not body:
-            continue
-        for part in re.split(r"[,\s]+", body):
+    for body in parts:
+        for part in re.split(r"[,\s]+", (body or "").strip()):
             if not part:
                 continue
             if part.lower() in MENTION_ALL_KEYS:
