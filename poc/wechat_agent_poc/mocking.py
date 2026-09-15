@@ -41,7 +41,7 @@ def make_event(
 ) -> Event:
     return Event(
         schema_version=SCHEMA_VERSION,
-        event_key=event_key(account, shard, table, message_id),
+        event_key=event_key(account, shard, table, message_id, conversation),
         account_alias=account,
         conversation_key=conversation,
         source_shard=shard,

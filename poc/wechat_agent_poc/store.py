@@ -103,6 +103,14 @@ CREATE TABLE IF NOT EXISTS audit (
     kind TEXT NOT NULL,
     payload TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS baseline_keys (
+    account_alias TEXT NOT NULL,
+    source_shard TEXT NOT NULL,
+    source_table TEXT NOT NULL,
+    source_message_id INTEGER NOT NULL,
+    source_time INTEGER,
+    PRIMARY KEY (account_alias, source_shard, source_table, source_message_id)
+);
 """
 
 
@@ -149,6 +157,19 @@ class Store:
     def _init(self) -> None:
         with self.connect() as conn:
             conn.executescript(SCHEMA)
+            self._migrate(conn)
+
+    def _migrate(self, conn: sqlite3.Connection) -> None:
+        approval_cols = {row[1] for row in conn.execute("PRAGMA table_info(approvals)")}
+        if "consumed_at" not in approval_cols:
+            conn.execute("ALTER TABLE approvals ADD COLUMN consumed_at TEXT")
+        attempt_cols = {row[1] for row in conn.execute("PRAGMA table_info(send_attempts)")}
+        if "submit_stage" not in attempt_cols:
+            conn.execute("ALTER TABLE send_attempts ADD COLUMN submit_stage TEXT")
+        if "sender_kind" not in attempt_cols:
+            conn.execute("ALTER TABLE send_attempts ADD COLUMN sender_kind TEXT")
+        if "receiver_kind" not in attempt_cols:
+            conn.execute("ALTER TABLE send_attempts ADD COLUMN receiver_kind TEXT")
 
     def now(self) -> str:
         return isoformat(self.clock.now())
@@ -290,7 +311,8 @@ class Store:
 
     def context(self, conversation_key: str, before_time: int | None, limit: int) -> list[Event]:
         sql = """SELECT raw_json FROM events
-                 WHERE conversation_key = ? AND parse_status = 'ok' AND text IS NOT NULL"""
+                 WHERE conversation_key = ? AND parse_status = 'ok' AND text IS NOT NULL
+                   AND is_historical = 0 AND is_replay = 0"""
         params: list[Any] = [conversation_key]
         if before_time is not None:
             sql += " AND (source_time IS NULL OR source_time <= ?)"
@@ -401,6 +423,83 @@ class Store:
             rows = conn.execute(sql, params).fetchall()
         return [self._draft(row) for row in rows]
 
+    def save_baseline_keys(
+        self,
+        account: str,
+        shard: str,
+        table: str,
+        ids: Iterable[tuple[int | None, int | None]],
+    ) -> None:
+        with self.connect() as conn:
+            for message_id, source_time in ids:
+                if message_id is None:
+                    continue
+                conn.execute(
+                    """INSERT OR IGNORE INTO baseline_keys(
+                        account_alias, source_shard, source_table, source_message_id, source_time
+                    ) VALUES (?,?,?,?,?)""",
+                    (account, shard, table, int(message_id), source_time),
+                )
+
+    def baseline_message_ids(self, account: str, shard: str, table: str) -> set[int]:
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT source_message_id FROM baseline_keys
+                   WHERE account_alias=? AND source_shard=? AND source_table=?""",
+                (account, shard, table),
+            ).fetchall()
+        return {int(row["source_message_id"]) for row in rows}
+
+    def bind_namespace(self, namespace: str) -> None:
+        existing = self.runtime_get("namespace")
+        if existing is None:
+            self.runtime_set("namespace", namespace)
+            return
+        if existing != namespace:
+            raise HaltError(
+                Halt(
+                    "STATE_NAMESPACE",
+                    "refusing to reuse this state database across synthetic and live namespaces",
+                    {"existing": existing, "requested": namespace},
+                )
+            )
+
+    def occupy_approved_for_send(self, draft_id: str, approval_id: str) -> None:
+        now = self.now()
+        conn = sqlite3.connect(self.path, isolation_level="IMMEDIATE")
+        conn.row_factory = sqlite3.Row
+        try:
+            if conn.execute("SELECT 1 FROM drafts WHERE status = 'uncertain' LIMIT 1").fetchone():
+                raise HaltError(Halt("SENDING_UNCERTAIN", "an earlier send is uncertain; do not retry"))
+            if conn.execute("SELECT 1 FROM drafts WHERE status = 'sending' LIMIT 1").fetchone():
+                raise HaltError(Halt("SENDING_UNCERTAIN", "another send is in flight"))
+            approval = conn.execute("SELECT * FROM approvals WHERE approval_id = ?", (approval_id,)).fetchone()
+            if approval is None:
+                raise HaltError(Halt("REVIEW_MISSING", "approval not found"))
+            keys = approval.keys()
+            consumed = approval["consumed_at"] if "consumed_at" in keys else None
+            if consumed:
+                raise HaltError(Halt("REVIEW_STATE", "approval already consumed"))
+            cursor = conn.execute(
+                "UPDATE drafts SET status=?, updated_at=? WHERE draft_id=? AND status='approved'",
+                ("sending", now, draft_id),
+            )
+            if cursor.rowcount != 1:
+                raise HaltError(Halt("REVIEW_STATE", "task is not an unconsumed approved draft"))
+            consumed_cursor = conn.execute(
+                "UPDATE approvals SET consumed_at=? WHERE approval_id=? AND IFNULL(consumed_at,'') = ''",
+                (now, approval_id),
+            )
+            if consumed_cursor.rowcount != 1:
+                raise HaltError(Halt("REVIEW_STATE", "approval consume raced"))
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+        self.audit("occupy_send", {"draft_id": draft_id, "approval_id": approval_id})
+
     def set_draft_status(self, draft_id: str, status: str, extra: dict[str, Any] | None = None) -> None:
         with self.connect() as conn:
             conn.execute(
@@ -486,13 +585,30 @@ class Store:
         note: str,
         wecom: str = "pending",
         wechat: str = "pending",
+        submit_stage: str | None = None,
+        sender_kind: str | None = None,
+        receiver_kind: str | None = None,
     ) -> str:
         attempt_id = f"att-{uuid4().hex[:12]}"
         with self.connect() as conn:
             conn.execute(
                 """INSERT INTO send_attempts(attempt_id, approval_id, draft_id, status, local_result, wecom_receiver,
-                   wechat_receiver, created_at, note) VALUES (?,?,?,?,?,?,?,?,?)""",
-                (attempt_id, approval_id, draft_id, status, local_result, wecom, wechat, self.now(), note),
+                   wechat_receiver, created_at, note, submit_stage, sender_kind, receiver_kind)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    attempt_id,
+                    approval_id,
+                    draft_id,
+                    status,
+                    local_result,
+                    wecom,
+                    wechat,
+                    self.now(),
+                    note,
+                    submit_stage,
+                    sender_kind,
+                    receiver_kind,
+                ),
             )
         return attempt_id
 

@@ -55,3 +55,8 @@ sender = "mock"
     out = capsys.readouterr().out
     assert "offline" in out
     assert "process_key_extraction" in out
+    assert "machine" in out
+    assert "accounts_listed" in out
+    assert "G-READ" in out
+    assert "G-SEND" in out
+    assert "G-MODEL" in out

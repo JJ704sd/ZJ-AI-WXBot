@@ -38,11 +38,11 @@ There is no approve-all. `verify` without both `--wecom` and `--wechat` leaves t
 
 ## Live gaps (fill once, then continue offline work)
 
-`r0-check` prints the minimum missing fields. Do not copy credentials from other projects. Route B (desktop read+send) is not started until route A R0 is recorded as blocked.
+`r0-check` 会读取本机 Weixin/WXWork **文件版本**、默认数据目录是否存在、进程名是否在运行；**不会**列出 wxid、打开聊天库或读取进程内存。`sqlite_plain` 不能打开真实 `xwechat_files`。Live checklist: `config.live.example.toml`（复制到 `.local/`，不要提交密钥）。Do not copy credentials from other projects. Route B (desktop read+send) is not started until route A R0 is recorded as a database-threshold failure.
 
 ## Coverage limit
 
-Messages older than `checkpoint minus lookback_seconds` (default 120) that appear later are stored as historical and are not queued for reply. That coverage gap needs a manual rescan.
+First start builds a **metadata baseline** only: existing message bodies are not decoded or stored. Messages older than `checkpoint minus lookback_seconds` (default 120) that appear later are a coverage gap and are not ingested. That gap needs a manual rescan.
 
 ## Third-party reuse
 

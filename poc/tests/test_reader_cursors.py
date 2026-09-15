@@ -18,7 +18,11 @@ def test_numeric_id_10_after_9_same_second(tmp_path: Path):
     store = Store(tmp_path / "s.sqlite")
     reader = SqlitePlainReader(config, store)
     baseline = reader.read_new_messages()
-    assert len(baseline) == 1 and baseline[0].is_historical
+    assert baseline == []
+    assert store.runtime_get("baseline_ready_at")
+    with store.connect() as conn:
+        stored_text = conn.execute("SELECT COUNT(*) AS n FROM events").fetchone()["n"]
+    assert stored_text == 0
     write_db(db, CONVERSATION, [{"local_id": 10, "text": "second", "create_time": TIME}])
     second = reader.read_new_messages()
     assert [event.source_message_id for event in second] == [10]
@@ -85,15 +89,19 @@ def test_new_wal_after_discovery_is_seen(tmp_path: Path):
 
 def test_account_namespace_in_event_key(tmp_path: Path):
     config_a = make_config(tmp_path, account={"alias": "account-a"})
-    events_spec = [{"local_id": 1, "text": "hello"}]
     message_dir = account_dir(tmp_path / "data", ACCOUNT)
-    write_db(message_dir / "message_0.db", CONVERSATION, events_spec)
+    db = message_dir / "message_0.db"
+    write_db(db, CONVERSATION, [])
     store = Store(tmp_path / "s.sqlite")
-    one = SqlitePlainReader(config_a, store).read_new_messages()
+    reader_a = SqlitePlainReader(config_a, store)
+    assert reader_a.read_new_messages() == []
     config_b = make_config(tmp_path, account={"alias": "account-b"})
-    # Re-read same native ids under a different account alias into a fresh store.
     store_b = Store(tmp_path / "s2.sqlite")
-    two = SqlitePlainReader(config_b, store_b).read_new_messages()
+    reader_b = SqlitePlainReader(config_b, store_b)
+    assert reader_b.read_new_messages() == []
+    write_db(db, CONVERSATION, [{"local_id": 1, "text": "hello"}])
+    one = reader_a.read_new_messages()
+    two = reader_b.read_new_messages()
     assert one[0].event_key != two[0].event_key
     assert one[0].event_key.startswith("account-a|")
     assert two[0].event_key.startswith("account-b|")
@@ -113,8 +121,8 @@ def test_lookback_accepts_late_row_but_not_beyond_window(tmp_path: Path):
     by_text = {event.text: event for event in events}
     assert "late-ok" in by_text
     assert by_text["late-ok"].is_historical is False
-    assert "too-old" in by_text
-    assert by_text["too-old"].is_historical is True
+    # v0.2 READ-05: beyond lookback is a coverage gap, not ingested as sendable/historical text.
+    assert "too-old" not in by_text
 
 
 def test_replay_does_not_create_new_event(tmp_path: Path):

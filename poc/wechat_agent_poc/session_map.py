@@ -41,6 +41,8 @@ def resolve_msg_table(conn: sqlite3.Connection, conversation_key: str) -> str | 
 
 
 def allow_conversation(conversation_key: str, whitelist: Iterable[str]) -> bool:
+    if not conversation_key:
+        return False
     return conversation_key in set(whitelist)
 
 

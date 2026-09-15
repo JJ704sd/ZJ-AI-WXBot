@@ -4,18 +4,20 @@
 
 本记录不是自动回复或生产可用结论。人工确认闭环 ≠ 无人值守。
 
+测试计数 **29 passed** 与 **32 passed** 不是同一次执行，对照见 [w0-local-baseline.md](./w0-local-baseline.md)。固定提交 `a9d7415` 验证文档记录 29；本工作区 W0 复测为 32。下表「32」只描述工作区，不回填远端快照。
+
 ## 证据分层
 
 | 层级 | 本次是否执行 | 说明 |
 |---|---|---|
-| 模拟 / 合成 fixture | 是 | `uv run pytest`：29 passed（poc/.venv，CPython 3.12.13） |
+| 模拟 / 合成 fixture | 是 | 工作区 `uv run pytest`：32 passed（poc/.venv，CPython 3.12.13）。固定提交记录仍为 29 passed，见 W0 |
 | 单机观察（无真实微信） | 是 | 已核验 `status` / `r0-check` / `run --cycles 1` / `review list` / `evidence-list` |
 | 真实模型 HTTP | 否 | `model.provider=mock`，无授权凭据 |
 | 真实双端（企微+个微） | 否 | 测试账号、数据路径、接收端未配置 |
 
-附件 `C:\Users\Administrator\Downloads\wechat.zip.temp` SHA-256 复核为 `51664D8F5A1D8DDF45D41DB66227280E89CA2C95AEB4DFB862B4CABD72D2E479`，与 spec §12 / archive-audit 一致。未运行附件 `main.py`、`key_extractor.py`、解密或随包数据库。
+附件 `C:\Users\Example\Downloads\reference.zip` SHA-256 复核为 `51664D8F5A1D8DDF45D41DB66227280E89CA2C95AEB4DFB862B4CABD72D2E479`，与 spec §12 / archive-audit 一致。未运行附件 `main.py`、`key_extractor.py`、解密或随包数据库。
 
-仓库无 AGENTS.md。未修改外部 Chat-Lab，未提交、未推送、未采购、未启动长期后台进程。
+仓库无 AGENTS.md。未修改外部 Chat-Lab，未采购、未启动长期后台进程。R0 本机探测见 [r0-machine.md](./r0-machine.md)。
 
 ## 离线契约测试（模拟）
 
@@ -49,10 +51,10 @@
 
 | 阶段 | 判定 | 原因 |
 |---|---|---|
-| R0 适配与绑定 | 未执行 | 缺 `account.wxid`、`account.data_root`、`wechat_version_recorded`、双端接收人。未打开真实库，未测当前微信版本。文档中的 4.1.13.65 只是 2026-09-12 基线。路线 A 因缺少授权输入而阻塞；路线 B 按 spec **未启动**（须等 A 的 R0 失败记录后才独立验证）。 |
+| R0 适配与绑定 | 部分通过且有限制 | 本机 Weixin 文件版本 **4.1.13.65**（2026-09-14 重测，与文档基线一致）；默认 `xwechat_files` 存在。未列出账号、未打开消息库、未取钥。缺 wxid、群绑定、授权密钥与双端核验人。路线 A 暂停于授权输入；路线 B **未启动**。见 [r0-machine.md](./r0-machine.md) |
 | R1 连续读取 | 未执行 | 无授权测试群与双端各 10 条编号消息 |
 | R1 边界（真实 WAL/身份） | 未执行 | 仅有合成复现，不能替代真实 WAL/身份 |
-| R2 发送 ACK | 未执行 | 桌面发送器为 stub；mock 本地气泡不能标 verified |
+| R2 发送 ACK | 部分通过且有限制 | mock 三条编号 ACK 逐条批准并双端证据闭环 **通过当前限定场景**（`test_r2_three_numbered_acks_require_both_receivers`）；桌面 stub 拒发。真实企微/个微接收端 **未执行** |
 | R3 AI | 部分通过且有限制 | mock 12/12；真实模型草稿与双端核验 **未执行** |
 | R4 30 分钟观察 | 未执行 | 未做实机有界观察 |
 
@@ -74,21 +76,20 @@
 
 ## 实机最小待填项
 
-1. 测试个微账号别名与 wxid  
-2. 目标企微外部群 conversation_key、显示名、必要成员特征、绑定版本证据  
-3. 已授权只读数据根路径；若走 SQLCipher，已授权密钥引用（不要从其他项目搜凭据）  
-4. 企微与个微接收核验人  
-5. 本机实际微信版本（不要沿用 4.1.13.65）  
-6. 若要真实模型：endpoint、模型名、凭据来源（env:VAR）
+1. 测试个微账号别名与 wxid
+2. 目标企微外部群 conversation_key、显示名、必要成员特征、绑定版本证据
+3. 已授权只读数据根确认（默认 `Documents\xwechat_files` 存在，但未获准打开）及 SQLCipher 密钥引用（如适用；不要从其他项目搜凭据）
+4. 企微与个微接收核验人
+5. 若要真实模型：endpoint、模型名、凭据来源（env:VAR）
 
-在上述项提供前，继续使用 `offline` + mock。
+本机微信文件版本已重测为 `4.1.13.65`，该项不再作为待填。在其余项提供前，不打开真实库、不真发送。
 
 ## 命令核验（2026-09-14 于 poc/）
 
 已实际运行且入口存在：
 
 - `uv sync --extra dev`
-- `uv run pytest` → 29 passed
+- `uv run pytest` → 工作区 32 passed（固定提交文档为 29 passed，见 [w0-local-baseline.md](./w0-local-baseline.md)）
 - `uv run wechat-agent-poc --config config.example.toml status`
 - `uv run wechat-agent-poc --config config.example.toml r0-check`
 - `uv run wechat-agent-poc --config config.example.toml run --cycles 1 --seconds 5`

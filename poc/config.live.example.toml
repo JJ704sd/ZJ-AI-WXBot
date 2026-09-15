@@ -1,0 +1,45 @@
+# Live-run checklist. Keep values empty until an operator fills them locally.
+# Copy to a gitignored path such as .local/poc/live.toml. Never commit keys.
+# Filling this file does not by itself authorize process key extraction or unattended send.
+
+mode = "read_only"
+data_dir = ".local/poc-live"
+allow_live_read = false
+allow_live_discovery = false
+allow_key_material_from_live_client = false
+allow_live_send = false
+authorization_ref = ""
+run_id = ""
+operator = ""
+wechat_version_recorded = ""
+receivers = []
+
+[account]
+alias = ""
+wxid = ""
+data_root = ""
+self_sender_key = ""
+# Only env:VAR is implemented. Example: env:WX_SQLCIPHER_KEY
+authorized_key_ref = "none"
+
+[group]
+alias = ""
+conversation_key = ""
+binding_version = ""
+member_features = []
+display_name = ""
+required_detail_tokens = []
+
+[model]
+provider = "mock"
+endpoint = ""
+model_name = ""
+credential_source = "none"
+
+[adapters]
+reader = "sqlcipher_readonly"
+sender = "desktop_observed"
+
+[window]
+observer = "manual_file"
+observation_path = ""

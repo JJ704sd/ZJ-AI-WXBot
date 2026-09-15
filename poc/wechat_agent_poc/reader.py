@@ -3,10 +3,13 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Protocol
+from typing import Callable, Iterable, Protocol
 
 from wechat_agent_poc.config import AppConfig, isoformat
 from wechat_agent_poc.discovery import ShardSnapshot, discover_account_shards
+from wechat_agent_poc.keys import resolve_authorized_key
+from wechat_agent_poc.live_guard import assert_live_read_permitted, assert_plaintext_fixture_only, is_live_wechat_root
+from wechat_agent_poc.mention import STRUCTURED_FIELD_NAMES, classify_mention
 from wechat_agent_poc.models import SCHEMA_VERSION, Event, Halt, HaltError, event_key
 from wechat_agent_poc.session_map import allow_conversation, quoted_ident, resolve_msg_table
 from wechat_agent_poc.store import Checkpoint, Store, late_beyond_lookback
@@ -28,6 +31,7 @@ class RawRow:
     message_value: object
     compress_value: object
     self_rowid: int | None
+    mention_fields: dict[str, object] | None = None
 
 
 class SqlitePlainReader:
@@ -36,9 +40,11 @@ class SqlitePlainReader:
     def __init__(self, config: AppConfig, store: Store):
         self.config = config
         self.store = store
+        self.last_sql: list[tuple[str, str]] = []
 
     def read_new_messages(self, binding=None, checkpoint_store: Store | None = None) -> list[Event]:
         store = checkpoint_store or self.store
+        self.last_sql = []
         if store.paused():
             raise HaltError(Halt("PAUSED", store.runtime_get("pause_reason") or "paused"))
         if self.config.data_root is None:
@@ -47,35 +53,46 @@ class SqlitePlainReader:
             raise HaltError(Halt("ACCOUNT_UNKNOWN", "account.wxid is required for database reading"))
         if not self.config.binding.conversation_key:
             raise HaltError(Halt("GROUP_UNKNOWN", "group.conversation_key is required"))
-        shards = discover_account_shards(self.config.data_root, self.config.binding.account_wxid)
-        first_boot = store.runtime_get("reader_initialized") != "1"
+        self._assert_read_permitted()
+        shards = discover_account_shards(
+            self.config.data_root,
+            self.config.binding.account_wxid,
+            enumerate_siblings=not is_live_wechat_root(self.config.data_root),
+        )
         events: list[Event] = []
         checkpoints: list[Checkpoint] = []
         for shard in shards:
             store.record_file(str(shard.db_path), "db", shard.fingerprint)
             if shard.wal_path is not None:
                 store.record_file(str(shard.wal_path), "wal", shard.fingerprint)
-            events.extend(self._read_shard(shard, store, checkpoints, first_boot=first_boot))
+            events.extend(self._read_shard(shard, store, checkpoints))
         accepted = store.ingest(events, checkpoints)
         store.runtime_set("reader_initialized", "1")
+        if store.runtime_get("baseline_ready_at") is None:
+            store.runtime_set("baseline_ready_at", isoformat())
         return accepted
+
+    def _assert_read_permitted(self) -> None:
+        assert_plaintext_fixture_only(self.config)
+
+    def _open_connection(self, db_path: Path):
+        conn = sqlite3.connect(str(db_path))
+        conn.execute("PRAGMA query_only = ON")
+        return conn
 
     def _read_shard(
         self,
         shard: ShardSnapshot,
         store: Store,
         checkpoints: list[Checkpoint],
-        *,
-        first_boot: bool,
     ) -> list[Event]:
         try:
-            conn = sqlite3.connect(str(shard.db_path))
-            conn.execute("PRAGMA query_only = ON")
+            conn = self._open_connection(shard.db_path)
+            conn.text_factory = bytes
         except sqlite3.Error as exc:
             raise HaltError(Halt("DB_LOCK", f"cannot open {shard.db_path.name}: {exc}")) from exc
-        conn.text_factory = bytes
         try:
-            return list(self._iter_shard(conn, shard, store, checkpoints, first_boot=first_boot))
+            return list(self._iter_shard(conn, shard, store, checkpoints))
         except sqlite3.Error as exc:
             raise HaltError(Halt("READ_FAILURE", f"sqlite error on {shard.shard_name}: {exc}")) from exc
         finally:
@@ -87,8 +104,6 @@ class SqlitePlainReader:
         shard: ShardSnapshot,
         store: Store,
         checkpoints: list[Checkpoint],
-        *,
-        first_boot: bool,
     ) -> Iterable[Event]:
         conversation = self.config.binding.conversation_key
         if not allow_conversation(conversation, self.config.whitelist):
@@ -96,57 +111,48 @@ class SqlitePlainReader:
         table = resolve_msg_table(conn, conversation)
         if table is None:
             return
-        checkpoint = store.checkpoint(self.config.binding.account_alias, shard.source_shard, table)
-        rows = list(_fetch_rows(conn, table, shard.source_shard, self.config.binding.self_sender_key))
-        if not rows:
+        account = self.config.binding.account_alias
+        checkpoint = store.checkpoint(account, shard.source_shard, table)
+        if checkpoint is None or not checkpoint.initialized:
+            meta = _fetch_metadata(conn, table, self.last_sql)
+            store.save_baseline_keys(account, shard.source_shard, table, meta)
+            max_time = max((item[1] or 0) for item in meta) if meta else None
+            max_id = 0
+            if meta:
+                peak = max_time or 0
+                max_id = max((item[0] or 0) for item in meta if (item[1] or 0) == peak)
             checkpoints.append(
                 Checkpoint(
-                    self.config.binding.account_alias,
-                    shard.source_shard,
-                    table,
-                    checkpoint.last_source_time if checkpoint else None,
-                    checkpoint.last_message_id if checkpoint else None,
-                    initialized=True if checkpoint else False,
-                )
-            )
-            return
-        initialized = checkpoint is not None and checkpoint.initialized
-        max_time = max((row.create_time or 0) for row in rows)
-        max_id_at_max_time = max((row.local_id or 0) for row in rows if (row.create_time or 0) == max_time)
-        if not initialized and first_boot:
-            for row in rows:
-                yield self._to_event(row, table, historical=True, replay=False, late=False)
-            checkpoints.append(
-                Checkpoint(
-                    self.config.binding.account_alias,
+                    account,
                     shard.source_shard,
                     table,
                     max_time,
-                    max_id_at_max_time,
+                    max_id if meta else None,
                     initialized=True,
                 )
             )
             return
-        if not initialized and not first_boot:
-            checkpoint = Checkpoint(
-                self.config.binding.account_alias,
-                shard.source_shard,
+        exclude_ids = store.baseline_message_ids(account, shard.source_shard, table)
+        rows = list(
+            _fetch_incremental(
+                conn,
                 table,
-                last_source_time=-1,
-                last_message_id=-1,
-                initialized=True,
+                shard.source_shard,
+                self.config.binding.self_sender_key,
+                checkpoint,
+                self.config.lookback_seconds,
+                exclude_ids,
+                self.last_sql,
             )
-        new_max_time = checkpoint.last_source_time or 0
-        new_max_id = checkpoint.last_message_id or 0
+        )
+        new_max_time = checkpoint.last_source_time if checkpoint.last_source_time is not None else -1
+        new_max_id = int(checkpoint.last_message_id) if checkpoint.last_message_id is not None else -1
         for row in rows:
             if row.local_id is None:
-                yield self._to_event(row, table, historical=True, replay=False, late=False, identity="unknown")
                 continue
             if late_beyond_lookback(row.create_time, checkpoint, self.config.lookback_seconds):
-                yield self._to_event(row, table, historical=True, replay=False, late=True)
                 continue
-            is_new = _is_new_row(row, checkpoint, self.config.lookback_seconds)
-            if not is_new:
+            if not _is_new_row(row, checkpoint, self.config.lookback_seconds):
                 continue
             yield self._to_event(row, table, historical=False, replay=False, late=False)
             if row.create_time is not None and row.create_time > new_max_time:
@@ -156,11 +162,11 @@ class SqlitePlainReader:
                 new_max_id = row.local_id or 0
         checkpoints.append(
             Checkpoint(
-                self.config.binding.account_alias,
+                account,
                 shard.source_shard,
                 table,
-                new_max_time,
-                new_max_id,
+                new_max_time if new_max_time >= 0 else checkpoint.last_source_time,
+                new_max_id if new_max_id >= 0 else checkpoint.last_message_id,
                 initialized=True,
             )
         )
@@ -183,9 +189,20 @@ class SqlitePlainReader:
             is_self = "true" if row.sender_key == self.config.binding.self_sender_key else "false"
         identity_status = identity or ("resolved" if row.local_id is not None and is_self != "unknown" else "unknown")
         text = decoded.text if decoded.sendable else None
+        mention = classify_mention(
+            self_sender_key=self.config.binding.self_sender_key,
+            fields=row.mention_fields,
+            text=text,
+        )
         return Event(
             schema_version=SCHEMA_VERSION,
-            event_key=event_key(self.config.binding.account_alias, row.shard, table, row.local_id),
+            event_key=event_key(
+                self.config.binding.account_alias,
+                row.shard,
+                table,
+                row.local_id,
+                self.config.binding.conversation_key,
+            ),
             account_alias=self.config.binding.account_alias,
             conversation_key=self.config.binding.conversation_key,
             source_shard=row.shard,
@@ -201,6 +218,11 @@ class SqlitePlainReader:
             is_historical=historical or late,
             parse_status="ok" if decoded.sendable else decoded.status,  # type: ignore[arg-type]
             is_replay=replay,
+            mention_self=mention.mention_self,
+            mentioned_keys=mention.mentioned_keys,
+            mention_all=mention.mention_all,
+            mention_field=mention.source_field,
+            mention_reason=mention.reason,
         )
 
 
@@ -218,31 +240,73 @@ def _is_new_row(row: RawRow, checkpoint: Checkpoint, lookback_seconds: int) -> b
     return False
 
 
-def _fetch_rows(conn: sqlite3.Connection, table: str, shard: str, self_sender_key: str) -> list[RawRow]:
+def _fetch_metadata(
+    conn: sqlite3.Connection, table: str, last_sql: list[tuple[str, str]]
+) -> list[tuple[int | None, int | None]]:
     quoted = quoted_ident(table)
-    columns = { _col_name(row[1]) for row in conn.execute(f'PRAGMA table_info({quoted})') }
+    sql = f'SELECT m.local_id, m.create_time FROM {quoted} m ORDER BY m.create_time ASC, m.local_id ASC'
+    last_sql.append(("baseline", sql))
+    rows = []
+    for item in conn.execute(sql).fetchall():
+        rows.append((_maybe_int(item[0]), _maybe_int(item[1])))
+    return rows
+
+
+def _fetch_incremental(
+    conn: sqlite3.Connection,
+    table: str,
+    shard: str,
+    self_sender_key: str,
+    checkpoint: Checkpoint,
+    lookback_seconds: int,
+    exclude_ids: set[int],
+    last_sql: list[tuple[str, str]],
+) -> list[RawRow]:
+    quoted = quoted_ident(table)
+    columns = {_col_name(row[1]) for row in conn.execute(f"PRAGMA table_info({quoted})")}
     has_compress = "compress_content" in columns
     has_server = "server_id" in columns
     compress = ", m.compress_content" if has_compress else ", NULL"
     server = ", m.server_id" if has_server else ", NULL"
     order_col = "sort_seq" if "sort_seq" in columns else "create_time"
     self_rowid = _lookup_self_rowid(conn, self_sender_key)
-    sql = (
+    last_time = checkpoint.last_source_time if checkpoint.last_source_time is not None else -1
+    last_id = int(checkpoint.last_message_id) if checkpoint.last_message_id is not None else -1
+    lookback_start = last_time - lookback_seconds
+    mention_cols = [name for name in STRUCTURED_FIELD_NAMES if name in columns]
+    mention_select = "".join(f", m.{quoted_ident(name)}" for name in mention_cols)
+    select = (
         f"SELECT m.local_id, m.create_time, m.real_sender_id, m.message_content{compress}{server}, "
-        f"n.user_name FROM {quoted} m LEFT JOIN Name2Id n ON m.real_sender_id = n.rowid "
-        f'ORDER BY m."{order_col}" ASC, m.local_id ASC'
+        f"n.user_name{mention_select} FROM {quoted} m LEFT JOIN Name2Id n ON m.real_sender_id = n.rowid "
     )
+    where = (
+        "WHERE (m.create_time > ? OR (m.create_time = ? AND m.local_id > ?) "
+        "OR (m.create_time >= ? AND m.create_time < ?))"
+    )
+    params: list[object] = [last_time, last_time, last_id, lookback_start, last_time]
+    if exclude_ids:
+        placeholders = ",".join("?" for _ in exclude_ids)
+        where += f" AND m.local_id NOT IN ({placeholders})"
+        params.extend(sorted(exclude_ids))
+    sql = f'{select} {where} ORDER BY m."{order_col}" ASC, m.local_id ASC'
+    last_sql.append(("incremental", sql))
     try:
-        fetched = conn.execute(sql).fetchall()
+        fetched = conn.execute(sql, params).fetchall()
     except sqlite3.Error:
-        sql = (
+        fallback = (
             f"SELECT m.local_id, m.create_time, m.real_sender_id, m.message_content{compress}{server}, "
-            f"NULL FROM {quoted} m ORDER BY m.local_id ASC"
+            f"NULL{mention_select} FROM {quoted} m {where} ORDER BY m.local_id ASC"
         )
-        fetched = conn.execute(sql).fetchall()
+        last_sql.append(("incremental", fallback))
+        fetched = conn.execute(fallback, params).fetchall()
     rows: list[RawRow] = []
     for item in fetched:
-        sender = _maybe_text(item[5]) if len(item) > 5 else None
+        sender = _maybe_text(item[6]) if len(item) > 6 else None
+        mention_fields = {}
+        for offset, name in enumerate(mention_cols):
+            index = 7 + offset
+            if index < len(item):
+                mention_fields[name] = item[index]
         rows.append(
             RawRow(
                 shard=shard,
@@ -254,6 +318,7 @@ def _fetch_rows(conn: sqlite3.Connection, table: str, shard: str, self_sender_ke
                 message_value=item[3],
                 compress_value=item[4],
                 self_rowid=self_rowid,
+                mention_fields=mention_fields or None,
             )
         )
     return rows
@@ -299,27 +364,34 @@ def _maybe_text(value: object) -> str | None:
     return str(value)
 
 
-class SqlcipherReader:
-    def __init__(self, config: AppConfig, store: Store):
-        self.config = config
-        self.store = store
+class SqlcipherReader(SqlitePlainReader):
+    """Open SQLCipher DBs with an authorized key reference. Never extracts process keys."""
 
-    def read_new_messages(self, binding=None, checkpoint_store: Store | None = None) -> list[Event]:
-        if self.config.authorized_key_ref in ("", "none"):
+    def __init__(self, config: AppConfig, store: Store, opener: Callable[..., object] | None = None):
+        super().__init__(config, store)
+        self._opener = opener
+
+    def _assert_read_permitted(self) -> None:
+        resolve_authorized_key(self.config.authorized_key_ref)
+        assert_live_read_permitted(self.config)
+
+    def _open_connection(self, db_path: Path):
+        key = resolve_authorized_key(self.config.authorized_key_ref)
+        if self._opener is not None:
+            conn = self._opener(str(db_path), key)
+            conn.execute("PRAGMA query_only = ON")
+            return conn
+        try:
+            import sqlcipher3
+        except ImportError as exc:
             raise HaltError(
                 Halt(
                     "READ_FAILURE",
-                    "sqlcipher_readonly requires an authorized key reference; process key extraction is not a fallback",
-                    {
-                        "potential_key_scope": "all databases protected by the same material, not single-group",
-                        "program_query_scope": "bound conversation tables plus Name2Id mapping only",
-                    },
+                    "sqlcipher3 is not installed; install the sqlcipher extra. Process key extraction is not a fallback",
+                    {"authorized_key_ref_configured": True},
                 )
-            )
-        raise HaltError(
-            Halt(
-                "READ_FAILURE",
-                "live SQLCipher opening is not enabled in this offline PoC build",
-                {"authorized_key_ref_configured": True},
-            )
-        )
+            ) from exc
+        conn = sqlcipher3.connect(str(db_path))
+        conn.execute("PRAGMA query_only = ON")
+        conn.execute("PRAGMA key = ?", (key,))
+        return conn

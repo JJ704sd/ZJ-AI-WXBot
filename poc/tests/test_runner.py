@@ -47,7 +47,8 @@ def test_historical_and_self_do_not_draft(tmp_path: Path):
     assert result["drafts"] == 1
     drafts = store.list_drafts()
     assert len(drafts) == 1
-    assert "9/20" in (drafts[0].text or "")
+    assert drafts[0].event_key.endswith("|3")
+    # Historical text must not become model context (v0.2 READ-01/03).
 
 
 def test_read_only_skips_drafts(tmp_path: Path):

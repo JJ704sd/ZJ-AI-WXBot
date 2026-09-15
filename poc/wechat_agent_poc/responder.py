@@ -5,7 +5,7 @@ from typing import Any, Protocol
 from urllib import request
 from urllib.error import URLError
 
-from wechat_agent_poc.config import AppConfig
+from wechat_agent_poc.config import AppConfig, ConfigError
 from wechat_agent_poc.facts import looks_like_untrusted_instruction, validate_decision
 from wechat_agent_poc.models import Action, Decision, Event
 from wechat_agent_poc.store import Store
@@ -205,12 +205,16 @@ def load_model_client(config: AppConfig) -> tuple[ModelClient, str]:
     if config.model.provider == "http":
         credential = _credential_from_source(config.model.credential_source)
         if not credential:
-            return MockModelClient(), "mock_fallback_missing_credential"
+            raise ConfigError("http model requires an authorized credential_source; mock fallback is not live success")
         return HttpModelClient(config, credential), "http"
     return MockModelClient(), "mock"
 
 
 def _credential_from_source(source: str) -> str | None:
+    if source == "env:MINIMAX_API_KEY":
+        from wechat_agent_poc.local_env import load_minimax_env
+
+        load_minimax_env()
     if not source or source == "none":
         return None
     if source.startswith("env:"):

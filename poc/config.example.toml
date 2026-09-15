@@ -12,6 +12,13 @@ operator = "local-operator"
 # Re-measure on the test machine. 4.1.13.65 is a 2026-09-12 document baseline only.
 wechat_version_recorded = ""
 receivers = []
+# Parser reads these from the top level only. Flags under [adapters] do not arm live paths.
+allow_live_read = false
+allow_live_discovery = false
+allow_key_material_from_live_client = false
+allow_live_send = false
+authorization_ref = ""
+run_id = ""
 
 [account]
 alias = "test-wechat-a"
@@ -40,5 +47,9 @@ credential_source = "none"
 [adapters]
 # mock | sqlite_plain | sqlcipher_readonly
 reader = "mock"
-# mock | desktop_stub
+# mock | desktop_stub | desktop_observed
 sender = "mock"
+
+[window]
+observer = "none"
+observation_path = ""

@@ -29,6 +29,22 @@ class AdapterConfig:
 
 
 @dataclass(frozen=True)
+class WindowConfig:
+    observer: str = "none"
+    observation_path: Path | None = None
+
+
+KNOWN_ALLOW_FLAGS = frozenset(
+    {
+        "allow_live_read",
+        "allow_live_send",
+        "allow_live_discovery",
+        "allow_key_material_from_live_client",
+    }
+)
+
+
+@dataclass(frozen=True)
 class AppConfig:
     mode: Mode
     data_dir: Path
@@ -46,6 +62,16 @@ class AppConfig:
     receivers: tuple[str, ...]
     coverage_note: str
     source_path: Path | None = None
+    allow_live_read: bool = False
+    allow_live_send: bool = False
+    allow_live_discovery: bool = False
+    allow_key_material_from_live_client: bool = False
+    authorization_ref: str = ""
+    configured_self_sender_key: str = ""
+    excluded_wxids: tuple[str, ...] = ()
+    run_id: str = ""
+    window: WindowConfig = WindowConfig()
+    adapters_allow_flags: tuple[str, ...] = ()
 
     @property
     def store_path(self) -> Path:
@@ -64,19 +90,30 @@ def load_config(path: str | Path) -> AppConfig:
 
 
 def parse_config(raw: Mapping[str, Any], source_path: Path | None = None) -> AppConfig:
+    for key in raw:
+        if str(key).startswith("allow_") and str(key) not in KNOWN_ALLOW_FLAGS:
+            raise ConfigError(f"unknown allow_* flag {key!r}; refusing to ignore an unimplemented switch")
     mode = str(raw.get("mode") or "offline")
     if mode not in ("offline", "read_only", "draft_only", "manual_send"):
-        raise ConfigError(f"unsupported mode {mode!r}; auto_send is not implemented")
+        raise ConfigError(
+            f"unsupported mode {mode!r}; auto_reply_test and scheduled_mention_test are not aliases of existing modes"
+        )
     account = dict(raw.get("account") or {})
     group = dict(raw.get("group") or {})
     model = dict(raw.get("model") or {})
     adapters = dict(raw.get("adapters") or {})
+    adapter_allow_flags = tuple(str(key) for key in adapters if str(key).startswith("allow_"))
+    window_raw = dict(raw.get("window") or {})
     base = source_path.parent if source_path else Path.cwd()
     data_dir = Path(str(raw.get("data_dir") or ".local/poc"))
     if not data_dir.is_absolute():
         data_dir = (base / data_dir).resolve() if source_path else data_dir
     data_root_value = account.get("data_root") or raw.get("data_root") or ""
     data_root = Path(str(data_root_value)).expanduser() if data_root_value else None
+    observation_value = window_raw.get("observation_path") or ""
+    observation_path = Path(str(observation_value)).expanduser() if observation_value else None
+    if observation_path is not None and not observation_path.is_absolute() and source_path is not None:
+        observation_path = (base / observation_path).resolve()
     binding = Binding(
         account_alias=str(account.get("alias") or "unconfigured-account"),
         account_wxid=str(account.get("wxid") or ""),
@@ -88,7 +125,9 @@ def parse_config(raw: Mapping[str, Any], source_path: Path | None = None) -> App
         required_detail_tokens=tuple(str(item) for item in (group.get("required_detail_tokens") or ())),
         self_sender_key=str(account.get("self_sender_key") or account.get("wxid") or ""),
     )
-    return AppConfig(
+    configured_self = str(account.get("self_sender_key") or "")
+    excluded = tuple(str(item) for item in (account.get("excluded_wxids") or ()))
+    config = AppConfig(
         mode=mode,  # type: ignore[arg-type]
         data_dir=data_dir,
         lookback_seconds=int(raw.get("lookback_seconds") or 120),
@@ -113,11 +152,28 @@ def parse_config(raw: Mapping[str, Any], source_path: Path | None = None) -> App
         wechat_version_recorded=str(raw.get("wechat_version_recorded") or ""),
         receivers=tuple(str(item) for item in (raw.get("receivers") or ())),
         coverage_note=(
-            "Late or backfilled messages older than checkpoint minus lookback_seconds "
-            "are marked historical and are not auto-queued for reply."
+            "First start records metadata only. Late messages older than checkpoint "
+            "minus lookback_seconds are a coverage gap and are not auto-queued for reply."
         ),
         source_path=source_path,
+        allow_live_read=bool(raw.get("allow_live_read") or False),
+        allow_live_send=bool(raw.get("allow_live_send") or False),
+        allow_live_discovery=bool(raw.get("allow_live_discovery") or False),
+        allow_key_material_from_live_client=bool(raw.get("allow_key_material_from_live_client") or False),
+        authorization_ref=str(raw.get("authorization_ref") or ""),
+        configured_self_sender_key=configured_self,
+        excluded_wxids=excluded,
+        run_id=str(raw.get("run_id") or ""),
+        window=WindowConfig(
+            observer=str(window_raw.get("observer") or "none"),
+            observation_path=observation_path,
+        ),
+        adapters_allow_flags=adapter_allow_flags,
     )
+    from wechat_agent_poc.gates import assert_mode_lock
+
+    assert_mode_lock(config)
+    return config
 
 
 def missing_live_fields(config: AppConfig) -> list[str]:
@@ -146,8 +202,24 @@ def missing_live_fields(config: AppConfig) -> list[str]:
         if config.model.credential_source in ("", "none"):
             missing.append("model.credential_source")
     if config.adapters.reader == "sqlcipher_readonly" and config.authorized_key_ref in ("", "none"):
-        missing.append("account.authorized_key_ref")
+        if not config.allow_key_material_from_live_client:
+            missing.append("account.authorized_key_ref")
     return missing
+
+
+def missing_open_fields(config: AppConfig) -> list[str]:
+    """Fields required to attempt G-OPEN. Internal group keys are intentionally omitted."""
+    skip = {
+        "group.conversation_key",
+        "group.member_features",
+        "group.display_name",
+        "group.required_detail_tokens",
+        "receivers (wecom + wechat verifiers)",
+        "model.endpoint",
+        "model.model_name",
+        "model.credential_source",
+    }
+    return [item for item in missing_live_fields(config) if item not in skip]
 
 
 def utcnow() -> datetime:

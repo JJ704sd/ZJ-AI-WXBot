@@ -12,7 +12,9 @@
 
 ## 阅读入口
 
-2026-09-14 已确认最小 PoC 范围，新增 [实现 spec v0.1](./specs/personal-wechat-agent-poc-v0.1.md) 和 [完整实施提示词](./specs/personal-wechat-agent-implementation-prompt-v0.1.md)。采用独立测试账号、单个企微外部测试群、合成消息与人工逐条确认发送；文档交付不表示实机验证已完成。
+2026-09-14 已确认最小 PoC 范围。当前实施契约为 [接入验证 spec v0.2](./specs/personal-wechat-agent-poc-v0.2.md)；原始 Word 审阅稿仅保留在本地，不纳入公开版。[v0.1](./specs/personal-wechat-agent-poc-v0.1.md) 与 [实施提示词 v0.1](./specs/personal-wechat-agent-implementation-prompt-v0.1.md) 保留为固定提交对照。采用独立测试账号、单个企微外部测试群、合成消息与人工逐条确认发送；规范落地不表示实机验证已完成。W0 证据见 [poc/evidence/w0-local-baseline.md](./poc/evidence/w0-local-baseline.md)。W1 离线缺口修复见 [poc/evidence/w1-offline-gaps.md](./poc/evidence/w1-offline-gaps.md)。W2 适配准备见 [poc/evidence/w2-adapter-prep.md](./poc/evidence/w2-adapter-prep.md)。用户指定账号目录探测见 [poc/evidence/r0-authorized-paths.md](./poc/evidence/r0-authorized-paths.md)。目标群 UI 线索见 [poc/evidence/r0-group-clues.md](./poc/evidence/r0-group-clues.md)。可行性研究途径见 [poc/evidence/r0-research-path.md](./poc/evidence/r0-research-path.md)。2026-09-15 实机停点与后续探索授权交接见 [poc/evidence/handoff-2026-09-15.md](./poc/evidence/handoff-2026-09-15.md)。
+
+公开版说明：证据文档中的账号标识、本机路径、群标识、成员姓名与企业名称均已替换为示例值；原始 UI 截图、原始 Word 文档、数据库和运行目录仅保留在本地，不纳入 Git。
 
 | 文档 | 内容 |
 |---|---|
@@ -21,7 +23,7 @@
 | [第二轮：企微读取证据](./evidence/round2-wecom-ingest.md) | 本地快照／解析及官方存档可借鉴之处 |
 | [第二轮：分析复用证据](./evidence/round2-analysis-reuse.md) | 新事件、上下文、模型分析和主动回复之间的缺口 |
 | [离线边界探针](./verification/verify_wechat_read_assumptions.py) | 对指定参考源码运行合成实验，不读取实际聊天库 |
-| [个微 PoC（offline）](./poc/README.md) | 本地 mock/合成实现、审批 CLI 与离线测试；实机 R0–R4 见 [poc/evidence/offline-verification.md](./poc/evidence/offline-verification.md) |
+| [个微 PoC（offline）](./poc/README.md) | 本地 mock/合成实现、审批 CLI 与离线测试；R0 本机探测见 [poc/evidence/r0-machine.md](./poc/evidence/r0-machine.md)，阶段总表见 [poc/evidence/offline-verification.md](./poc/evidence/offline-verification.md) |
 | [第一轮：群聊机器人可行性验证](./群聊机器人可行性验证.md) | 初始结论、候选路线、最小实验及通过标准 |
 | [第一轮：Chat-Lab 源码审查](./evidence/chatlab-audit.md) | 旧版已有能力、发送缺口及固定提交源码引用 |
 | [附件静态审查](./evidence/archive-audit.md) | ZIP 工具用途、互通会话过滤及复用限制 |
@@ -29,8 +31,8 @@
 
 ## 最小验证顺序
 
-1. **R0–R1：读取。** 验证当前版本的数据库可读、目标群可定位，再验证非 @ 新消息、分库与游标边界。
-2. **R2：发送。** 自动发回原群，由两类客户端确认收到，检查错群和重复；可以与读取验证并行。
+1. **R0–R1：读取。** 本机 Weixin 文件版本已重测为 `4.1.13.65`；目标库可读、群定位与连续读取仍待授权账号/群绑定后验证。
+2. **R2：发送。** mock 三条 ACK 适配已通过；真实原群双端确认未执行。
 3. **R3：AI。** 关联测试上下文，主动输出分析结果，并排除自身消息循环。
 4. **R4：持续运行。** 进行 30 分钟观察、窗口切换和断网恢复，记录缺口及异常。
 

@@ -29,16 +29,35 @@ class ShardSnapshot:
         return self.shard_name
 
 
-def discover_account_shards(data_root: Path, account_wxid: str) -> list[ShardSnapshot]:
+def discover_account_shards(
+    data_root: Path,
+    account_wxid: str,
+    *,
+    enumerate_siblings: bool = True,
+) -> list[ShardSnapshot]:
     if not account_wxid:
         raise HaltError(Halt("ACCOUNT_UNKNOWN", "account_wxid is not configured"))
     files_root = _xwechat_files(data_root)
+    direct = files_root / account_wxid
+    if not enumerate_siblings:
+        if direct.is_dir():
+            return _shards_for_account(direct, account_wxid)
+        nested = data_root / account_wxid
+        if nested.is_dir():
+            return _shards_for_account(nested, account_wxid)
+        raise HaltError(
+            Halt(
+                "ACCOUNT_UNKNOWN",
+                "configured account directory is not present",
+                {"configured": account_wxid, "enumerated_siblings": False},
+            )
+        )
     accounts = sorted(path.name for path in files_root.glob("wxid_*") if path.is_dir())
     if not accounts:
         # also allow a direct account directory layout used by fixtures
-        direct = data_root / account_wxid
-        if direct.is_dir():
-            return _shards_for_account(direct, account_wxid)
+        fallback = data_root / account_wxid
+        if fallback.is_dir():
+            return _shards_for_account(fallback, account_wxid)
         raise HaltError(Halt("ACCOUNT_UNKNOWN", "no wxid_* account directories found", {"root": str(data_root)}))
     if account_wxid not in accounts:
         raise HaltError(

@@ -83,7 +83,7 @@ PoC 可先只处理解析成功的当前普通文本。历史转发里的原始�
 
 Mac 发现 `Profiles/<32位目录>/Messages1/Info.db`，返回 `capture_ready=False`；实际 capture 在创建分析库、快照或 KeyRing 前返回 `macos_capture_not_ready`。新 `crypto_native` 在 Windows 上继续调用 `crypto_win`，Mac 上接 CommonCrypto；发现目录与 AES 合成测试通过仍不能证明 Mac 原消息库密钥、表结构或真实采集可用。见 [wecom_macos.py L11–44](https://github.com/JJ704sd/Chat-Lab/blob/67bb1f1b6a8f5a89ce4cf18f65eaf38688639ab2/src/chatlog_assistant/sources/wecom_macos.py#L11-L44)、[wecom_pipeline.py L203–223](https://github.com/JJ704sd/Chat-Lab/blob/67bb1f1b6a8f5a89ce4cf18f65eaf38688639ab2/src/chatlog_assistant/sources/wecom_pipeline.py#L203-L223)、[crypto_native.py L23–32](https://github.com/JJ704sd/Chat-Lab/blob/67bb1f1b6a8f5a89ce4cf18f65eaf38688639ab2/src/chatlog_assistant/sources/crypto_native.py#L23-L32)。
 
-Windows 原默认根目录仍为 `C:\Users\Administrator\Documents\WXWork`，数据输出默认 `D:\chatlab\data\wecom-local`。本项目在其他用户与目录下复用时必须显式传入实际源目录和本项目输出目录，不能照搬这些默认值。见 [wecom_paths.py L8–13](https://github.com/JJ704sd/Chat-Lab/blob/67bb1f1b6a8f5a89ce4cf18f65eaf38688639ab2/src/chatlog_assistant/sources/wecom_paths.py#L8-L13)。
+Windows 原默认根目录仍为 `C:\Users\Example\Documents\WXWork`，数据输出默认 `D:\chatlab\data\wecom-local`。本项目在其他用户与目录下复用时必须显式传入实际源目录和本项目输出目录，不能照搬这些默认值。见 [wecom_paths.py L8–13](https://github.com/JJ704sd/Chat-Lab/blob/67bb1f1b6a8f5a89ce4cf18f65eaf38688639ab2/src/chatlog_assistant/sources/wecom_paths.py#L8-L13)。
 
 ## 5. 本轮离线验证
 

@@ -20,6 +20,7 @@ TASK_STATUSES = (
 IS_SELF = ("true", "false", "unknown")
 IDENTITY = ("resolved", "unknown", "ambiguous")
 PARSE_STATUS = ("ok", "decode_error", "missing_decoder")
+MENTION_SELF = ("true", "false", "unknown")
 
 Mode = Literal["offline", "read_only", "draft_only", "manual_send"]
 Action = Literal["draft", "ignore", "needs_review"]
@@ -37,6 +38,7 @@ TaskStatus = Literal[
 IsSelf = Literal["true", "false", "unknown"]
 IdentityStatus = Literal["resolved", "unknown", "ambiguous"]
 ParseStatus = Literal["ok", "decode_error", "missing_decoder"]
+MentionSelf = Literal["true", "false", "unknown"]
 
 
 @dataclass(frozen=True)
@@ -98,6 +100,11 @@ class Event:
     is_replay: bool = False
     runtime_id: str | None = None
     halt_reason: str | None = None
+    mention_self: MentionSelf = "unknown"
+    mentioned_keys: tuple[str, ...] = ()
+    mention_all: bool = False
+    mention_field: str | None = None
+    mention_reason: str = "mention_field_absent"
 
     def eligible_for_reply(self) -> tuple[bool, str]:
         if self.halt_reason:
@@ -114,6 +121,20 @@ class Event:
             return False, "missing_native_id"
         if self.parse_status != "ok" or self.text is None:
             return False, "undecodable_text"
+        return True, "ok"
+
+    def eligible_for_mention_reply(self) -> tuple[bool, str]:
+        ok, reason = self.eligible_for_reply()
+        if not ok:
+            return False, reason
+        if self.mention_self == "unknown":
+            return False, "mention_unknown"
+        if self.mention_all:
+            return False, "mention_all"
+        if self.mention_self != "true":
+            return False, "mention_not_self_only"
+        if len(self.mentioned_keys) != 1:
+            return False, "mention_not_self_only"
         return True, "ok"
 
     def to_dict(self) -> dict[str, Any]:
@@ -141,6 +162,11 @@ class Event:
             is_replay=bool(data.get("is_replay")),
             runtime_id=_optional_str(data.get("runtime_id")),
             halt_reason=_optional_str(data.get("halt_reason")),
+            mention_self=_mention_self(data.get("mention_self")),
+            mentioned_keys=tuple(str(item) for item in (data.get("mentioned_keys") or ())),
+            mention_all=bool(data.get("mention_all")),
+            mention_field=_optional_str(data.get("mention_field")),
+            mention_reason=str(data.get("mention_reason") or "mention_field_absent"),
         )
 
 
@@ -211,9 +237,16 @@ class HaltError(RuntimeError):
         self.halt = halt
 
 
-def event_key(account: str, shard: str, table: str, message_id: int | None) -> str:
+def event_key(
+    account: str,
+    shard: str,
+    table: str,
+    message_id: int | None,
+    conversation_key: str = "",
+) -> str:
     native = "null" if message_id is None else str(int(message_id))
-    return f"{account}|{shard}|{table}|{native}"
+    group = conversation_key or "-"
+    return f"{account}|{group}|{shard}|{table}|{native}"
 
 
 def _optional_int(value: Any) -> int | None:
@@ -249,3 +282,10 @@ def _parse_status(value: Any) -> ParseStatus:
     if text in PARSE_STATUS:
         return text  # type: ignore[return-value]
     return "ok"
+
+
+def _mention_self(value: Any) -> MentionSelf:
+    text = str(value or "unknown")
+    if text in MENTION_SELF:
+        return text  # type: ignore[return-value]
+    return "unknown"
