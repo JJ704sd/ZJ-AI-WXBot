@@ -1,19 +1,19 @@
 # WeChatAuto 只读前置探针
 
-使用社区 SDK 相同的 FlaUI 5.0.0 / UIA3 依赖，只核验目标标题、消息列表及输入框节点。避免 SDK 工厂初始化的托盘点击、头像读取和截图副作用。没有发送器、点击、聚焦、截图或聊天正文输出。
+使用社区 SDK 相同的 FlaUI 5.0.0 / UIA3 依赖，核验目标标题、消息列表、输入框，以及有界 Raw View / MSAA 计数。避免 SDK 工厂初始化的托盘点击、头像读取和截图副作用。没有发送器、点击、聚焦、截图或聊天正文输出。
 
 这不是完整 SDK 运行验证。即使返回 `ui_structure_pass=true`，真实 @、新旧消息区分、混合群送达仍未验证；`sdk_acceptance_pass` 固定为 false。
 
-运行时需提供准确群标题，不切换当前会话。输出只含节点数量、匹配布尔值和进程信息。由调用方设定 30 秒超时，超时终止进程。
+用法：`ReadOnlyProbe <exact target group title> [baseline|pulse-screen-reader|pulse-narrator]`。群名含空格时，调用方必须按单个参数传递。`pulse-screen-reader` 会短暂设置 `SPI_SETSCREENREADER` 并在 `finally` 恢复；`pulse-narrator` 会短暂启动讲述人并结束进程。父进程应再次核验标志与进程。不切换当前会话。
+
+输出只含节点数量、类名、匹配布尔值和进程信息，不含节点名称或消息正文。由调用方设定超时，超时终止探针进程，不终止微信。
 
 退出码：0 为前置结构满足；3 为未满足；2 为参数错误。异常或超时均不能当成通过。
 
-依赖和编译产物保存在 `poc/.local/wechatauto-readonly`，不修改系统 .NET 安装、不提交凭据或消息。
+依赖和编译产物保存在 `poc/.local/wechatauto-readonly`。
 
-当前执行状态：构建通过；沙箱内 windows=[]，退出码3。真实桌面执行被自动审批拒绝，未完成现场验证。不得通过其他入口重试以绕过拒绝。
+## 当前执行状态（以最新为准）
 
-后续状态：用户明确授权直接读取后重新送审，桌面执行已获准；探针30秒超时被终止（退出码124），未返回结构结果。前述拒绝为历史状态。需要阶段诊断后再验证，不得将超时计为兼容性失败或验收成功。
+v6 真实桌面对照已完成：微信 4.1.13.65，主窗口 Raw View 3 节点、0 个 `mmui::`。`SPI_SETSCREENREADER` 与讲述人均未改变该树。MSAA client/window 子节点计数为 1/7，不能解释为聊天列表。`ui_structure_pass=false`。选择器查询仅对 `Qt51514QWindowIcon` 运行；对 `Qt51514QWindowToolSaveBits` 的 `FindAllDescendants` 会挂起，不要恢复那种遍历。
 
-最新状态：改用主窗口句柄并添加阶段日志后，不再超时。实际桌面读取到窗口，IsOffscreen=false，三个预期节点均为0，退出码3。可选属性读取失败返回null。当前仅说明SDK预期结构未匹配，不证明所有UI自动化不可行。
-
-Raw View复验：不依赖选择器的有界遍历只得到主窗口、渲染面板、标题栏，共3节点，无待遍历节点。当前查询未暴露聊天内部控件，不应继续仅靠修改AutomationId推进。阶段日志不含节点名称和消息正文。
+这是前置结构失败，不是 WeChatAuto.SDK、真实 @ 或原群双端验收通过。可逆 OS 无障碍适配路线已结束；不要只改 AutomationId 再跑同一路径。

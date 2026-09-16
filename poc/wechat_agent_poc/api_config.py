@@ -13,7 +13,7 @@ API_EVENT_CONTRACT = "wechat-api-event/1"
 SPEC_VERSION = "poc-v0.5"
 PROFILES = ("offline", "observe", "bounded_agent")
 STAGES = ("A1", "A2a", "A2b", "A2c", "A3", "A4")
-IMPLEMENTED_PROVIDERS = frozenset({"fake", "geweapi"})
+IMPLEMENTED_PROVIDERS = frozenset({"fake", "geweapi", "wechatpadpro_legacy"})
 IMPLEMENTED_MODELS = frozenset({"mock"})
 KNOWN_ALLOW_FLAGS = frozenset({"allow_live_read", "allow_live_send"})
 PLACEHOLDER_KEYS = frozenset({"", "todo", "changeme", "your-id", "example", "placeholder"})
@@ -249,7 +249,7 @@ def parse_api_config(raw: Mapping[str, Any], source_path: Path | None = None) ->
     provider = str(channel_raw.get("provider") or "")
     if provider not in IMPLEMENTED_PROVIDERS:
         raise ConfigError(
-            f"unknown or unverified provider {provider!r}; implemented backends are fake and geweapi; "
+            f"unknown or unverified provider {provider!r}; implemented backends are fake, geweapi, and wechatpadpro_legacy; "
             "do not treat undocumented vendor names as available backends"
         )
     contract = str(channel_raw.get("contract_version") or "")
@@ -382,6 +382,15 @@ def live_arm_blockers(config: ApiConfig) -> list[str]:
             blockers.append("callback_bridge_token_ref missing; GeWe webhook has no documented signature")
         blockers.append("geweapi mixed-group native @ receive is undocumented")
         blockers.append("geweapi history/sync flag is undocumented")
+    elif config.channel.provider == "wechatpadpro_legacy":
+        if not (config.channel.base_url_ref or "").strip():
+            blockers.append("channel.base_url_ref missing")
+        if not (config.channel.credential_ref or "").strip():
+            blockers.append("channel.credential_ref missing")
+        blockers.append("legacy 861 HttpSync response schema is unmapped")
+        blockers.append("legacy 861 real @ receive is unobserved")
+        blockers.append("legacy 861 history/watermark is unobserved")
+        blockers.append("legacy 861 device key issuance is blocked by upstream auth")
     return blockers
 
 

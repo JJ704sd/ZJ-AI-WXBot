@@ -119,3 +119,64 @@ v2实际桌面运行约0.1秒完成查询，退出码3：窗口类 Qt51514QWindo
 当前决策：WeChatAuto.SDK 的UIA前置门槛不通过，暂停其完整部署及REST适配。公开检索发现另一个项目自述4.1.12+自绘并采用数据库读取/OCR发送，但这只是候选作者声明，未安装、未读取数据库或提取密钥，也不能证明混合群真实@可用。后续路线必须能提供当前版本的读取机制证据，而不是重复同一选择器实验。
 
 参考： https://github.com/fanyuantaier/wechatauto-replica/blob/main/README_pypi.md （候选声明，非本机验证）；https://github.com/scottfly189/WeChatAuto.SDK/issues/3 （上游UI Tree问题）。
+
+## v6 可逆无障碍对照（2026-09-16 17:56–18:00 北京时间）
+
+接手后重测 `Weixin.exe` FileVersion=4.1.13.65。HEAD `523a1b7`，接手时工作区干净。仓库无 AGENTS.md。
+
+可证伪假设：
+
+1. 其它 Weixin 顶层窗口有聊天 UIA 树。
+2. MSAA `accChildCount` 能显示比 UIA3 Raw View 更丰富的聊天结构。
+3. 运行时 `SPI_SETSCREENREADER=TRUE`（`SPIF_SENDCHANGE`，不写用户配置）会物化 `mmui::` 节点。
+4. 短时启动讲述人会物化 `mmui::` 节点。
+
+未做：降级、OpenUIA.zip、`WriteProcessMemory`、重启微信、`QT_USE_NATIVE_WINDOWS`、截图、发消息、取数据库密钥。
+
+### 命令（构建）
+
+```powershell
+$env:DOTNET_CLI_HOME = 'D:\path\to\ZJ-AI-WXBot\poc\.local\wechatauto-readonly'
+$env:NUGET_PACKAGES = 'D:\path\to\ZJ-AI-WXBot\poc\.local\wechatauto-readonly\packages'
+$env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
+$env:DOTNET_GENERATE_ASPNET_CERTIFICATE = 'false'
+& 'D:\path\to\ZJ-AI-WXBot\poc\.local\wechatauto-readonly\dotnet\dotnet.exe' build `
+  'D:\path\to\ZJ-AI-WXBot\poc\probes\wechatauto-readonly\ReadOnlyProbe.csproj' `
+  --artifacts-path 'D:\path\to\ZJ-AI-WXBot\poc\.local\wechatauto-readonly\artifacts' `
+  --no-restore --nologo
+```
+
+结果：本地构建通过，0 警告 0 错误。这不是真实桌面读取成功。
+
+### 命令（运行）
+
+父进程用 `ProcessStartInfo`（PowerShell 5.1 无 `ArgumentList`），隐藏窗口，重定向 stdout/stderr，超时只杀探针。群名含空格必须整体加引号。模式为 `pulse-screen-reader` 与 `pulse-narrator`。父进程 `finally` 再次恢复 SPI 并结束讲述人。
+
+首次全 HWND + 对 `Qt51514QWindowToolSaveBits` 跑 `FindAllDescendants` 在 30 秒内未结束（退出码 124）。阶段日志停在某工具窗口的 `query_inputs`。随后改为：只枚举可见窗口和主窗口句柄；选择器查询仅针对 `Qt51514QWindowIcon`。
+
+### 脱敏结果
+
+`pulse-screen-reader` 退出码 3，约 3.2 秒：
+
+| 项 | before | during/after |
+|---|---|---|
+| SPI_GETSCREENREADER | 0 | 1 / 恢复 0 |
+| 可见主窗口 | 1，PID 与 v5 相同进程 | 1 |
+| Raw 节点 | 3，pending=0 | 3，pending=0 |
+| mmui_class_nodes | 0 | 0 |
+| 标题/消息列表/输入框 | 0/0/0 | 0/0/0 |
+| MSAA client / window | 1 / 7 | 1 / 7 |
+
+树类名仍为 `Qt51514QWindowIcon` + `MMUIRenderSubWindowHW` + TitleBar。与 replica 描述的「Qt 空壳 + 2 个子节点」一致。这是**真实桌面读取未通过**，不是 SDK 验收。
+
+`pulse-narrator` 退出码 3，约 5 秒：讲述人启动后 SPI 仍为 0；独立对照确认本机 `Narrator.exe` 能运行但**不置位** `SPI_GETSCREENREADER`。UIA 树无变化。收尾：SPI=0，讲述人进程 0，微信进程仍为 6。
+
+### 结论
+
+对当前 4.1.13.65，可逆 OS 无障碍适配（读屏标志、讲述人）**不能**让 WeChatAuto.SDK 所依赖的聊天 UIA 树出现。结束对该 SDK 的 UIA 路线重复投入。
+
+源码推断（非本机执行）：replica `uia_driver.py` 在设 SPI 之后仍 `WriteProcessMemory` 写入 Weixin.dll gate，并为 4.1.13.65 提供 RVA `0x0AE2B0C8`。该路径需要扩大授权，本轮未执行。
+
+剩余不确定性：未冷启动微信；未使用 UIA2 程序集（已用 MSAA 计数替代）；工具窗口未完整遍历（避免再次挂起）。
+
+参考：https://github.com/LTEnjoy/easyChat/issues/129 ；https://raw.githubusercontent.com/fanyuantaier/wechatauto-replica/main/wechatauto/uia_driver.py

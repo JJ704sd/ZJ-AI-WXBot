@@ -70,6 +70,26 @@ def test_geweapi_provider_parses_without_arming():
     assert any("mixed-group" in item for item in blockers)
 
 
+def test_legacy861_provider_parses_without_arming():
+    config = parse_api_config(
+        _raw(
+            channel={
+                "provider": "wechatpadpro_legacy",
+                "contract_version": "wechat-api-event/1",
+                "base_url_ref": "env:WECHAT_GATEWAY_BASE_URL",
+                "credential_ref": "env:WECHAT_PAD_DEVICE_KEY",
+            }
+        )
+    )
+    assert config.channel.provider == "wechatpadpro_legacy"
+    from wechat_agent_poc.api_config import live_arm_blockers
+
+    blockers = live_arm_blockers(config)
+    assert "profile=offline cannot arm live" in blockers
+    assert any("device key issuance is blocked" in item for item in blockers)
+    assert any("real @ receive is unobserved" in item for item in blockers)
+
+
 def test_unknown_field_and_nested_allow_rejected():
     with pytest.raises(ConfigError, match="unknown field"):
         parse_api_config(_raw() | {"extra": 1})

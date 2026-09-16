@@ -388,4 +388,14 @@ def build_channel(config, *, clock=None, transport=None, environ=None, allow_net
             environ=environ,
             allow_network=allow_network,
         )
+    if config.channel.provider == "wechatpadpro_legacy":
+        from wechat_agent_poc.pad_legacy_channel import Legacy861Channel
+
+        return Legacy861Channel.from_config(
+            config,
+            clock=clock,
+            transport=transport,
+            environ=environ,
+            allow_network=allow_network,
+        )
     raise ChannelError("unknown_provider", f"no adapter for {config.channel.provider}")

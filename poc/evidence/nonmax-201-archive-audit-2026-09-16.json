@@ -1,0 +1,232 @@
+{
+  "scope": "static_archive_only_no_execution",
+  "archive_sha256": "e490ac6bfe944477846ad0d019bd5225214091b4fbe33987d8ca396c7eed6a6a",
+  "entry_count": 147,
+  "core_go_source_count": 0,
+  "embedded_windows_version": {
+    "version.txt": "WeChatPadPro\nVersion: ios18.61-861\nBuild Time: 20250805_184323\nSystem: windows\nArchitecture: amd64\nDescription: Windows PC (64-bit)\r\n"
+  },
+  "embedded_hashes": {
+    "static/swagger/swagger.json": "e062399f25c88f33b07d20455706ddd938b395e363ef3a3f1eae84fd97804ec1",
+    "version.txt": "e17b25229200f191ca68ac7a4e67cecfa6fd9f2964fdda59d7723e4ee014c811",
+    "wechatpadpro-windows-amd64-vios18.61-861.exe": "02be4b01e9441cc1c3339a9e6285553634891e627ed1369cf15fb02669f3865e"
+  },
+  "root_swagger_sha256": "e062399f25c88f33b07d20455706ddd938b395e363ef3a3f1eae84fd97804ec1",
+  "baseline_swagger_sha256": "b53cf8e7eae3f9240e27304d6944811a1a40792b4098b0198c757e816b04a2ed",
+  "path_count": 201,
+  "baseline_path_count": 194,
+  "paths_only_in_new_attachment": [
+    "/admin/accountMessageInfo",
+    "/admin/multiAccountStatus",
+    "/login/AutoVerificationcode",
+    "/login/ForceRefreshToken",
+    "/login/GetAutoRefreshTokenStatus",
+    "/pay/AutoHongBao",
+    "/pay/CollectmoneyNew",
+    "/pay/ConfirmPreTransferNew",
+    "/pay/GeMaPayQCode",
+    "/pay/GeMaSkdPayQCode",
+    "/pay/GetEncryptInfo",
+    "/pay/GetRedPacketListApi",
+    "/pay/Openwxhb",
+    "/pay/Qrydetailwxhb",
+    "/pay/Receivewxhb",
+    "/pay/SjSkdPayQCode",
+    "/pay/WXCreateRedPacketNew",
+    "/rabbitmq/error",
+    "/rabbitmq/log",
+    "/rabbitmq/publish",
+    "/rabbitmq/reconnect",
+    "/rabbitmq/status",
+    "/webhook/connection",
+    "/webhook/heartbeat",
+    "/webhook/reconnect"
+  ],
+  "paths_only_in_20250822": [
+    "/login/ExtDeviceLoginConfirmGet",
+    "/login/ExtDeviceLoginConfirmOk",
+    "/login/GetLoginQrCodeA16",
+    "/login/GetLoginQrCodeAndroidPad",
+    "/login/GetLoginQrCodeCar",
+    "/login/GetLoginQrCodeMac",
+    "/login/GetLoginQrCodePad",
+    "/login/GetLoginQrCodePadX",
+    "/login/GetLoginQrCodeWin",
+    "/login/GetLoginQrCodeWinUnified",
+    "/login/YPayVerificationcode",
+    "/webhook/Config",
+    "/webhook/List",
+    "/webhook/ResetConnection",
+    "/webhook/Status",
+    "/webhook/Test",
+    "/webhook/Update",
+    "/webhook/VerifyDbConfig"
+  ],
+  "relevant_contracts_equal": {
+    "/admin/GenAuthKey1": true,
+    "/login/GetLoginQrCodeNew": false,
+    "/login/CheckLoginStatus": true,
+    "/login/GetLoginStatus": true,
+    "/message/HttpSyncMsg": true,
+    "/message/SendTextMessage": true,
+    "/group/GetChatRoomInfo": true,
+    "/qy/QWGetChatroomInfo": true
+  },
+  "models": {
+    "GenAuthKeyModel": {
+      "properties": {
+        "Count": {
+          "description": " 要生成 AuthKey 的个数; Count小于1默认设置为1",
+          "example": "1",
+          "format": "int",
+          "type": "integer"
+        },
+        "Days": {
+          "description": " AuthKey 的过期天数; Days小于1默认设置为30",
+          "example": "30",
+          "format": "int",
+          "type": "integer"
+        },
+        "Remark": {
+          "description": " 设备备注信息",
+          "example": "",
+          "type": "string"
+        }
+      },
+      "title": "GenAuthKeyModel",
+      "type": "object"
+    },
+    "SyncMessageModel": {
+      "properties": {
+        "Count": {
+          "description": " 同步几条消息; 接收空请求体, 默认为0, 同步所有消息",
+          "format": "int",
+          "type": "integer"
+        }
+      },
+      "title": "SyncMessageModel",
+      "type": "object"
+    },
+    "SendMessageModel": {
+      "properties": {
+        "MsgItem": {
+          "description": " 消息体数组",
+          "items": {
+            "$ref": "#/definitions/MessageItem"
+          },
+          "type": "array"
+        }
+      },
+      "title": "SendMessageModel",
+      "type": "object"
+    },
+    "MessageItem": {
+      "properties": {
+        "AtWxIDList": {
+          "description": " 发送艾特消息时的 wxid 列表",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ImageContent": {
+          "description": " 图片类型消息时图片的 base64 编码",
+          "example": "",
+          "type": "string"
+        },
+        "MsgType": {
+          "description": "1 Text 2 Image",
+          "format": "int",
+          "type": "integer"
+        },
+        "TextContent": {
+          "description": " 文本类型消息时内容",
+          "example": "",
+          "type": "string"
+        },
+        "ToUserName": {
+          "description": " 接收者 wxid",
+          "example": "",
+          "type": "string"
+        }
+      },
+      "title": "MessageItem",
+      "type": "object"
+    }
+  },
+  "readme_generation_route_present_in_swagger": false,
+  "selected_models_equal": {
+    "GenAuthKeyModel": true,
+    "SyncMessageModel": true,
+    "SendMessageModel": true,
+    "MessageItem": true
+  },
+  "qr_new_contract_comparison": {
+    "20250805": {
+      "post": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "description": "请求参数",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/GetLoginQrCodeModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "@Router /api/login/qr/new [post]",
+        "tags": [
+          "登录"
+        ]
+      }
+    },
+    "20250822": {
+      "post": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "description": "请求参数",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/GetLoginQrCodeModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "获取登录二维码(异地IP用代理)",
+        "tags": [
+          "登录"
+        ]
+      }
+    }
+  }
+}

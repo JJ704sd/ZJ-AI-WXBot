@@ -1,0 +1,29 @@
+{
+  "scope": "static_hash_lock_no_execution",
+  "checked_at": "2026-09-16T18:20:00+08:00",
+  "git": {
+    "branch": "main",
+    "head": "523a1b7d583f4dc2940d29990553f788c55d46b3",
+    "commit": false,
+    "push": false
+  },
+  "selected_baseline": "wechatpadpro_vios18.61-861_20250822_windows-amd64",
+  "hashes": {
+    "zip": "4500ab14ac22b71146705ed2dc0046af4ee6ed555a617ba99430e1e1546d9430",
+    "exe": "5308323f32d4249f325a750b0c0faa91aba5b91f50593c88931d9829ffb203e9",
+    "swagger_json": "b53cf8e7eae3f9240e27304d6944811a1a40792b4098b0198c757e816b04a2ed",
+    "version_txt": "af81c2d13a9460c7de477219e439312c7d0eae7993d238d909e3a908feaef432"
+  },
+  "version_text": "ios18.61-861 / 20250822_153444 / windows / amd64",
+  "attachment_wechatpadpro_2_01": {
+    "zip_sha256": "e490ac6bfe944477846ad0d019bd5225214091b4fbe33987d8ca396c7eed6a6a",
+    "embedded_windows_build": "ios18.61-861 / 20250805_184323",
+    "embedded_exe_sha256": "02be4b01e9441cc1c3339a9e6285553634891e627ed1369cf15fb02669f3865e",
+    "used_as_baseline": false,
+    "started": false
+  },
+  "max_paths_used": false,
+  "gateway_listeners": {"1238": false, "8098": false},
+  "valid_device_key_present": false,
+  "generation_replayed": false
+}

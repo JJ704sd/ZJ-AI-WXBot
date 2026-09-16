@@ -1,0 +1,46 @@
+# Independent API Agent config for non-MAX Windows 861. Default is offline.
+# This file does not arm live read/send, generate device keys, or start a webhook.
+
+config_version = "api-config/1"
+profile = "offline"
+allow_live_read = false
+allow_live_send = false
+authorization_ref = ""
+state_path = ".local/api-agent/legacy861-state.sqlite"
+evidence_root = ".local/api-agent/legacy861-runs"
+
+[channel]
+provider = "wechatpadpro_legacy"
+contract_version = "wechat-api-event/1"
+base_url_ref = "env:WECHAT_GATEWAY_BASE_URL"
+credential_ref = "env:WECHAT_PAD_DEVICE_KEY"
+provider_profile_path = "pad-provider-profile.legacy.example.json"
+
+[binding]
+account_key = ""
+conversation_key = ""
+binding_version = ""
+
+[agent]
+model_provider = "mock"
+credential_ref = "env:MINIMAX_API_KEY"
+max_input_chars = 2000
+max_output_chars = 300
+context_max_chars = 8000
+model_timeout_seconds = 12
+
+[run]
+stage = "A1"
+max_seconds = 1800
+member_cooldown_seconds = 10
+
+[inquiry]
+enabled = false
+schedule_kind = "once_after"
+delay_seconds = 120
+start_grace_seconds = 10
+timezone = "Asia/Shanghai"
+template_id = "connectivity_receipt_and_willingness_v1"
+target_keys = []
+session_seconds = 600
+max_followup_attempts = 3
