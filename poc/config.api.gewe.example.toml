@@ -1,0 +1,49 @@
+# GeWe API v2 adapter config. Does not arm live send/read.
+# Fill env refs locally; never put tokens in this file.
+# A2a is not started by loading this file.
+
+config_version = "api-config/1"
+profile = "offline"
+allow_live_read = false
+allow_live_send = false
+authorization_ref = ""
+state_path = ".local/api-agent/state.sqlite"
+evidence_root = ".local/api-agent/runs"
+
+[channel]
+provider = "geweapi"
+contract_version = "wechat-api-event/1"
+base_url_ref = "env:WECHAT_GATEWAY_BASE_URL"
+credential_ref = "env:WECHAT_GATEWAY_TOKEN"
+app_id_ref = "env:WECHAT_GATEWAY_APP_ID"
+callback_bridge_token_ref = "env:WECHAT_CALLBACK_BRIDGE_TOKEN"
+provider_profile_path = "provider-profile.gewe.example.json"
+
+[binding]
+account_key = ""
+conversation_key = ""
+binding_version = ""
+
+[agent]
+model_provider = "mock"
+credential_ref = "env:MINIMAX_API_KEY"
+max_input_chars = 2000
+max_output_chars = 300
+context_max_chars = 8000
+model_timeout_seconds = 12
+
+[run]
+stage = "A1"
+max_seconds = 1800
+member_cooldown_seconds = 10
+
+[inquiry]
+enabled = false
+schedule_kind = "once_after"
+delay_seconds = 120
+start_grace_seconds = 10
+timezone = "Asia/Shanghai"
+template_id = "connectivity_receipt_and_willingness_v1"
+target_keys = []
+session_seconds = 600
+max_followup_attempts = 3

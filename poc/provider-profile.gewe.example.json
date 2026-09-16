@@ -1,0 +1,61 @@
+{
+  "schema_version": "provider-profile/1",
+  "generated_at": "2026-09-16",
+  "spec_version": "poc-v0.5",
+  "selected_candidate": "geweapi",
+  "selection_status": "adapter_development_only",
+  "note": "Documented claims stay documented. Nothing here is observed against the test account or mixed group.",
+  "current_client": {
+    "weixin_file_version": {"status": "observed", "value": "4.1.13.65", "measured_at": "2026-09-16", "source": "C:\\\\Program Files\\\\Tencent\\\\Weixin\\\\Weixin.exe FileVersion"},
+    "wxwork_file_version": {"status": "observed", "value": "5.0.11.6018", "source": "C:\\\\Program Files (x86)\\\\WXWork\\\\WXWork.exe FileVersion"}
+  },
+  "product": {
+    "name": "GeWe API",
+    "docs": "https://doc.geweapi.com/",
+    "contract": "gewe-v2",
+    "backend_kind": "device_service",
+    "pc_weixin_dependency": {"status": "documented", "value": "not required for API calls; login is a GeWe execution node via console scan"},
+    "base_url_example": {"status": "documented", "value": "http://api.geweapi.com", "note": "OpenAPI servers url; production host must be confirmed with vendor"}
+  },
+  "delivery": {
+    "saas": {"status": "documented", "source": "https://doc.geweapi.com/"},
+    "private_deploy": {"status": "documented", "value": "claimed; image/version/quote unknown"},
+    "trial": {"status": "documented", "value": "console says 7-day trial Token after register; this project has not registered"},
+    "price": {"status": "unknown"},
+    "license_tos": {"status": "documented", "value": "real-name account; prohibit ads/fraud; service may terminate"}
+  },
+  "auth": {
+    "api_header": {"status": "documented", "value": "X-GEWE-TOKEN"},
+    "webhook_signature": {"status": "unknown", "note": "webhook docs require public POST JSON in 3s; no signature field listed"},
+    "local_bridge_token": {"status": "code_checked", "value": "X-Wechat-Bridge-Token required by GeweChannel because vendor signature is unknown"}
+  },
+  "receive": {
+    "callback_version": {"status": "documented", "value": "gewe-callback/2 flat fields appid,wxid,fromUser,toUser,newMsgId,msgType,createTime,isSelf,content"},
+    "v1_rejected": {"status": "code_checked", "value": "TypeName/Data payloads are rejected"},
+    "dedup": {"status": "documented", "value": "appid + newMsgId; retries/history/restart may duplicate"},
+    "api_send_echo": {"status": "documented", "value": false, "note": "API-sent messages do not callback"},
+    "mention_fields": {"status": "unknown", "meets_v05": false},
+    "history_flag": {"status": "unknown", "meets_v05": false},
+    "mixed_group_openim": {"status": "unknown"}
+  },
+  "send": {
+    "path": {"status": "documented", "value": "POST /gewe/v2/api/message/postText"},
+    "fields": {"status": "documented", "value": "appId,toWxid,content,ats"},
+    "native_at": {"status": "documented", "value": "ats=wxid comma list or notify@all; content must contain @ markers"},
+    "success": {"status": "documented", "value": "HTTP 200 and ret=200 with data.newMsgId"},
+    "write_retry": {"status": "code_checked", "value": "adapter does not retry; urllib NoRedirect"},
+    "mixed_group_wecom_at": {"status": "unknown"}
+  },
+  "identity": {
+    "check_online": {"status": "documented", "value": "POST /gewe/v2/api/login/checkOnline data true/false"},
+    "get_profile": {"status": "documented", "value": "POST /gewe/v2/api/personal/getProfile data.wxid"},
+    "member_detail": {"status": "documented", "value": "POST /gewe/v2/api/group/getChatroomMemberDetail appId,chatroomId,memberWxids"},
+    "member_list_not_used": {"status": "code_checked", "value": "full-room list API exists but adapter uses detail+requested ids only"}
+  },
+  "observed_live": {
+    "login": "unexecuted",
+    "callback_sample": "unexecuted",
+    "mixed_group": "unexecuted",
+    "send": "unexecuted"
+  }
+}

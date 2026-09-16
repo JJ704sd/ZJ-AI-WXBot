@@ -1,0 +1,63 @@
+# Example Caddyfile for G2b local HTTPS. Not a live or public deployment.
+# Caddy terminates TLS on loopback and reverse_proxies the original POST path.
+# It MUST NOT inject X-Wechat-Bridge-* or source-level headers.
+# It MUST NOT log the callback path (the path secret) or request headers.
+# Replace cert paths and backend port before use. Do not bind privileged ports or non-loopback addresses.
+
+{
+	auto_https off
+	admin off
+	log {
+		output file .local/gewe-observe/logs/caddy.log
+		format filter {
+			wrap json
+			fields {
+				request>uri delete
+				request>headers delete
+			}
+		}
+	}
+}
+
+https://127.0.0.1:18443 {
+	bind 127.0.0.1
+	tls .local/gewe-observe/certs/test.pem .local/gewe-observe/certs/test.key
+
+	@callback {
+		method POST
+		path /callbacks/gewe/*
+	}
+
+	route {
+	handle @callback {
+		reverse_proxy 127.0.0.1:8765 {
+			header_up -X-Wechat-Bridge-Token
+			header_up -X-Wechat-Bridge-*
+			header_up -X-Wechat-Source-Level
+			header_up -X-Wechat-Source-*
+			header_up -X-Source-Level
+			lb_retries 0
+			transport http {
+				dial_timeout 1s
+				read_timeout 3s
+				write_timeout 3s
+			}
+		}
+	}
+
+	handle {
+		respond 404
+	}
+	}
+
+	log {
+		output file .local/gewe-observe/logs/caddy-access.log
+		format filter {
+			wrap json
+			fields {
+				request>uri delete
+				request>headers delete
+			}
+		}
+	}
+}

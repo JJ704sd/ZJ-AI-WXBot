@@ -1,0 +1,24 @@
+{
+  "comment": "Synthetic A1 offline events. Identifiers are fake and not live account keys.",
+  "events": [
+    {
+      "schema_version": "wechat-api-event/1",
+      "provider": "fake",
+      "account_key": "acct_test",
+      "conversation_key": "conv_test",
+      "native_message_id": "sample-001",
+      "session_epoch": "epoch-1",
+      "occurred_at": "2026-09-16T04:00:01Z",
+      "sender_key": "member_a",
+      "identity_status": "resolved",
+      "is_self": "false",
+      "kind": "text",
+      "text": "接入测试：现在几点方便说明一下吗？",
+      "mention_status": "structured",
+      "mention_keys": ["member_self"],
+      "mention_all": false,
+      "history_status": "false",
+      "parse_status": "ok"
+    }
+  ]
+}

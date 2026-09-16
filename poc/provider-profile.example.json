@@ -1,0 +1,103 @@
+{
+  "schema_version": "provider-profile/1",
+  "generated_at": "2026-09-16",
+  "spec_version": "poc-v0.5",
+  "note": "Documented claims stay documented until A2 observes them. This file is a template, not a live backend.",
+  "current_client": {
+    "weixin_file_version": {
+      "status": "observed",
+      "value": "4.1.13.65",
+      "source": "C:\\Program Files\\Tencent\\Weixin\\Weixin.exe FileVersion",
+      "measured_at": "2026-09-16"
+    },
+    "wxwork_file_version": {
+      "status": "observed",
+      "value": "5.0.11.6018",
+      "source": "C:\\Program Files (x86)\\WXWork\\WXWork.exe FileVersion"
+    },
+    "wcferry_paired_wechat": {
+      "status": "documented",
+      "value": "3.9.12.51",
+      "source": "https://github.com/lich0821/WeChatFerry/releases/tag/v39.5.2"
+    },
+    "wcferry_compatible_with_current_weixin": {
+      "status": "unsupported",
+      "value": false,
+      "reason": "current Weixin is 4.1.13.65; original WCFerry release pairs 3.9.12.51; no local 4.x evidence"
+    }
+  },
+  "candidates": {
+    "fake": {
+      "status": "observed",
+      "backend_kind": "local_fake",
+      "a1_role": "offline closed loop only"
+    },
+    "wcferry_upstream": {
+      "product": "WeChatFerry",
+      "version": "v39.5.2 / wcferry 39.5.2.0",
+      "backend_kind": "local_hook",
+      "availability": "archived_upstream",
+      "install_source": "https://github.com/lich0821/WeChatFerry",
+      "license": "MIT",
+      "paired_wechat": "3.9.12.51",
+      "write_retry": {
+        "status": "documented",
+        "meets_v05": false,
+        "evidence": "clients/python/wcferry/client.py _retry retries pynng.Timeout once on _send_request; send_text uses that path"
+      },
+      "exception_false_success": {
+        "status": "documented",
+        "meets_v05": false,
+        "evidence": "timeout retry failure returns empty wcf_pb2.Response(); status default is not a verified business success"
+      },
+      "group_member_scope": {
+        "status": "documented",
+        "meets_v05": false,
+        "evidence": "get_chatroom_members SELECT UserName, NickName FROM Contact then ChatRoom RoomData"
+      },
+      "native_at": {
+        "status": "documented",
+        "fields": "send_text(msg, receiver, aters)",
+        "observed_mixed_group_wecom": "unknown"
+      },
+      "selection": "local_priority_to_verify; not installed; not a 4.x dependency"
+    },
+    "geweapi": {
+      "product": "GeWe API",
+      "backend_kind": "protocol_service_or_device_service",
+      "docs": "https://doc.geweapi.com/",
+      "callback_deadline_seconds": {"status": "documented", "value": 3},
+      "saas_public_callback": {"status": "documented", "value": true},
+      "send_echo_as_receipt": {"status": "documented", "value": false, "note": "API-sent messages may not callback"},
+      "auth_signature": {"status": "unknown"},
+      "native_at_fields": {
+        "status": "documented",
+        "value": "POST /gewe/v2/api/message/postText ats=wxid list; receive-side at fields unknown",
+        "source": "https://doc.geweapi.com/api-139908313"
+      },
+      "cost_and_image": {"status": "unknown"},
+      "selection": "recommended for adapter development only; see provider-profile.gewe.example.json"
+    },
+    "wechaty_padlocal": {
+      "backend_kind": "protocol_service",
+      "docs": "https://wechaty.js.org/docs/puppet-providers/padlocal/",
+      "token": {"status": "unknown"},
+      "openim_mixed_group": {"status": "unknown"},
+      "selection": "backup; Node bridge not introduced"
+    },
+    "openclaw": {
+      "selection": "organization reference only; not installed"
+    },
+    "gewechat_historical": {
+      "status": "unsupported",
+      "reason": "maintainer README stopped providing runtime/image"
+    }
+  },
+  "required_before_a2": [
+    "choose a deliverable backend with license/cost/data-path",
+    "verify exact Weixin/SDK/API version tuple on this machine",
+    "prove callback auth, replay, and ACK/loss window",
+    "remap account/group/member keys from API, not old DB keys",
+    "prove mixed-group WeCom native @ if A4 is required"
+  ]
+}

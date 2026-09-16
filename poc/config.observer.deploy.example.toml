@@ -1,0 +1,19 @@
+# observer-deploy/1 — loopback listener settings. Contains no secrets.
+# Writing this file does not mean TLS or GeWe identity is verified.
+
+config_version = "observer-deploy/1"
+mode = "synthetic"
+bind_host = "127.0.0.1"
+bind_port = 8765
+external_hostname = "localhost"
+tls_mode = "off"
+tls_cert_file = ""
+tls_key_file = ""
+max_concurrent_requests = 8
+queue_depth = 8
+body_read_timeout_seconds = 1.0
+heartbeat_stale_seconds = 5
+listen_shutdown_seconds = 5
+process_exit_seconds = 10
+lock_path = ".local/gewe-observe/observer.lock"
+log_dir = ".local/gewe-observe/logs"

@@ -18,9 +18,14 @@ sqlcipher = [
 live = [
     "cryptography>=43.0.0",
 ]
+observe = [
+    "starlette>=0.41,<0.50",
+    "uvicorn>=0.32,<0.40",
+]
 
 [project.scripts]
 wechat-agent-poc = "wechat_agent_poc.cli:main"
+wechat-agent-api = "wechat_agent_poc.api_cli:main"
 
 [build-system]
 requires = ["hatchling"]
