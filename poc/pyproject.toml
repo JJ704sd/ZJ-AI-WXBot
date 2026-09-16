@@ -26,6 +26,7 @@ observe = [
 [project.scripts]
 wechat-agent-poc = "wechat_agent_poc.cli:main"
 wechat-agent-api = "wechat_agent_poc.api_cli:main"
+wechat-agent-pad = "wechat_agent_poc.pad_cli:main"
 
 [build-system]
 requires = ["hatchling"]

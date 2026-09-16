@@ -1,0 +1,22 @@
+{
+  "kind": "document_fixture",
+  "not_observed": true,
+  "source": "GitHub Releases API GET /repos/WeChatPadPro/WeChatPadPro/releases/latest on 2026-09-16",
+  "html_url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/tag/v2.01",
+  "tag_name": "v2.01",
+  "release_name": "WeChatPadPro861-18.61v0.2.1",
+  "published_at": "2025-08-22T11:51:50Z",
+  "note": "digest is GitHub's declared SHA-256 of the zip asset. This is not a local hash of a downloaded file and is not a MAX/wechatpadpromax08 package.",
+  "assets": [
+    {"name": "wechatpadpro_vios18.61-861_20250822_linux-amd64.zip", "size": 23976531, "digest": "sha256:9367619f6c882f691172c44acfab59581571c9c37b9f6e01db0138b2793bd048"},
+    {"name": "wechatpadpro_vios18.61-861_20250822_linux-arm64.zip", "size": 22830500, "digest": "sha256:3090816baaf653cb1b736b6b01b2eac4297f6c31d6171ae4246bb0e86d1aaf90"},
+    {"name": "wechatpadpro_vios18.61-861_20250822_linux-mips64.zip", "size": 22689374, "digest": "sha256:a80f3a7e9d312a3eb0ea4ef045b41df5998ecfc90585766f5bd7c23222518d67"},
+    {"name": "wechatpadpro_vios18.61-861_20250822_linux-mips64le.zip", "size": 22130079, "digest": "sha256:fb8fc5e9aad07db12134d4839a9a64847fcd7c06a57bdf84f5018b58978748a5"},
+    {"name": "wechatpadpro_vios18.61-861_20250822_linux-ppc64.zip", "size": 23374176, "digest": "sha256:ecf2a884c40970404118e39f54f90a4fed60c29c790b062586bae075ea0e93ea"},
+    {"name": "wechatpadpro_vios18.61-861_20250822_linux-ppc64le.zip", "size": 22961098, "digest": "sha256:f4c6ac1921c112b8744a682760820b33de69a22cd9664bea337f744e2d12a5d4"},
+    {"name": "wechatpadpro_vios18.61-861_20250822_macos-amd64.zip", "size": 23937924, "digest": "sha256:0ca52a2b7a9203985b760de4bcbd319f383895450b59cacd618e8564defc825a"},
+    {"name": "wechatpadpro_vios18.61-861_20250822_macos-arm64.zip", "size": 23092529, "digest": "sha256:361d4cf945c40dba722c0baf4d3ee24508d3354f3e0e744e039bca935746c49b"},
+    {"name": "wechatpadpro_vios18.61-861_20250822_windows-amd64.zip", "size": 24062678, "digest": "sha256:4500ab14ac22b71146705ed2dc0046af4ee6ed555a617ba99430e1e1546d9430"},
+    {"name": "wechatpadpro_vios18.61-861_20250822_windows-arm64.zip", "size": 22808204, "digest": "sha256:ab01e258053c36b1eda130624cee5d3080cc5c2ce50bb3c6122ecd9dbadc6b00"}
+  ]
+}

@@ -1,0 +1,605 @@
+{
+  "schema_version": "pad-861-contract-audit/1",
+  "evidence_level": "bundled_document_not_live",
+  "archive_sha256": "4500ab14ac22b71146705ed2dc0046af4ee6ed555a617ba99430e1e1546d9430",
+  "swagger_sha256": "b53cf8e7eae3f9240e27304d6944811a1a40792b4098b0198c757e816b04a2ed",
+  "base_path": "",
+  "operations": {
+    "/login/GetLoginStatus": {
+      "get": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "获取在线状态",
+        "tags": [
+          "登录"
+        ]
+      }
+    },
+    "/equipment/GetOnlineInfo": {
+      "get": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "获取在线设备信息",
+        "tags": [
+          "设备"
+        ]
+      }
+    },
+    "/group/GetChatRoomInfo": {
+      "post": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "description": "请求参数",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ChatRoomWxIdListModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "获取群详情",
+        "tags": [
+          "群管理"
+        ]
+      }
+    },
+    "/group/GetChatroomMemberDetail": {
+      "post": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "description": "请求参数",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/GetChatroomMemberDetailModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "获取群成员详细",
+        "tags": [
+          "群管理"
+        ]
+      }
+    },
+    "/qy/QWGetChatRoomMember": {
+      "post": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "description": "请求参数",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/QWAddChatRoomMemberModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "提取企业群全部成员",
+        "tags": [
+          "企业微信"
+        ]
+      }
+    },
+    "/qy/QWGetChatroomInfo": {
+      "post": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "description": "请求参数",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/QWAddChatRoomMemberModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "提取企业群名称公告设定等信息",
+        "tags": [
+          "企业微信"
+        ]
+      }
+    },
+    "/message/HttpSyncMsg": {
+      "post": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "description": "请求参数",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/SyncMessageModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "同步消息, HTTP-轮询方式",
+        "tags": [
+          "消息"
+        ]
+      }
+    },
+    "/ws/GetSyncMsg": {
+      "get": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "同步消息，ws协议; 下面有【同步消息-HTTP-轮询方式】",
+        "tags": [
+          "同步消息"
+        ]
+      }
+    },
+    "/other/GetRedisSyncMsg": {
+      "post": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "description": "请求参数",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/GetSyncMsgModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "获取缓存在redis中的消息",
+        "tags": [
+          "其他"
+        ]
+      }
+    },
+    "/message/SendTextMessage": {
+      "post": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "description": "请求参数",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/SendMessageModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "发送文本消息",
+        "tags": [
+          "消息"
+        ]
+      }
+    },
+    "/webhook/Config": {
+      "post": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "description": "请求参数",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/WebhookConfig"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "配置Webhook回调地址",
+        "tags": [
+          "Webhook"
+        ]
+      }
+    },
+    "/webhook/Status": {
+      "get": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "获取Webhook配置状态",
+        "tags": [
+          "Webhook"
+        ]
+      }
+    },
+    "/webhook/ResetConnection": {
+      "post": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "重置Webhook连接时间戳，只接收重置后的新消息",
+        "tags": [
+          "Webhook"
+        ]
+      }
+    },
+    "/webhook/Update": {
+      "t": {
+        "consumes": [
+          "application/json",
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "description": "账号唯一标识",
+            "in": "query",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "description": "请求参数",
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/WebhookConfig"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应"
+          }
+        },
+        "summary": "更新Webhook配置",
+        "tags": [
+          "Webhook"
+        ]
+      }
+    }
+  },
+  "referenced_definitions": {
+    "ChatRoomWxIdListModel": {
+      "properties": {
+        "ChatRoomWxIdList": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "ChatRoomWxIdListModel",
+      "type": "object"
+    },
+    "GetChatroomMemberDetailModel": {
+      "properties": {
+        "ChatRoomName": {
+          "description": " 群聊ID：xxx@chatroom",
+          "example": "",
+          "type": "string"
+        }
+      },
+      "title": "GetChatroomMemberDetailModel",
+      "type": "object"
+    },
+    "QWAddChatRoomMemberModel": {
+      "properties": {
+        "ChatRoomName": {
+          "description": " 群聊ID：xxx@chatroom",
+          "example": "",
+          "type": "string"
+        },
+        "ToUserName": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "QWAddChatRoomMemberModel",
+      "type": "object"
+    },
+    "SyncMessageModel": {
+      "properties": {
+        "Count": {
+          "description": " 同步几条消息; 接收空请求体, 默认为0, 同步所有消息",
+          "format": "int",
+          "type": "integer"
+        }
+      },
+      "title": "SyncMessageModel",
+      "type": "object"
+    },
+    "GetSyncMsgModel": {
+      "properties": {
+        "Key": {
+          "example": "",
+          "type": "string"
+        }
+      },
+      "title": "GetSyncMsgModel",
+      "type": "object"
+    },
+    "SendMessageModel": {
+      "properties": {
+        "MsgItem": {
+          "description": " 消息体数组",
+          "items": {
+            "$ref": "#/definitions/MessageItem"
+          },
+          "type": "array"
+        }
+      },
+      "title": "SendMessageModel",
+      "type": "object"
+    },
+    "MessageItem": {
+      "properties": {
+        "AtWxIDList": {
+          "description": " 发送艾特消息时的 wxid 列表",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ImageContent": {
+          "description": " 图片类型消息时图片的 base64 编码",
+          "example": "",
+          "type": "string"
+        },
+        "MsgType": {
+          "description": "1 Text 2 Image",
+          "format": "int",
+          "type": "integer"
+        },
+        "TextContent": {
+          "description": " 文本类型消息时内容",
+          "example": "",
+          "type": "string"
+        },
+        "ToUserName": {
+          "description": " 接收者 wxid",
+          "example": "",
+          "type": "string"
+        }
+      },
+      "title": "MessageItem",
+      "type": "object"
+    },
+    "WebhookConfig": {
+      "properties": {
+        "Enabled": {
+          "type": "boolean"
+        },
+        "IncludeSelfMessage": {
+          "type": "boolean"
+        },
+        "MessageTypes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "RetryCount": {
+          "format": "int",
+          "type": "integer"
+        },
+        "Secret": {
+          "example": "",
+          "type": "string"
+        },
+        "Timeout": {
+          "format": "int",
+          "type": "integer"
+        },
+        "URL": {
+          "$ref": "#/definitions/binding:\"required\"`"
+        },
+        "string": {
+          "$ref": "#/definitions/binding:\"required\"`"
+        },
+        "unknown": {
+          "example": "",
+          "type": "string"
+        }
+      },
+      "title": "WebhookConfig",
+      "type": "object"
+    }
+  },
+  "unresolved_refs": [
+    "#/definitions/binding:\"required\"`"
+  ],
+  "invalid_methods": [
+    "/webhook/Update: t"
+  ],
+  "missing_response_schema": [
+    "GET /login/GetLoginStatus 200",
+    "GET /equipment/GetOnlineInfo 200",
+    "POST /group/GetChatRoomInfo 200",
+    "POST /group/GetChatroomMemberDetail 200",
+    "POST /qy/QWGetChatRoomMember 200",
+    "POST /qy/QWGetChatroomInfo 200",
+    "POST /message/HttpSyncMsg 200",
+    "GET /ws/GetSyncMsg 200",
+    "POST /other/GetRedisSyncMsg 200",
+    "POST /message/SendTextMessage 200",
+    "POST /webhook/Config 200",
+    "GET /webhook/Status 200",
+    "POST /webhook/ResetConnection 200",
+    "T /webhook/Update 200"
+  ],
+  "network": false,
+  "gateway_executed": false,
+  "live_verified": false
+}

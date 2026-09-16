@@ -416,7 +416,7 @@ def test_no_nudge_when_silent(tmp_path: Path):
 def test_api_modules_do_not_touch_old_live_paths():
     root = Path(__file__).resolve().parents[1] / "wechat_agent_poc"
     forbidden = ("weixin_uia", "ObservedDesktopSender", "key_material", "weixin_cipher_scan", "SendKeys")
-    for name in ("api_config.py", "api_channel.py", "api_store.py", "api_runtime.py", "agent_policy.py", "api_cli.py", "gewe_channel.py", "gewe_observer.py", "gewe_observe_store.py", "observer_config.py", "observer_service.py", "observer_deploy_config.py"):
+    for name in ("api_config.py", "api_channel.py", "api_store.py", "api_runtime.py", "agent_policy.py", "api_cli.py", "gewe_channel.py", "gewe_observer.py", "gewe_observe_store.py", "observer_config.py", "observer_service.py", "observer_deploy_config.py", "pad_config.py", "pad_auth.py", "pad_decoder.py", "pad_store.py", "pad_ingress.py", "pad_observer.py", "pad_cli.py"):
         text = (root / name).read_text(encoding="utf-8")
         for token in forbidden:
             assert token not in text, f"{name} contains {token}"

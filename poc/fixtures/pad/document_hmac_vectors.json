@@ -1,0 +1,25 @@
+{
+  "kind": "document_fixture",
+  "not_observed": true,
+  "source": "https://wx.knowhub.cloud/7359735m0 fetched 2026-09-16; formula locally recomputed",
+  "algorithm": "HMAC-SHA256 lowercase hex of UTF-8 'Wxid:MessageType:Timestamp'",
+  "covers_data": false,
+  "secret": "your-signature-secret",
+  "wxid": "wxid_xxxxxxxxxxxxxxxx",
+  "message_type": "sync_message",
+  "local_computed": {
+    "1757156304": "699e83ec24d08e47974a3b51c2d7d961cc584b2dccc26added40524d662e68aa",
+    "1757156307": "550a69a5420c5e82000ad954e7f944fd11e729db04efd5cae763a4a1202a0876"
+  },
+  "document_page_vectors_match_formula": false,
+  "page_listed_hex": {
+    "status": "documented_mismatch",
+    "kind": "document_fixture",
+    "note": "Page claims these vectors are verified. They do not match standard HMAC-SHA256 of the published formula. Do not change the algorithm to match the page.",
+    "values": {
+      "1757156304": "df5fdde88d2f3a9329cd0193969c0bac5a1d57e40cc6c28e181f478d3629c510",
+      "1757156307": "54cd72f857387f150ae84293ec35fb96e6347e9610ad2f1ee13025e245b72a80"
+    }
+  },
+  "algorithm_modified_to_match_page": false
+}

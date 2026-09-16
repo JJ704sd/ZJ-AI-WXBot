@@ -1,0 +1,24 @@
+{
+  "kind": "synthetic",
+  "not_observed": true,
+  "note": "In-process fixture shaped like documented webhook v1. Not a live WeChatPadPro capture.",
+  "envelope": {
+    "Wxid": "wxid_self_test",
+    "MessageType": "sync_message",
+    "Timestamp": 1758000100,
+    "Signature": "",
+    "Data": {
+      "messages": [
+        {
+          "newMsgId": 3768973957878705000,
+          "createTime": 1758000001,
+          "fromUser": "wxid_member_a",
+          "toUser": "example_group@chatroom",
+          "isSelf": false,
+          "msgType": "TEXT",
+          "text": "synthetic in-scope text"
+        }
+      ]
+    }
+  }
+}

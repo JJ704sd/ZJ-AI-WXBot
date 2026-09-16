@@ -1,0 +1,54 @@
+{
+  "schema_version": "pad-provider-profile/1",
+  "generated_at": "2026-09-16",
+  "spec_version": "poc-v0.6",
+  "provider": "wechatpadpro",
+  "api_flavor": "legacy",
+  "p0_closed": false,
+  "note": "GitHub Latest v2.01 zip digests are API-declared, not locally hashed. Not interchangeable with MAX /Msg or MAX auth headers. No binary downloaded this round.",
+  "product": {
+    "family": {"status": "documented", "value": "WeChatPadPro public repo / 861 line", "source": "https://github.com/WeChatPadPro/WeChatPadPro"},
+    "release_tag": {"status": "documented", "value": "GitHub Latest tag v2.01 title WeChatPadPro861-18.61v0.2.1; README also says v868/v860"},
+    "build_id": {"status": "documented", "value": "zip wechatpadpro_vios18.61-861_20250822_*; version.txt ios18.61-861 build 20250822_153444"},
+    "download_source": {"status": "documented", "value": "https://github.com/WeChatPadPro/WeChatPadPro/releases/tag/v2.01"},
+    "binary_sha256_or_digest": {"status": "documented", "kind": "document_fixture", "note": "GitHub Releases API digest; not a local file hash", "value": "linux-amd64 zip sha256:9367619f6c882f691172c44acfab59581571c9c37b9f6e01db0138b2793bd048; see fixtures/pad/github-v2.01-release-assets.json"},
+    "docs_export_sha256": {"status": "unknown"},
+    "protocol_api_version": {"status": "documented", "value": "legacy /api/login style; not MAX /Login /Msg"},
+    "os": {"status": "documented", "value": "Linux amd64 declared in version.txt"},
+    "runtime_dependencies": {"status": "documented", "value": "compose example: gateway latest, MySQL 8.0, Redis 6; host ports published"},
+    "config_summary": {"status": "documented", "value": ".env.example; webhook_config.json at that SHA is 0 bytes"},
+    "auth_form": {"status": "documented", "value": "legacy login/env tokens; do not apply MAX X-Access-Token / X-Cloud-Access-Token"},
+    "data_paths": {"status": "unknown"},
+    "license_fee_validity": {"status": "unknown"},
+    "sample_refs": {"status": "documented", "kind": "document_fixture", "value": "public GitHub tree at 5cf4fc76; not a live capture"},
+    "observed_at": {"status": "unknown"}
+  },
+  "capabilities": {
+    "webhook_v1": {"status": "unknown", "note": "MAX v1 docs must not be assumed for this flavor"},
+    "webhook_v2": {"status": "unknown"},
+    "real_mention_receive": {"status": "unknown"},
+    "history_flag": {"status": "unknown"},
+    "send_txt": {"status": "unsupported", "note": "MAX POST /Msg/SendTxt must not be used on legacy"},
+    "native_at_encoding": {"status": "unknown"},
+    "type_enum": {"status": "unknown"},
+    "self_identity_response": {"status": "unknown"},
+    "online_response": {"status": "unknown"},
+    "metadata_hmac": {"status": "unknown", "note": "MAX HMAC page is not this flavor's observed algorithm"},
+    "payload_integrity": {"status": "unknown"},
+    "group_text_sender_prefix": {"status": "unknown"},
+    "builtin_automation_off": {"status": "unknown"}
+  },
+  "hmac": {
+    "algorithm": {"status": "unknown", "value": "do not reuse MAX formula against a legacy build"},
+    "covers_data": {"status": "unknown"},
+    "official_vectors": {"status": "unknown"},
+    "local_computed": {"status": "unknown"}
+  },
+  "observed_live": {
+    "login": "unexecuted",
+    "callback_sample": "unexecuted",
+    "mixed_group": "unexecuted",
+    "send": "unexecuted",
+    "build_lock": "unexecuted"
+  }
+}

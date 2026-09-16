@@ -1,0 +1,54 @@
+{
+  "schema_version": "pad-provider-profile/1",
+  "generated_at": "2026-09-16",
+  "spec_version": "poc-v0.6",
+  "provider": "wechatpadpro",
+  "api_flavor": "MAX",
+  "p0_closed": false,
+  "note": "Public MAX docs only. No matching binary/hash. Documented is not observed. Do not mix with legacy.",
+  "product": {
+    "family": {"status": "documented", "value": "WeChatPadProMAX", "source": "https://wx.knowhub.cloud/"},
+    "release_tag": {"status": "unknown", "note": "wechatpadpromax08 is a docs filename; README v868 is sponsor-group only; GitHub Latest is 861 not MAX"},
+    "build_id": {"status": "unknown"},
+    "download_source": {"status": "unknown", "note": "no public zip named wechatpadpromax08 on GitHub Releases"},
+    "binary_sha256_or_digest": {"status": "unknown"},
+    "docs_export_sha256": {"status": "unknown"},
+    "protocol_api_version": {"status": "documented", "value": "MAX Login/Msg/Webhook v1; v2 schema not obtained"},
+    "os": {"status": "documented", "value": "Linux binary mentioned in MAX quick start"},
+    "runtime_dependencies": {"status": "documented", "value": "Redis required in quick start; MySQL not confirmed for MAX"},
+    "config_summary": {"status": "documented", "value": "conf/app.conf and cloud Token; webhook Set API documented"},
+    "auth_form": {"status": "documented", "value": "X-Access-Token and X-Cloud-Access-Token; envelope HMAC metadata only"},
+    "data_paths": {"status": "unknown"},
+    "license_fee_validity": {"status": "documented", "value": "console has paid plans / Key caps; amounts unseen without login"},
+    "sample_refs": {"status": "documented", "kind": "document_fixture", "value": "fixtures/pad/document_hmac_vectors.json and public webhook v1 page"},
+    "observed_at": {"status": "unknown"}
+  },
+  "capabilities": {
+    "webhook_v1": {"status": "documented", "value": "Wxid, MessageType, Timestamp, Signature, Data.messages"},
+    "webhook_v2": {"status": "unknown", "note": "wechatpad.message.v2 / reply_context mentioned; no schema"},
+    "real_mention_receive": {"status": "unknown"},
+    "history_flag": {"status": "unknown"},
+    "send_txt": {"status": "documented", "value": "POST /Msg/SendTxt ToWxid, Content, Type, At", "note": "P1 has no send adapter"},
+    "native_at_encoding": {"status": "unknown"},
+    "type_enum": {"status": "unknown", "note": "SendTxt page example Type=1 on 2026-09-16; earlier snapshot showed 0; still not an enum"},
+    "self_identity_response": {"status": "unknown"},
+    "online_response": {"status": "unknown", "note": "GET /User/GetOnlineInfo success example Data is {}"},
+    "metadata_hmac": {"status": "documented", "covers_data": false, "official_vectors": "conflict"},
+    "payload_integrity": {"status": "unsupported", "note": "documented HMAC does not cover Data"},
+    "group_text_sender_prefix": {"status": "documented", "value": "when fromUser ends with @chatroom, split text on first colon-newline; not observed", "note": "P1 decoder still unknown until this build is observed"},
+    "builtin_automation_off": {"status": "unknown"}
+  },
+  "hmac": {
+    "algorithm": {"status": "documented", "value": "HMAC-SHA256 hex of Wxid:MessageType:Timestamp"},
+    "covers_data": {"status": "documented", "value": false},
+    "official_vectors": {"status": "documented", "value": "conflict"},
+    "local_computed": {"status": "documented", "kind": "document_fixture", "value": "fixtures/pad/document_hmac_vectors.json"}
+  },
+  "observed_live": {
+    "login": "unexecuted",
+    "callback_sample": "unexecuted",
+    "mixed_group": "unexecuted",
+    "send": "unexecuted",
+    "build_lock": "unexecuted"
+  }
+}

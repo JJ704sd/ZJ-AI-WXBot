@@ -1,0 +1,35 @@
+# Independent Pad observation config (pad-config/1). Not accepted by wechat-agent-api.
+# Default live=false. Does not start a gateway, WeChat login, or model.
+
+config_version = "pad-config/1"
+enabled = false
+live = false
+allow_live_send = false
+allow_model = false
+allow_network = false
+authorization_ref = ""
+api_flavor = "MAX"
+provider_profile_path = "pad-provider-profile.max.example.json"
+credential_ref = "env:PAD_GATEWAY_TOKEN"
+signature_secret_ref = "env:PAD_WEBHOOK_SECRET"
+observation_store_path = ".local/pad-observe/observe.sqlite"
+agent_state_path = ".local/pad-agent/state.sqlite"
+evidence_root = ".local/pad-observe/evidence"
+lock_path = ".local/pad-observe/observer.lock"
+bind_host = "127.0.0.1"
+bind_port = 0
+max_seconds = 1800
+max_samples = 200
+max_body_bytes = 262144
+max_batch_messages = 100
+
+[binding]
+account_key = ""
+conversation_key = ""
+binding_version = ""
+
+[ingress]
+mode = "none"
+
+[readonly]
+base_url_ref = "env:PAD_GATEWAY_BASE_URL"
