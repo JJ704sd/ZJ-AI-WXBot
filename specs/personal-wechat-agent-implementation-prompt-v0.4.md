@@ -1,5 +1,7 @@
 # v0.4 分阶段操作提示词
 
+> 2026-09-16：新一轮 API Agent 工作改用[提示词 v0.5](personal-wechat-agent-implementation-prompt-v0.5.md)。本文是历史阶段记录，不再按下文“现在应启动”继续 UIA 路线。
+
 依据：[spec v0.4](personal-wechat-agent-poc-v0.4.md)。依次使用，各段只启动所列阶段；未实现的命令先完成实现并验证，不猜命令直接运行。
 
 ## A. T0—T2：实现实时读取和真实 @识别

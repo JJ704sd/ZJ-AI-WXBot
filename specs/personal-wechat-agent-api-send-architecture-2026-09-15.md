@@ -1,5 +1,7 @@
 # 个微 Agent 技术实现方案：现状与 API 发送接管
 
+> 2026-09-16 路线更新：后续实现以 [spec v0.5](personal-wechat-agent-poc-v0.5.md)及[操作提示词 v0.5](personal-wechat-agent-implementation-prompt-v0.5.md)为准。UIA 暂停，API 改为同时接管收发，支持有界主动对话；本文保留作历史快照，“只换 Sender”不再是当前方案。
+
 日期：2026-09-15。读者：后续实施与评审。状态：基于本机 PoC 代码与实机证据的技术方案，**未接入真实个微发送 API，未 commit/push**。
 
 配套： [spec v0.4](personal-wechat-agent-poc-v0.4.md)、[官方接口边界](../evidence/official-boundary.md)、[T0–T2 证据](../poc/evidence/t0-t2-2026-09-15.md)、[T3 证据](../poc/evidence/t3-m3-2026-09-15.md)、[T4 ACK1 停点](../poc/evidence/t4-ack1-2026-09-15.md)。
