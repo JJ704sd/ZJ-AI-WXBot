@@ -4,7 +4,7 @@
 代码入口：独立观察器 `poc/wechat_agent_poc/gewe_observer.py`，配置 `observer-config/1`，CLI `wechat-agent-api --observer-config <path> api-observe`。
 **不要**用 `ApiRuntime.start/tick` 或旧 `api-config/1` 的 `api-observe` 启动采样。旧命令在无 `--observer-config` 时仍返回「未执行」。
 
-当前状态：G2a 本地服务构建完成；G2b HTTPS 链路因本机无 Caddy **未执行**；G2c 主机未指定；G3 只读连通 **未启动**；自动回复 **仍阻断**。
+当前状态：G2a 本地服务构建完成；G2b 本地 HTTPS→Caddy→Uvicorn→SQLite 合成链路已验收（Caddy v2.11.4 便携版，见 `g2-gewe-observer-build-2026-09-16.md`）；G2c 主机未指定；G3 只读连通 **未启动**；自动回复 **仍阻断**。
 
 ## 实际命令（G2a）
 
