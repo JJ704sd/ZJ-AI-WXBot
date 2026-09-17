@@ -1,0 +1,44 @@
+{
+  "schema_version": "windows-hook-container-stride.v1",
+  "mode": "offline_disassembly",
+  "element_stride_hypothesis": {
+    "old": null,
+    "new": null
+  },
+  "delta_bytes": null,
+  "stride_change_observed": true,
+  "exact_values_withheld": true,
+  "evidence": {
+    "old_main": {
+      "disassembly_sha256": null,
+      "arithmetic_pattern_count": 2,
+      "stride_consistent": true,
+      "direct_pointer_increment_cross_check": true
+    },
+    "new_main": {
+      "disassembly_sha256": null,
+      "arithmetic_pattern_count": 2,
+      "stride_consistent": true,
+      "direct_pointer_increment_cross_check": true
+    },
+    "old_callee": {
+      "disassembly_sha256": null,
+      "arithmetic_pattern_count": 1,
+      "stride_consistent": true,
+      "direct_pointer_increment_cross_check": true
+    },
+    "new_callee": {
+      "disassembly_sha256": null,
+      "arithmetic_pattern_count": 1,
+      "stride_consistent": true,
+      "direct_pointer_increment_cross_check": true
+    }
+  },
+  "message_fields_verified": false,
+  "live_receive_verified": false,
+  "limitations": [
+    "Inference applies to this container path, not all message objects.",
+    "Exact module fingerprints and layout values are withheld from the public report.",
+    "A changed stride does not identify inserted fields or justify shifting every offset."
+  ]
+}

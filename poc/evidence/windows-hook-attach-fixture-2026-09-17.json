@@ -1,0 +1,40 @@
+{
+  "schema_version": "windows-hook-attach-fixture.v1",
+  "source_sha256": "b37987a39f9e776beb27dfa37811092eed69e031f443824adaaad8be00e3d60c",
+  "live_wechat_touched": false,
+  "scenarios": [
+    {
+      "mode": "three_threads",
+      "live_wechat_touched": false,
+      "hits": 3,
+      "passed": true,
+      "hardware_breakpoint_verified": true,
+      "distinct_hit_threads": 3,
+      "breakpoint_table_empty": true,
+      "detached": true,
+      "alive_after_detach": true,
+      "debugger_exit_code": 0,
+      "fixture_exit_code": 0,
+      "post_detach_calls_completed": true
+    },
+    {
+      "mode": "idle_timeout",
+      "live_wechat_touched": false,
+      "hits": 0,
+      "passed": true,
+      "hardware_breakpoint_verified": true,
+      "idle_budget_expired": true,
+      "breakpoint_table_empty": true,
+      "detached": true,
+      "alive_after_detach": true,
+      "debugger_exit_code": 0,
+      "fixture_exit_code": 0,
+      "post_detach_calls_completed": true
+    }
+  ],
+  "passed": true,
+  "limitations": [
+    "Controlled idle timeout only; debugger crash and OS termination not covered.",
+    "No evidence of Weixin receive semantics or object layout."
+  ]
+}

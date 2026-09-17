@@ -1,0 +1,52 @@
+{
+  "schema": "uia-watchdog-check/1",
+  "wechat_access": false,
+  "fault_cases_passed": 3,
+  "timeout_elapsed_seconds": 2.109,
+  "timed_out": {
+    "schema": "uia-v3-native/1",
+    "run_id": "f60f977c-002e-47ed-a9ca-22e7bf1d9de9",
+    "started_at": "2026-09-17T08:06:32.398721+00:00",
+    "execution_status": "timed_out",
+    "wechat_access": false,
+    "passed": false,
+    "watchdog_seconds": 2,
+    "cleanup": {
+      "tracked_processes": 6,
+      "errors": [],
+      "remaining_pids": []
+    }
+  },
+  "missing_report": {
+    "schema": "uia-v3-native/1",
+    "run_id": "bf03b79f-36ea-4825-8b36-cbe61dfd8a1f",
+    "started_at": "2026-09-17T08:06:34.492968+00:00",
+    "execution_status": "error",
+    "wechat_access": false,
+    "passed": false,
+    "watchdog_seconds": 2,
+    "worker_exit_code": 0,
+    "error_type": "FileNotFoundError",
+    "cleanup": {
+      "tracked_processes": 1,
+      "errors": [],
+      "remaining_pids": []
+    }
+  },
+  "nonzero_exit": {
+    "schema": "uia-v3-native/1",
+    "run_id": "9e26896a-bf77-4d09-879c-db70593ac9d7",
+    "started_at": "2026-09-17T08:06:34.569620+00:00",
+    "execution_status": "error",
+    "wechat_access": false,
+    "passed": false,
+    "watchdog_seconds": 2,
+    "worker_exit_code": 3,
+    "error_type": "WorkerExitError",
+    "cleanup": {
+      "tracked_processes": 1,
+      "errors": [],
+      "remaining_pids": []
+    }
+  }
+}

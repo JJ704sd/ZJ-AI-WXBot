@@ -1,0 +1,19 @@
+{
+  "schema": "uia-v3-native/1",
+  "run_id": "ee6d1150-2fa8-4d5d-bf8c-6c5ee657cd52",
+  "mode": "N0",
+  "started_at": "2026-09-17T07:45:18.012989+00:00",
+  "execution_status": "error",
+  "wechat_access": false,
+  "budget": {
+    "seconds": 15,
+    "nodes": 128,
+    "depth": 6
+  },
+  "probe_sha256": "571ef96f29524b9240b2f93588769395e709743cc34872946b83380e46fa7f28",
+  "shared_v2_sha256": "7b2c15ca2335f3181fbae35623772098858985cb7f5ddf086aaaaf646673f523",
+  "fixture_sha256": null,
+  "error_type": "RuntimeError",
+  "hresult": null,
+  "passed": false
+}

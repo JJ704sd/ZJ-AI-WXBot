@@ -1,0 +1,174 @@
+{
+  "schema": "uia-research-v2/1",
+  "experiment": "E1",
+  "run_id": "ff96a197-9acd-4fc8-a29b-bbd47f61b8f5",
+  "started_at": "2026-09-17T07:22:58.257694+00:00",
+  "probe_sha256": "7b2c15ca2335f3181fbae35623772098858985cb7f5ddf086aaaaf646673f523",
+  "execution_status": "completed",
+  "observation_status": "observed",
+  "capability_status": "blocked",
+  "message_read": false,
+  "sent": false,
+  "account_verified": false,
+  "group_verified": false,
+  "native_at_verified": false,
+  "apartment": "MTA",
+  "budget": {
+    "seconds": 15,
+    "nodes": 128,
+    "depth": 6
+  },
+  "snapshot": {
+    "binding_before": {
+      "pid": null,
+      "process_started": null,
+      "session_id": null,
+      "hwnd": null,
+      "class": "Qt51514QWindowIcon"
+    },
+    "binding_after": {
+      "pid": null,
+      "process_started": null,
+      "session_id": null,
+      "hwnd": null,
+      "class": "Qt51514QWindowIcon"
+    },
+    "binding_stable": true,
+    "minimized": true,
+    "foreground": false,
+    "nodes": [
+      {
+        "index": 0,
+        "parent": null,
+        "depth": 0,
+        "control_type": 50032,
+        "class": "Qt51514QWindowIcon",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "not_supported",
+            "value": null
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      },
+      {
+        "index": 1,
+        "parent": 0,
+        "depth": 1,
+        "control_type": 50033,
+        "class": "MMUIRenderSubWindowHW",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "not_supported",
+            "value": null
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      },
+      {
+        "index": 2,
+        "parent": 0,
+        "depth": 1,
+        "control_type": 50037,
+        "class": "",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "observed",
+            "value": true
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      }
+    ],
+    "truncated": false,
+    "providers": [
+      {
+        "hwnd": null,
+        "server_side": {
+          "state": "observed",
+          "value": false
+        },
+        "source_labels": {
+          "state": "observed",
+          "value": [
+            "msaa",
+            "proxy",
+            "hwnd",
+            "uiautomationcore"
+          ]
+        },
+        "framework": {
+          "state": "observed",
+          "value": "Win32"
+        }
+      },
+      {
+        "hwnd": null,
+        "server_side": {
+          "state": "observed",
+          "value": false
+        },
+        "source_labels": {
+          "state": "observed",
+          "value": [
+            "msaa",
+            "proxy",
+            "hwnd",
+            "uiautomationcore"
+          ]
+        },
+        "framework": {
+          "state": "observed",
+          "value": "Win32"
+        }
+      }
+    ]
+  },
+  "client_version": "4.1.13.65",
+  "exe_sha256": null
+}

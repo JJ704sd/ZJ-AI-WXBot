@@ -1,0 +1,121 @@
+{
+  "schema_version": "windows-hook-static-analysis.v1",
+  "sha256": null,
+  "arch": "x64",
+  "section_names": [
+    ".text",
+    ".rdata",
+    ".data",
+    ".pdata",
+    ".gxfg",
+    ".qtmetad",
+    ".qtmimed",
+    ".tls",
+    "_RDATA",
+    "malloc_h",
+    ".rsrc",
+    ".reloc"
+  ],
+  "runtime_function_count": null,
+  "legacy_rva_audit": [
+    {
+      "name": "DoAddMsg",
+      "section": ".text",
+      "executable": true,
+      "runtime_function_present": false,
+      "semantic_status": "unverified",
+      "usable_for_hook": false
+    },
+    {
+      "name": "GetCoroCtx",
+      "section": ".text",
+      "executable": true,
+      "runtime_function_present": true,
+      "semantic_status": "unverified",
+      "usable_for_hook": false
+    },
+    {
+      "name": "GetMsgSvc",
+      "section": ".text",
+      "executable": true,
+      "runtime_function_present": true,
+      "semantic_status": "unverified",
+      "usable_for_hook": false
+    },
+    {
+      "name": "GetMsgCtx",
+      "section": ".text",
+      "executable": true,
+      "runtime_function_present": true,
+      "semantic_status": "unverified",
+      "usable_for_hook": false
+    },
+    {
+      "name": "DoSend",
+      "section": ".text",
+      "executable": true,
+      "runtime_function_present": true,
+      "semantic_status": "unverified",
+      "usable_for_hook": false
+    },
+    {
+      "name": "SendEntry",
+      "section": ".text",
+      "executable": true,
+      "runtime_function_present": true,
+      "semantic_status": "unverified",
+      "usable_for_hook": false
+    },
+    {
+      "name": "MsgCtor",
+      "section": ".text",
+      "executable": true,
+      "runtime_function_present": true,
+      "semantic_status": "unverified",
+      "usable_for_hook": false
+    }
+  ],
+  "string_anchors": [
+    {
+      "keyword": "DoAddMsg",
+      "count": 0,
+      "truncated": false,
+      "semantic_status": "unverified"
+    },
+    {
+      "keyword": "OnAddMsg",
+      "count": 0,
+      "truncated": false,
+      "semantic_status": "unverified"
+    },
+    {
+      "keyword": "GetMsgSvc",
+      "count": 0,
+      "truncated": false,
+      "semantic_status": "unverified"
+    },
+    {
+      "keyword": "GetMsgCtx",
+      "count": 0,
+      "truncated": false,
+      "semantic_status": "unverified"
+    },
+    {
+      "keyword": "SendText",
+      "count": 1,
+      "truncated": false,
+      "semantic_status": "unverified"
+    },
+    {
+      "keyword": "MsgCtor",
+      "count": 0,
+      "truncated": false,
+      "semantic_status": "unverified"
+    }
+  ],
+  "runtime_offsets_verified": false,
+  "live_receive_verified": false,
+  "send_delivery_verified": false,
+  "checked_at": "2026-09-17T14:59:01.091998+08:00",
+  "legacy_source": "navysoto/wxhook@fbccd52713f8cc7cd1023f852bf625af4fe38624:WeixinOffsets.cs"
+}

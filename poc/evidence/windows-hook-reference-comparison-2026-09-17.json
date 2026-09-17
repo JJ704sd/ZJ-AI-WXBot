@@ -1,0 +1,160 @@
+{
+  "schema_version": "windows-hook-reference-comparison.v1",
+  "reference_sha256": null,
+  "target_sha256": null,
+  "results": [
+    {
+      "name": "DoAddMsg",
+      "windows": [
+        {
+          "bytes": 16,
+          "count": 0,
+          "truncated": false
+        },
+        {
+          "bytes": 32,
+          "count": 0,
+          "truncated": false
+        },
+        {
+          "bytes": 64,
+          "count": 0,
+          "truncated": false
+        }
+      ],
+      "usable_for_hook": false
+    },
+    {
+      "name": "GetCoroCtx",
+      "windows": [
+        {
+          "bytes": 16,
+          "count": 0,
+          "truncated": false
+        },
+        {
+          "bytes": 32,
+          "count": 0,
+          "truncated": false
+        },
+        {
+          "bytes": 64,
+          "count": 0,
+          "truncated": false
+        }
+      ],
+      "usable_for_hook": false
+    },
+    {
+      "name": "GetMsgSvc",
+      "windows": [
+        {
+          "bytes": 16,
+          "count": 1,
+          "truncated": false
+        },
+        {
+          "bytes": 32,
+          "count": 1,
+          "truncated": false
+        },
+        {
+          "bytes": 64,
+          "count": 0,
+          "truncated": false
+        }
+      ],
+      "usable_for_hook": false
+    },
+    {
+      "name": "GetMsgCtx",
+      "windows": [
+        {
+          "bytes": 16,
+          "count": 424,
+          "truncated": true
+        },
+        {
+          "bytes": 32,
+          "count": 144,
+          "truncated": true
+        },
+        {
+          "bytes": 64,
+          "count": 0,
+          "truncated": false
+        }
+      ],
+      "usable_for_hook": false
+    },
+    {
+      "name": "DoSend",
+      "windows": [
+        {
+          "bytes": 16,
+          "count": 1673,
+          "truncated": true
+        },
+        {
+          "bytes": 32,
+          "count": 22,
+          "truncated": true
+        },
+        {
+          "bytes": 64,
+          "count": 0,
+          "truncated": false
+        }
+      ],
+      "usable_for_hook": false
+    },
+    {
+      "name": "SendEntry",
+      "windows": [
+        {
+          "bytes": 16,
+          "count": 87,
+          "truncated": true
+        },
+        {
+          "bytes": 32,
+          "count": 5,
+          "truncated": false
+        },
+        {
+          "bytes": 64,
+          "count": 0,
+          "truncated": false
+        }
+      ],
+      "usable_for_hook": false
+    },
+    {
+      "name": "MsgCtor",
+      "windows": [
+        {
+          "bytes": 16,
+          "count": 784,
+          "truncated": true
+        },
+        {
+          "bytes": 32,
+          "count": 1,
+          "truncated": false
+        },
+        {
+          "bytes": 64,
+          "count": 0,
+          "truncated": false
+        }
+      ],
+      "usable_for_hook": false
+    }
+  ],
+  "runtime_offsets_verified": false,
+  "limitations": [
+    "Exact byte matches are leads, not semantic or instruction-boundary proof.",
+    "Zero matches do not prove absence; relative addresses and compiler changes affect bytes.",
+    "Reference RVA semantics require independent validation."
+  ]
+}

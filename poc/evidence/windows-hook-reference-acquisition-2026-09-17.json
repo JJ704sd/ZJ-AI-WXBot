@@ -1,0 +1,31 @@
+{
+  "schema_version": "windows-hook-reference-acquisition.v1",
+  "checked_at": "2026-09-17T17:31:24.7697522+08:00",
+  "source_release": "https://github.com/canc3s/wechat-versions/releases/tag/v4.1.11.52-win",
+  "download_url": "https://github.com/canc3s/wechat-versions/releases/download/v4.1.11.52-win/WeChatWin_4.1.11.exe",
+  "published_installer_sha256": null,
+  "downloaded_from": "third-party GitHub archive; Tencent Authenticode verified locally",
+  "installed": false,
+  "executed_wechat_binary": false,
+  "process_access": false,
+  "files": [
+    {
+      "name": "WeChatWin_4.1.11.archive.exe",
+      "size": 240245520,
+      "file_version": "4.1.11.1000",
+      "signature_status": "Valid",
+      "signer_subject": "redacted",
+      "signer_thumbprint": null,
+      "sha256": null
+    },
+    {
+      "name": "Weixin.dll",
+      "size": 189047336,
+      "file_version": "4.1.11.52",
+      "signature_status": "Valid",
+      "signer_subject": "redacted",
+      "signer_thumbprint": null,
+      "sha256": null
+    }
+  ]
+}

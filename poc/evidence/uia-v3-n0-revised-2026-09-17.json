@@ -1,0 +1,368 @@
+{
+  "schema": "uia-v3-native/1",
+  "run_id": "2de5b667-3372-4f9d-b4e0-a774da31370a",
+  "mode": "N0",
+  "started_at": "2026-09-17T07:46:34.394301+00:00",
+  "execution_status": "completed",
+  "wechat_access": false,
+  "budget": {
+    "seconds": 15,
+    "nodes": 128,
+    "depth": 6
+  },
+  "probe_sha256": "7ad43870148911e9ff3c285e071a5b09b9f771cdc465fec57ec8bb69ad7370a9",
+  "shared_v2_sha256": "7b2c15ca2335f3181fbae35623772098858985cb7f5ddf086aaaaf646673f523",
+  "fixture_sha256": null,
+  "snapshot": {
+    "binding_before": {
+      "pid": null,
+      "process_started": null,
+      "session_id": null,
+      "hwnd": null,
+      "class": "CodexUiaSyntheticFixture"
+    },
+    "binding_after": {
+      "pid": null,
+      "process_started": null,
+      "session_id": null,
+      "hwnd": null,
+      "class": "CodexUiaSyntheticFixture"
+    },
+    "binding_stable": true,
+    "minimized": false,
+    "foreground": false,
+    "nodes": [
+      {
+        "index": 0,
+        "parent": null,
+        "depth": 0,
+        "control_type": 50032,
+        "class": "CodexUiaSyntheticFixture",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "not_supported",
+            "value": null
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      },
+      {
+        "index": 1,
+        "parent": 0,
+        "depth": 1,
+        "control_type": 50004,
+        "class": "Edit",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "observed",
+            "value": true
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      },
+      {
+        "index": 2,
+        "parent": 0,
+        "depth": 1,
+        "control_type": 50008,
+        "class": "ListBox",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "not_supported",
+            "value": null
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      },
+      {
+        "index": 3,
+        "parent": 0,
+        "depth": 1,
+        "control_type": 50000,
+        "class": "Button",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "not_supported",
+            "value": null
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      },
+      {
+        "index": 4,
+        "parent": 0,
+        "depth": 1,
+        "control_type": 50037,
+        "class": "",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "observed",
+            "value": true
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      },
+      {
+        "index": 5,
+        "parent": 4,
+        "depth": 2,
+        "control_type": 50010,
+        "class": "",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "not_supported",
+            "value": null
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      },
+      {
+        "index": 6,
+        "parent": 4,
+        "depth": 2,
+        "control_type": 50000,
+        "class": "",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "not_supported",
+            "value": null
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      },
+      {
+        "index": 7,
+        "parent": 4,
+        "depth": 2,
+        "control_type": 50000,
+        "class": "",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "not_supported",
+            "value": null
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      },
+      {
+        "index": 8,
+        "parent": 4,
+        "depth": 2,
+        "control_type": 50000,
+        "class": "",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "not_supported",
+            "value": null
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      },
+      {
+        "index": 9,
+        "parent": 5,
+        "depth": 3,
+        "control_type": 50011,
+        "class": "",
+        "patterns": {
+          "text": {
+            "state": "not_supported",
+            "value": null
+          },
+          "text2": {
+            "state": "not_supported",
+            "value": null
+          },
+          "value": {
+            "state": "not_supported",
+            "value": null
+          },
+          "legacy": {
+            "state": "observed",
+            "value": true
+          },
+          "item_container": {
+            "state": "not_supported",
+            "value": null
+          }
+        }
+      }
+    ],
+    "truncated": false,
+    "providers": [
+      {
+        "hwnd": null,
+        "server_side": {
+          "state": "observed",
+          "value": false
+        },
+        "source_labels": {
+          "state": "observed",
+          "value": [
+            "msaa",
+            "proxy",
+            "hwnd",
+            "uiautomationcore"
+          ]
+        },
+        "framework": {
+          "state": "observed",
+          "value": "Win32"
+        }
+      }
+    ]
+  },
+  "value_interfaces": [
+    {
+      "property_id": 30043,
+      "pattern_id": 10002,
+      "property": {
+        "state": "observed",
+        "value": true
+      },
+      "interface_state": "observed",
+      "readonly": false
+    }
+  ],
+  "closed_target_status": "invalidated",
+  "stale_property": {
+    "state": "observed",
+    "value": 50033
+  },
+  "passed": true
+}

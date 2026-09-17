@@ -1,0 +1,61 @@
+{
+  "schema_version": "windows-hook-round1.v1",
+  "candidate_ref": "local-port-4.1.13.65-research-only",
+  "repository": "https://github.com/navysoto/wxhook",
+  "commit": "fbccd52713f8cc7cd1023f852bf625af4fe38624",
+  "commit_role": "upstream reference only; not a working target-version implementation",
+  "client_version": "4.1.13.65",
+  "client_arch": "x64",
+  "required_modules": [
+    {
+      "name": "Weixin.dll",
+      "version": "4.1.13.65",
+      "arch": "x64",
+      "allowed_sha256": []
+    }
+  ],
+  "target_evidence_reviewed": false,
+  "source_complete": null,
+  "build_verified": false,
+  "evidence_refs": [
+    "windows-hook-411365-static-analysis-2026-09-17.json"
+  ],
+  "runtime_entrypoints": {
+    "DoAddMsg": {
+      "rva": null,
+      "status": "unresolved"
+    },
+    "GetCoroCtx": {
+      "rva": null,
+      "status": "unresolved"
+    },
+    "GetMsgSvc": {
+      "rva": null,
+      "status": "unresolved"
+    },
+    "GetMsgCtx": {
+      "rva": null,
+      "status": "unresolved"
+    },
+    "DoSend": {
+      "rva": null,
+      "status": "unresolved"
+    },
+    "SendEntry": {
+      "rva": null,
+      "status": "unresolved"
+    },
+    "MsgCtor": {
+      "rva": null,
+      "status": "unresolved"
+    }
+  },
+  "message_layout_status": "unresolved; do not inherit 4.1.11.52 field offsets",
+  "receive_enabled": false,
+  "send_enabled": false,
+  "limitations": [
+    "Measured target module identity is not evidence of hook compatibility",
+    "No injectible DLL produced",
+    "No current-version runtime entrypoint validated"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "windows-hook-round1.v1",
+  "checked_at": "2026-09-17T07:00:38.519373+00:00",
+  "candidate_ref": "local-port-4.1.13.65-research-only",
+  "client_version": "4.1.13.65",
+  "client_arch": "x64",
+  "module_checks": [
+    {
+      "name": "Weixin.dll",
+      "status": "match",
+      "reason_codes": []
+    }
+  ],
+  "compatibility_status": "unknown",
+  "reason_codes": [
+    "target_evidence_not_reviewed"
+  ],
+  "source_complete": false,
+  "build_verified": false,
+  "live_receive_verified": false,
+  "mixed_group_verified": false,
+  "send_delivery_verified": false
+}

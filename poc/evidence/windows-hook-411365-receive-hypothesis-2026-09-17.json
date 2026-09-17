@@ -1,0 +1,29 @@
+{
+  "schema_version": "windows-hook-receive-hypothesis.v1",
+  "reference_sha256": null,
+  "target_sha256": null,
+  "candidate_discovery": "unique normalized anchor; addresses and instruction bytes withheld",
+  "reference_site": "redacted",
+  "candidate_site": "redacted",
+  "anchor": {
+    "length": 97,
+    "unique": true,
+    "sha256": null
+  },
+  "instruction_counts": [
+    538,
+    538
+  ],
+  "same_instruction_sizes": true,
+  "same_relative_positions": true,
+  "normalized_difference_count": 8,
+  "status": "static_candidate_only",
+  "usable_for_hook": false,
+  "message_layout_verified": false,
+  "live_receive_verified": false,
+  "limitations": [
+    "External call and RIP targets normalized; their semantic equivalence is unproven.",
+    "Changed non-address immediates and field offsets prohibit inheriting old object layout.",
+    "This is a mid-function site, not a function entry. No target process accessed."
+  ]
+}

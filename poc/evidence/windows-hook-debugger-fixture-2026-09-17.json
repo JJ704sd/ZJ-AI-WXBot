@@ -1,0 +1,18 @@
+{
+  "schema_version": "windows-hook-debugger-fixture.v1",
+  "target": "self_compiled_disposable_fixture",
+  "live_wechat_touched": false,
+  "mode": "debugger_launch_not_attach",
+  "debugger_exit_code": 0,
+  "fixture_bootstrap": "GDB start uses a temporary breakpoint in the disposable fixture only",
+  "hardware_breakpoint_reported": true,
+  "observed_hits": 3,
+  "fixture_completed": true,
+  "inferior_exited_normally": true,
+  "source_sha256": "5575565ce8610103f288433e39814e60ed366627f51ddc597734d5524c4276fb",
+  "limitations": [
+    "Does not verify live-process attach cleanup or multithread breakpoint propagation.",
+    "Does not verify Weixin candidate, object layout or message semantics."
+  ],
+  "passed": true
+}

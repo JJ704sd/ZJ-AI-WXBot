@@ -1,0 +1,26 @@
+{
+  "schema_version": "windows-hook-dynamic-probe.v1",
+  "date": "2026-09-17",
+  "attach_attempts": 1,
+  "attached": true,
+  "detached": true,
+  "elapsed_seconds": 55.282,
+  "process_identity_unchanged": true,
+  "responding_after_detach": true,
+  "message_send_confirmation": "user-confirmed; target identifiers and screenshot details withheld",
+  "message_payload_read": false,
+  "receive_entry_verified": false,
+  "status": "partial",
+  "snapshot_count": 7,
+  "frame_candidate_count": 9,
+  "executable_frame_candidate_count": 5,
+  "client_visible_markers_verified": true,
+  "marker_count_visible": 3,
+  "hook_payload_capture_verified": false,
+  "limitations": [
+    "address-only stacks; no message content or timestamp correlation",
+    "non-code addresses appear in unwound frames; stack quality not proven",
+    "sampling rotates different thread subsets; last two snapshots only sampled the main thread",
+    "not a receive hook, not a receive acceptance result"
+  ]
+}

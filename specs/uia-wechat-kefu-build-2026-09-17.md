@@ -6,6 +6,16 @@
 
 ## 1. 源码依据
 
+v3看门狗续验：3项真实自建子进程故障样本通过，超时清理无残留；N1正常路径回归和9项离线反例通过。本轮未访问微信，不改变blocked状态。见 [看门狗续验](../poc/evidence/uia-v3-watchdog-followup-2026-09-17.md)。
+
+v3已审查并完成合成原生provider对照：N0为false，WPF N1实际为true，直接只读ValuePattern及生命周期检查通过；9项离线测试通过。未发现影响旧微信记录的依据，本轮不重跑E1/E2。见 [v3执行报告](../poc/evidence/uia-v3-review-and-native-control-2026-09-17.md)。不代表微信UIA恢复。
+
+research-v2已执行：E0修正关窗后COM缓存判据后通过；E1两个HWND的server-side查询false、来源为Win32/MSAA代理，3节点未截断；属性区分为not_supported而非默认false。E2未满足条件，不运行。见 [E0/E1实际执行记录](../poc/evidence/uia-research-v2-execution-2026-09-17.md)。聊天读取仍blocked。
+
+交接总入口：[UIA卡点总表](uia-blockers-register-2026-09-17.md)。集中区分直接阻塞、已测方法、未证实根因、后续业务缺口与继续条件；仅汇总既有证据，不代表新增实机成功。
+
+最新跨机制分流：独立CUIAutomation8实测仍为外壳；腾讯官方插件仅声明单聊；861默认设备key文件缺失，手机端adb不在PATH。详见 [接入机制矩阵](wechat-access-route-matrix-2026-09-17.md)。这些分别属于实机、源码和环境前置证据，不构成聊天接入完成。
+
 最新多入口验证：FindAll仅返回渲染面板，Legacy选择对象为空，MSAA焦点对象为空；位置命中因遮挡跳过。新增探针语法检查及实机运行完成，聊天读取未成立。见 [多入口证据](../poc/evidence/uia-alternative-entrypoints-2026-09-17.md)。
 
 最新低侵入构建：新增只查询接口存在性的被动探针，修复login_required分类，27项相关测试通过。曾真实观察到mmui::LoginWindow，但随后窗口变成Qt外壳，Text/Text2/Value/ItemContainer均不可用。登录页可见不是聊天接入成功。详见 [被动探测](../poc/evidence/uia-passive-patterns-2026-09-17.md)。本轮未采用内存写入方案。

@@ -1,0 +1,16 @@
+{
+  "schema_version": "windows-hook-stack-audit.v1",
+  "module_sha256": null,
+  "capture_sha256": null,
+  "mode": "offline_existing_capture",
+  "process_access": false,
+  "candidate_count": 9,
+  "executable_candidate_count": 5,
+  "instruction_boundary_count": 5,
+  "receive_entry_verified": false,
+  "limitations": [
+    "Return addresses are not hook entry points.",
+    "Different thread subsets prevent before/after causality claims.",
+    "PE boundaries and import names cannot prove receive semantics."
+  ]
+}
