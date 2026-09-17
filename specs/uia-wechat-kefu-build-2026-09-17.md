@@ -6,6 +6,20 @@
 
 ## 1. 源码依据
 
+最新多入口验证：FindAll仅返回渲染面板，Legacy选择对象为空，MSAA焦点对象为空；位置命中因遮挡跳过。新增探针语法检查及实机运行完成，聊天读取未成立。见 [多入口证据](../poc/evidence/uia-alternative-entrypoints-2026-09-17.md)。
+
+最新低侵入构建：新增只查询接口存在性的被动探针，修复login_required分类，27项相关测试通过。曾真实观察到mmui::LoginWindow，但随后窗口变成Qt外壳，Text/Text2/Value/ItemContainer均不可用。登录页可见不是聊天接入成功。详见 [被动探测](../poc/evidence/uia-passive-patterns-2026-09-17.md)。本轮未采用内存写入方案。
+
+最新源码审查：已排除 Raw View 过滤遗漏；发现公开同版适配依赖进程内可访问性状态写入，无法作为只读选择器修复直接执行。已记录调用副作用、恢复缺陷和后续实验边界，见 [修复路线审查](../poc/evidence/uia-source-remediation-review-2026-09-17.md)。当前仍未修复，真实消息与 @ 未验证。
+
+最新环境排除：诊断与Weixin同桌面会话、同高完整性级别、均64位；微信已加载Oleacc和UIAutomationCore。无需重复提权或重装系统组件。见 [环境检查](../poc/evidence/uia-environment-check-2026-09-17.md)。这不改变纯UIA消息读取未成立的结论。
+
+最新续验：用户重新打开客户端后，标准WM_GETOBJECT/UIA_ROOT请求在最小化和还原状态均完成，但未产生语义控件。当前4.1.13.65仍为missing_semantic_controls。见 [标准请求对照](../poc/evidence/uia-activation-attempt-2026-09-17.md)，无需重复该实验。
+
+连续排查补充：已验证MSAA OBJID_CLIENT也只返回无子控件的渲染面板，调用后UIA未变化；公开分支源码表明Win32 Qt类正常，真正缺失的是mmui语义UIA树。见 [MSAA与源码对照](../poc/evidence/uia-msaa-investigation-2026-09-17.md)。后续不重复这些已完成实验。
+
+最新结构定位：wxauto4期望mmui::MainWindow，实际UIA类为Qt51514QWindowIcon；窗口还原后渲染面板仍无子控件。已增加构造前兼容性阻断，18项相关测试通过。见 [选择器与结构证据](../poc/evidence/wxauto4-selector-diagnosis-2026-09-17.md)。真实消息读取仍未修复，不以替换类名强行放行。
+
 后续已按用户“继续”执行一次新增异常定位诊断：失败位置为wx.py:340 → ui/main.py:211，仍未进入ChatInfo，具体原因未知。见 [构造诊断记录](../poc/evidence/wxauto4-constructor-diagnosis-2026-09-17.md)。此记录不授权自动重跑。
 
 已下载仅供审阅，未运行上游入口或安装其依赖。固定提交：`1cb3005b643376ab9520d08918bf89afe4fed1dd`，本地 `.research/wechat-kefu-20260917`。

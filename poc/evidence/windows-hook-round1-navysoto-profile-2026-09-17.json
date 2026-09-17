@@ -1,0 +1,19 @@
+{
+  "schema_version": "windows-hook-round1.v1",
+  "candidate_ref": "navysoto/wxhook@fbccd52713f8cc7cd1023f852bf625af4fe38624",
+  "repository": "https://github.com/navysoto/wxhook",
+  "commit": "fbccd52713f8cc7cd1023f852bf625af4fe38624",
+  "client_version": "4.1.11.52",
+  "client_arch": "x64",
+  "required_modules": [
+    {"name": "Weixin.dll", "version": "4.1.11.52", "arch": "x64", "allowed_sha256": []}
+  ],
+  "target_evidence_reviewed": false,
+  "source_complete": null,
+  "build_verified": false,
+  "evidence_refs": [
+    "https://github.com/navysoto/wxhook/blob/fbccd52713f8cc7cd1023f852bf625af4fe38624/WeixinHookCs/src/WeixinHook.Native/WeixinOffsets.cs",
+    "https://github.com/navysoto/wxhook/blob/fbccd52713f8cc7cd1023f852bf625af4fe38624/WeixinHookCs/src/WeixinHook.Native/WeixinHook.Native.csproj"
+  ],
+  "limitations": ["Target module hash unknown", "Necessary source completeness not verified", "No live experiment"]
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "windows-hook-round1.v1",
+  "checked_at": "2026-09-17T06:52:43.408993+00:00",
+  "candidate_ref": "navysoto/wxhook@fbccd52713f8cc7cd1023f852bf625af4fe38624",
+  "client_version": "4.1.13.65",
+  "client_arch": "x64",
+  "module_checks": [
+    {
+      "name": "Weixin.dll",
+      "status": "mismatch",
+      "reason_codes": [
+        "module_hash_unknown",
+        "module_version_mismatch"
+      ]
+    }
+  ],
+  "compatibility_status": "mismatch",
+  "reason_codes": [
+    "Weixin.dll:module_hash_unknown",
+    "Weixin.dll:module_version_mismatch",
+    "client_version_mismatch",
+    "target_evidence_not_reviewed"
+  ],
+  "source_complete": false,
+  "build_verified": false,
+  "live_receive_verified": false,
+  "mixed_group_verified": false,
+  "send_delivery_verified": false
+}

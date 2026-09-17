@@ -61,6 +61,16 @@ def worker(path):
     report = {'status': 'uia_probe_failed', 'constructor_entered': False,
               'chatinfo_called': False, 'message_read': False, 'sent': False}
     try:
+        from diagnose_wxauto_window import worker as inspect_structure
+        with tempfile.TemporaryDirectory(prefix='uia-preflight-') as folder:
+            preflight = Path(folder) / 'structure.json'
+            inspect_structure(preflight)
+            observed = json.loads(preflight.read_text(encoding='utf-8'))
+        report['compatibility'] = observed['compatibility']
+        if observed['compatibility'] != 'constructor_candidate':
+            report['status'] = 'compatibility_blocked'
+            Path(path).write_text(json.dumps(report), encoding='utf-8')
+            return
         from wxauto4 import WeChat, WxParam
         WxParam.ENABLE_FILE_LOGGER = False
         report['constructor_entered'] = True

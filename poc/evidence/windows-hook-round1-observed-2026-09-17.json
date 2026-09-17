@@ -1,0 +1,19 @@
+{
+  "schema_version": "windows-hook-round1.v1",
+  "checked_at": "2026-09-17T06:52:43.317419+00:00",
+  "client_version": "4.1.13.65",
+  "client_arch": "x64",
+  "modules": {
+    "Weixin.exe": {
+      "version": "4.1.13.65",
+      "sha256": null,
+      "arch": "x64"
+    },
+    "Weixin.dll": {
+      "version": "4.1.13.65",
+      "sha256": null,
+      "arch": "x64"
+    }
+  },
+  "scope": "installed files only; loaded process modules not inspected"
+}
