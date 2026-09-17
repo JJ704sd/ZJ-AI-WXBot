@@ -8,6 +8,42 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+import traceback
+import re
+
+
+def redact_error(text):
+    text = str(text)[:2000]
+    text = re.sub(r'https?://\S+|[A-Za-z]:[\\/][^\s]+', '[location]', text)
+    text = re.sub(r'wxid_[\w-]+|\b[\w.+-]+@[\w.-]+\b', '[identity]', text)
+    text = re.sub(r'(?i)(bearer\s+|(?:token|key|password|secret)\s*[:=]\s*)\S+', '[credential]', text)
+    text = re.sub(r'(?i)\b(?:secret|token|password|key)[_-][\w-]+', '[credential]', text)
+    text = re.sub(r'[A-Za-z0-9_+/=-]{24,}', '[opaque]', text)
+    text = re.sub(r'([\"\']).*?\1', '[quoted]', text)
+    return text[:300]
+
+
+def exception_signal(exc):
+    text = str(exc).lower()
+    categories = []
+    for category, words in {
+        'window_not_found': ('找不到微信', '未找到微信', '未找到已登录的客户端主窗口', '微信未启动', '微信未打开', 'window not found'),
+        'login_required': ('未登录', 'not logged'),
+        'access_denied': ('拒绝访问', 'access denied'),
+        'control_unavailable': ('控件', 'control'),
+        'unsupported_version': ('版本', 'version'),
+        'timeout': ('timeout', '超时'),
+    }.items():
+        if any(word in text for word in words):
+            categories.append(category)
+    frames = []
+    for frame in traceback.extract_tb(exc.__traceback__):
+        # File basename and code position only; omit source lines and local values.
+        frames.append({'file': Path(frame.filename).name, 'line': frame.lineno,
+                       'function': frame.name})
+    return {'error_type': type(exc).__name__, 'categories': categories or ['unclassified'],
+            'message_redacted': redact_error(exc),
+            'winerror': getattr(exc, 'winerror', None), 'frames': frames[-6:]}
 
 
 def bounded_worker(result_path, *, run=subprocess.run):
@@ -34,7 +70,7 @@ def worker(path):
         report['chat_title_available'] = isinstance(info, dict) and bool(info.get('chat_name'))
         report['status'] = 'metadata_available' if report['chat_title_available'] else 'uia_unavailable'
     except Exception as exc:
-        report['error_type'] = type(exc).__name__
+        report.update(exception_signal(exc))
     Path(path).write_text(json.dumps(report), encoding='utf-8')
 
 

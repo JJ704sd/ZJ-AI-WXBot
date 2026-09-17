@@ -6,6 +6,8 @@
 
 ## 1. 源码依据
 
+后续已按用户“继续”执行一次新增异常定位诊断：失败位置为wx.py:340 → ui/main.py:211，仍未进入ChatInfo，具体原因未知。见 [构造诊断记录](../poc/evidence/wxauto4-constructor-diagnosis-2026-09-17.md)。此记录不授权自动重跑。
+
 已下载仅供审阅，未运行上游入口或安装其依赖。固定提交：`1cb3005b643376ab9520d08918bf89afe4fed1dd`，本地 `.research/wechat-kefu-20260917`。
 
 - [driver.py](https://github.com/838997125/wechat-kefu/blob/1cb3005b643376ab9520d08918bf89afe4fed1dd/app/driver.py)：GetSession未读提示 → ChatWith → ChatInfo → GetAllMessage；首次基线；SendMsg(at=昵称列表)。
