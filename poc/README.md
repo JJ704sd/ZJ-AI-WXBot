@@ -1,5 +1,7 @@
 # Offline personal-WeChat text AI Agent PoC
 
+2026-09-17 状态入口：[综合报告 v1.3](../specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)及[重大迭代证据](../specs/research-iteration-review-2026-09-17.md)。本目录已包含 API／861 离线适配和有界 UIA／Hook 诊断资产；下文是早期默认离线 CLI 用法，不代表全部路线现状。历史局部实机记录不等于原群自动回复完成，不应据研究文档直接启动真实动作。
+
 This package is a **human-approved** text loop: read new synthetic events, draft, review one-by-one, send serially, then attach two-client evidence. It is not unattended auto-reply and not production-ready.
 
 Live WeChat database open, process key extraction, debugger attach, and real sends are **not** started by the default commands below.

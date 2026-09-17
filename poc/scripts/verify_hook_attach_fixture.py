@@ -44,7 +44,7 @@ class MI:
         raise TimeoutError(command)
 
 
-def scenario(gdb, executable, folder, mode):
+def scenario(gdb, executable, folder, mode, symbols=('fixture_marker',)):
     folder.mkdir()
     target = subprocess.Popen([str(executable), str(folder)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                               text=True, creationflags=subprocess.CREATE_NO_WINDOW)
@@ -67,24 +67,29 @@ def scenario(gdb, executable, folder, mode):
         attached = True
         debugger.stops.get(timeout=5)
         stopped = True
-        inserted = debugger.command('-break-insert -h fixture_marker')
-        if 'type="hw breakpoint"' not in inserted:
-            raise RuntimeError('not a hardware breakpoint')
-        number = re.search(r'number="(\d+)"', inserted)[1]
+        numbers = {}
+        for symbol in symbols:
+            inserted = debugger.command('-break-insert -h '+symbol)
+            if 'type="hw breakpoint"' not in inserted:
+                raise RuntimeError('not a hardware breakpoint')
+            numbers[re.search(r'number="(\d+)"', inserted)[1]] = symbol
+        report['hits_by_point'] = {symbol:0 for symbol in symbols}
         report['hardware_breakpoint_verified'] = True
         debugger.command('-exec-continue')
         stopped = False
         if mode == 'three_threads':
             (folder/'go').touch()
             thread_ids = set()
-            for _ in range(3):
+            for _ in range(3*len(symbols)):
                 event = debugger.stops.get(timeout=5)
                 stopped = True
-                if 'reason="breakpoint-hit"' not in event or f'bkptno="{number}"' not in event:
+                matched = re.search(r'bkptno="(\d+)"',event)
+                if 'reason="breakpoint-hit"' not in event or not matched or matched[1] not in numbers:
                     raise RuntimeError('unexpected stop: '+event)
+                report['hits_by_point'][numbers[matched[1]]] += 1
                 thread_ids.add(re.search(r'thread-id="(\d+)"', event)[1])
                 report['hits'] += 1
-                if report['hits'] < 3:
+                if report['hits'] < 3*len(symbols):
                     debugger.command('-exec-continue')
                     stopped = False
             report['distinct_hit_threads'] = len(thread_ids)
@@ -100,7 +105,7 @@ def scenario(gdb, executable, folder, mode):
             debugger.command('-exec-interrupt --all')
             debugger.stops.get(timeout=5)
             stopped = True
-        debugger.command('-break-delete '+number)
+        debugger.command('-break-delete '+' '.join(numbers))
         listing = debugger.command('-break-list')
         report['breakpoint_table_empty'] = 'body=[]' in listing
         debugger.command('-target-detach')
@@ -118,7 +123,8 @@ def scenario(gdb, executable, folder, mode):
         report['passed'] = (report['breakpoint_table_empty'] and report['alive_after_detach']
                             and report['debugger_exit_code'] == 0 and target.returncode == 0
                             and report['post_detach_calls_completed']
-                            and (mode != 'three_threads' or report['distinct_hit_threads'] == 3))
+                            and (mode != 'three_threads' or (report['distinct_hit_threads'] == 3
+                                 and all(x == 3 for x in report['hits_by_point'].values()))))
     except Exception as exc:
         report['error'] = str(exc)
     finally:
@@ -147,17 +153,33 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('gcc', 'gdb', 'output-dir'):
         parser.add_argument('--'+name, required=True, type=Path)
+    parser.add_argument('--three-points', action='store_true')
     args = parser.parse_args()
     folder = args.output_dir.resolve()
     folder.mkdir(parents=True, exist_ok=False)
     source = Path(__file__).resolve().parents[1]/'probes/hook_attach_fixture.c'
+    symbols = ('fixture_marker',)
+    if args.three_points:
+        original = source.read_text()
+        declaration = '__attribute__((noinline)) void fixture_marker(void) { InterlockedIncrement(&hits); }'
+        if original.count(declaration) != 1:
+            raise ValueError('fixture source changed')
+        replacement = ('static volatile LONG stage_hits = 0;\n'
+            '__attribute__((noinline)) void fixture_stage_b(void) { InterlockedIncrement(&stage_hits); }\n'
+            '__attribute__((noinline)) void fixture_stage_c(void) { InterlockedIncrement(&stage_hits); }\n'
+            '__attribute__((noinline)) void fixture_marker(void) { InterlockedIncrement(&hits); '
+            'fixture_stage_b(); fixture_stage_c(); }')
+        source = folder/'three_point_fixture.c'
+        source.write_text(original.replace(declaration,replacement),encoding='utf-8')
+        symbols = ('fixture_marker','fixture_stage_b','fixture_stage_c')
     executable = folder/'fixture.exe'
     subprocess.run([str(args.gcc), '-g', '-O0', str(source), '-o', str(executable)],
                    check=True, capture_output=True, text=True, timeout=30)
     report = {'schema_version': 'windows-hook-attach-fixture.v1',
               'source_sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
+              'breakpoint_count':len(symbols),
               'live_wechat_touched': False,
-              'scenarios': [scenario(args.gdb, executable, folder/mode, mode)
+              'scenarios': [scenario(args.gdb, executable, folder/mode, mode,symbols)
                             for mode in ('three_threads', 'idle_timeout')]}
     report['passed'] = all(x['passed'] for x in report['scenarios'])
     report['limitations'] = ['Controlled idle timeout only; debugger crash and OS termination not covered.',

@@ -1,0 +1,51 @@
+{
+  "mode": "three_point_hardware_hits_only",
+  "attach_attempts": 1,
+  "attached": true,
+  "detached": true,
+  "message_payload_read": false,
+  "receive_entry_verified": false,
+  "hits": [],
+  "maximum_hits": 10,
+  "maximum_attach_seconds": 90,
+  "hardware_breakpoint_verified": true,
+  "marker_window_start_seconds": null,
+  "stop_reason": "marker_window_complete",
+  "breakpoint_table_empty": true,
+  "debugger_exit_code": 0,
+  "elapsed_seconds": null,
+  "schema_version": "windows-hook-three-point-live.v1",
+  "date": "2026-09-17",
+  "authorization": "User replied continue to the explicit one-attach three-point proposal",
+  "points": [
+    "entry",
+    "join",
+    "callee"
+  ],
+  "hits_by_point": {
+    "entry": 0,
+    "join": 0,
+    "callee": 0
+  },
+  "process_identity_unchanged": true,
+  "responding_after_detach": true,
+  "gdb_process_count_after": 0,
+  "manual_marker_confirmation": "user confirmed the markers were sent in one batch; visual evidence shows one outgoing bubble containing three markers",
+  "exact_message_timestamps_verified": false,
+  "status": "zero_hits_all_three_points",
+  "script_sha256": null,
+  "user_reported_client_visible_markers": 3,
+  "independent_client_receipt_verified": false,
+  "screenshot_correction": {
+    "source": "user supplied screenshot after experiment",
+    "marker_token_count": 3,
+    "message_bubble_count": 1,
+    "bubble_direction": "right_green_outgoing",
+    "other_member_inbound_verified": false,
+    "exact_send_device_unknown": true,
+    "minute_label": null
+  },
+  "incoming_receive_trial_validity": "not_established_outgoing_direction_sample",
+  "negative_evidence_against_incoming_path": false,
+  "client_visible_marker_bubbles_verified_from_screenshot": 1
+}
