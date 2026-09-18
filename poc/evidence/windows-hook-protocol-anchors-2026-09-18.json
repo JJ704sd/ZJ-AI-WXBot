@@ -1,0 +1,55 @@
+{
+  "scope": "disk_module_only",
+  "live_process_accessed": false,
+  "protocol_verified": false,
+  "anchors": [
+    {
+      "keyword": "longlink",
+      "count": 109
+    },
+    {
+      "keyword": "shortlink",
+      "count": 52
+    },
+    {
+      "keyword": "Req2Buf",
+      "count": 8
+    },
+    {
+      "keyword": "Buf2Resp",
+      "count": 8
+    },
+    {
+      "keyword": "OnPush",
+      "count": 12
+    },
+    {
+      "keyword": "new_sync",
+      "count": 2
+    },
+    {
+      "keyword": "newsendmsg",
+      "count": 2
+    },
+    {
+      "keyword": "AddMsg",
+      "count": 4
+    },
+    {
+      "keyword": "SyncKey",
+      "count": 7
+    },
+    {
+      "keyword": "SyncCheck",
+      "count": 0
+    },
+    {
+      "keyword": "protobuf",
+      "count": 235
+    },
+    {
+      "keyword": "/cgi-bin/micromsg-bin/",
+      "count": 214
+    }
+  ]
+}

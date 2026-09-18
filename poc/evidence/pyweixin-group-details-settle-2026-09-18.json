@@ -1,0 +1,84 @@
+{
+  "observed_at": "2026-09-18",
+  "send_enabled": false,
+  "trial": {
+    "status": "observed",
+    "write_attempted": true,
+    "write_readback": true,
+    "restored": true,
+    "observation": {
+      "account_verified": false,
+      "group_verified": false,
+      "send_enabled": false,
+      "panel_open_attempted": true,
+      "panel_restored": false,
+      "window_stable": true,
+      "title_control_count": 1,
+      "title_matches": true,
+      "panel_count": 0,
+      "group_classes": [
+        "mmui::ChatDetailView",
+        "mmui::ChatInputToolbarLeftView",
+        "mmui::ChatInputToolbarRightView",
+        "mmui::ChatInputView",
+        "mmui::ChatMasterView",
+        "mmui::ChatMessagePage",
+        "mmui::ChatSessionList",
+        "mmui::ChatTitleBarChatRoomView",
+        "mmui::ChatTitleBarMasterView",
+        "mmui::ChatVoIPView",
+        "mmui::ChatlogMigrateView",
+        "mmui::ComposePulldownButton",
+        "mmui::MainView",
+        "mmui::MessageView",
+        "mmui::XBadge",
+        "mmui::XDivider",
+        "mmui::XHBoxView",
+        "mmui::XIcon",
+        "mmui::XSearchField",
+        "mmui::XVBoxView",
+        "mmui::XView"
+      ],
+      "status": "blocked",
+      "error_type": "ValueError",
+      "reason": "group_panel_not_unique"
+    },
+    "send_enabled": false
+  },
+  "after_restore": {
+    "version": "4.1.13.65",
+    "root_class": "Qt51514QWindowIcon",
+    "complete": true,
+    "sessions": false,
+    "messages": false,
+    "input": false,
+    "process_count": 6,
+    "window_count": 1,
+    "max_depth": 6,
+    "max_nodes": 128,
+    "structure": [
+      {
+        "index": 0,
+        "parent": null,
+        "depth": 0,
+        "role": "Window",
+        "class_name": "Qt51514QWindowIcon",
+        "anchors": []
+      },
+      {
+        "index": 1,
+        "parent": 0,
+        "depth": 1,
+        "role": "Pane",
+        "class_name": "MMUIRenderSubWindowHW",
+        "anchors": []
+      }
+    ],
+    "truncation_reasons": [],
+    "content_containers_pruned": 0,
+    "input_suffix_candidate": false,
+    "scope": "structural_containers_excluding_chat_and_session_items",
+    "binding_stable": true,
+    "node_count": 2
+  }
+}

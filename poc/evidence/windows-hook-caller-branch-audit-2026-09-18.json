@@ -1,0 +1,15 @@
+{
+  "live_process_accessed": false,
+  "four_reference_sites_unique_caller_ranges": 3,
+  "two_call_sites_in_same_caller": true,
+  "local_branch_successors_each_have_path_to_candidate": [
+    true,
+    true
+  ],
+  "caller_unresolved_branches": 0,
+  "runtime_branch_values_known": false,
+  "limitations": [
+    "Syntactic reachability assumes returning calls; not feasible runtime path proof.",
+    "No link between nearby contact configuration and branch input values established."
+  ]
+}

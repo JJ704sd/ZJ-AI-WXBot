@@ -18,7 +18,7 @@
 
 1. 本轮12项离线测试通过：既有9项会话读取反例＋3项探针超时/缺报告/结果测试。没有实机调用。
 2. 隔离环境默认探针报告installed=true、live_requested=false、status=not_executed。
-3. 文件版本读取：`C:\Program Files\Tencent\Weixin\Weixin.exe` FileVersion/ProductVersion均为4.1.13.65；未重启或降级。
+3. 文件版本读取：安装路径已脱敏，FileVersion/ProductVersion均为4.1.13.65；未重启或降级。
 4. 明确授权的桌面上下文中只启动一次30秒上限子进程；耗时约2.1秒返回如下结果：
 
 ```json

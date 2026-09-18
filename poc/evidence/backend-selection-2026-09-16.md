@@ -2,7 +2,7 @@
 
 日期：2026-09-16。访问日期均为 2026-09-16。承接 A0–A1 离线闭环。本轮**未**购买、注册、部署、扫码、注入、真实收发或调用 M3。
 
-代码基线：`157eecf` + 未提交 A1/A2-prep 实现。本机只读复核：Weixin **4.1.13.65**（`C:\Program Files\Tencent\Weixin\Weixin.exe`，LastWrite 2026-09-11）、WXWork **5.0.11.6018**。未切换账号、未重启或降级客户端。
+代码基线：`157eecf` + 未提交 A1/A2-prep 实现。本机只读复核：Weixin **4.1.13.65**（安装路径已脱敏，LastWrite 2026-09-11）、WXWork **5.0.11.6018**。未切换账号、未重启或降级客户端。
 
 判定等级：`documented` / `code_checked` / `observed` / `unknown` / `unsupported`。没有实测不得标 observed。
 

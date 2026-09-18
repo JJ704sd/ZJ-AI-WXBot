@@ -1,0 +1,137 @@
+{
+  "live_process_accessed": false,
+  "runtime_semantics_verified": false,
+  "callbacks": [
+    {
+      "alias": "OnPush-0",
+      "function_bytes": 306,
+      "references": 1,
+      "all_reference_boundaries_valid": true,
+      "strings": [
+        "mars::stn",
+        "mars::stn::StnManager::OnPush",
+        "stn_manager.cc"
+      ],
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "OnPush-1",
+      "function_bytes": 49,
+      "references": 1,
+      "all_reference_boundaries_valid": true,
+      "strings": [
+        "OnPushXLabExptItems"
+      ],
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "OnPush-2",
+      "function_bytes": 54,
+      "references": 1,
+      "all_reference_boundaries_valid": true,
+      "strings": [
+        "OnPushExptAppItems"
+      ],
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "OnPush-3",
+      "function_bytes": 858,
+      "references": 1,
+      "all_reference_boundaries_valid": true,
+      "strings": [
+        "mars::stn",
+        "mars::stn::NetCore::__OnPush"
+      ],
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "OnPush-4",
+      "function_bytes": 229,
+      "references": 1,
+      "all_reference_boundaries_valid": true,
+      "strings": [
+        "mars::stn",
+        "stn_callback_bridge.cc"
+      ],
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "OnPush-5",
+      "function_bytes": 3741,
+      "references": 7,
+      "all_reference_boundaries_valid": true,
+      "strings": [
+        "mars::stn::ActionTaskManager::OnPush"
+      ],
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "Buf2Resp-0",
+      "function_bytes": 413,
+      "references": 1,
+      "all_reference_boundaries_valid": true,
+      "strings": [
+        "mars::stn",
+        "mars::stn::StnManager::Buf2Resp",
+        "stn_manager.cc"
+      ],
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "Buf2Resp-1",
+      "function_bytes": 7276,
+      "references": 10,
+      "all_reference_boundaries_valid": true,
+      "strings": [
+        "mars::stn::MMStnManager::MMBuf2Resp",
+        "mars::stn::MMStnManager::RedoNewdns",
+        "mars::stn::MMStnManager::ReportIDKey"
+      ],
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "Buf2Resp-2",
+      "function_bytes": 276,
+      "references": 1,
+      "all_reference_boundaries_valid": true,
+      "strings": [
+        "mars::stn",
+        "stn_callback_bridge.cc"
+      ],
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "Buf2Resp-3",
+      "function_bytes": 9095,
+      "references": 9,
+      "all_reference_boundaries_valid": true,
+      "strings": [
+        "mars::account::AccountCore::MMBuf2Resp"
+      ],
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "Buf2Resp-4",
+      "function_bytes": 1712,
+      "references": 5,
+      "all_reference_boundaries_valid": true,
+      "strings": [
+        "mars::stn::ActionTaskManager::Buf2Resp"
+      ],
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "Buf2Resp-5",
+      "function_bytes": 22804,
+      "references": 1,
+      "all_reference_boundaries_valid": true,
+      "strings": [],
+      "direct_call_to_old_entry": false
+    }
+  ],
+  "limitations": [
+    "Names are disk log/type clues, not recovered symbols.",
+    "Direct calls only; indirect and multi-hop routes remain unresolved."
+  ]
+}

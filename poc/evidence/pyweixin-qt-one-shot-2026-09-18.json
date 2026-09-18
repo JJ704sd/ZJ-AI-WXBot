@@ -1,0 +1,54 @@
+{
+  "observed_at": "2026-09-18",
+  "dll_sha256": null,
+  "rva": null,
+  "mode": "trial",
+  "write_authorized_flag": true,
+  "send_enabled": false,
+  "current_byte": 0,
+  "same_target": true,
+  "status": "observed",
+  "before": {
+    "version": "4.1.13.65",
+    "root_class": "Qt51514QWindowIcon",
+    "complete": true,
+    "sessions": false,
+    "messages": false,
+    "input": false,
+    "process_count": 6,
+    "window_count": 1,
+    "binding_stable": true,
+    "node_count": 2
+  },
+  "trial": {
+    "status": "observed",
+    "write_attempted": true,
+    "write_readback": true,
+    "restored": true,
+    "observation": {
+      "version": "4.1.13.65",
+      "root_class": "mmui::MainWindow",
+      "complete": false,
+      "sessions": false,
+      "messages": false,
+      "input": false,
+      "process_count": 6,
+      "window_count": 1,
+      "binding_stable": true,
+      "node_count": 38
+    },
+    "send_enabled": false
+  },
+  "after_restore": {
+    "version": "4.1.13.65",
+    "root_class": "Qt51514QWindowIcon",
+    "complete": true,
+    "sessions": false,
+    "messages": false,
+    "input": false,
+    "process_count": 6,
+    "window_count": 1,
+    "binding_stable": true,
+    "node_count": 2
+  }
+}

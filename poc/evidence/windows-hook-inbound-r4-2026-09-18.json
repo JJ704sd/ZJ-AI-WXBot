@@ -1,0 +1,41 @@
+{
+  "mode": "three_point_hardware_hits_only",
+  "attach_attempts": 1,
+  "attached": true,
+  "detached": true,
+  "message_payload_read": false,
+  "receive_entry_verified": false,
+  "hits": [],
+  "maximum_hits": 10,
+  "maximum_attach_seconds": 90,
+  "started_at_utc": "2026-09-18",
+  "hardware_breakpoint_verified": true,
+  "marker_window_start_seconds": null,
+  "marker_window_started_at_utc": "2026-09-18",
+  "stop_reason": "marker_window_complete",
+  "breakpoint_table_empty": true,
+  "debugger_exit_code": 0,
+  "elapsed_seconds": null,
+  "finished_at_utc": "2026-09-18",
+  "schema_version": "windows-hook-inbound-three-point.v1",
+  "date": "2026-09-18",
+  "authorization": "User approved one new three-point trial and confirmed unchanged account/group",
+  "points": [
+    "entry",
+    "join",
+    "callee"
+  ],
+  "hits_by_point": {
+    "entry": 0,
+    "join": 0,
+    "callee": 0
+  },
+  "process_identity_unchanged": true,
+  "responding_after_detach": true,
+  "gdb_process_count_after": 0,
+  "manual_marker_confirmation": "User confirmed three separate messages from another group member account appeared on the left during the bounded window",
+  "inbound_sample_validity": "user_confirmed_direction_count_and_window",
+  "status": "zero_hits_with_user_confirmed_inbound_samples",
+  "script_sha256": null,
+  "independent_screenshot_or_native_receipt_verified": false
+}

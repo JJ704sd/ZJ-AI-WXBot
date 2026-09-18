@@ -4,15 +4,24 @@
 
 ## 当前结论
 
-**截至 2026-09-17，已完成多轮实现与有界诊断，原混合群的真实收发闭环仍未验收。**
+**截至 2026-09-18，已完成多轮实现与有界诊断，原混合群的真实收发闭环仍未验收。**
 
-历史数据库路线已有局部真实读取与部分 @ 证据；API Agent、861 adapter 已有离线基础。当前 861 受设备 key 签发阻塞，Cloud 有取码 502／CORS 反馈；UIA 已恢复研究但聊天语义树仍缺；Hook 已做有界动态观测，尚未验证入站路径。StarBot／MAX 等候选不代表已接通。
+历史数据库路线已有局部真实读取与部分 @ 证据；API Agent、861 adapter 已有离线基础。当前 861 受设备 key 签发阻塞，Cloud 有取码 502／CORS 反馈；UIA 临时 Qt 状态实验已定位会话列表、消息列表和输入框并恢复原字节，但原群绑定与真实读取仍未验收；Hook 已做有界动态观测，尚未验证入站路径。StarBot／MAX 等候选不代表已接通。
 
 仓库保存研究、脱敏阶段证据、默认关闭真实动作的 PoC 与诊断基础。默认离线配置不启动实机操作；历史有界读取、模型调用或调试记录不能当作原群自动回复验收。原始聊天、凭据和运行材料不纳入公开交付。
 
 ## 阅读入口
 
-- [综合技术可行性报告 v1.3](./specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)：跨路线结论、商业条件与验收要求。
+- [pyweixin 完整结构与目标标题实测（2026-09-18）](./poc/evidence/pyweixin-title-binding-retry-2026-09-18.md)：147 个结构节点无截断、唯一目标标题匹配、原字节恢复；当前缺口是账号与原群的独立身份绑定。
+
+- [pyweixin 深层结构实验（2026-09-18）](./poc/evidence/pyweixin-qt-deep-structure-2026-09-18.md)：三个关键控件已定位，后续进入原账号／群的独立绑定验证。
+
+- [pyweixin 一次实机结构恢复实验（2026-09-18）](./poc/evidence/pyweixin-qt-one-shot-2026-09-18.md)：临时根结构恢复与原值读回已验证，不代表消息读取或发送可用。
+
+- [pyweixin 当前账号／原混合群构建（2026-09-18）](./specs/pyweixin-build-2026-09-18.md)：用户选定单一路线；源码缺陷修补、有界结构准入与能力权限表。尚未接通原群。
+
+- [综合技术可行性报告 v1.4](./specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)：跨路线结论、商业条件与验收要求；当前集中 pyweixin 独立身份绑定。
+- [9 月 18 日重大迭代](./specs/research-iteration-review-2026-09-18.md)：临时结构恢复、三个锚点和目标标题通过的证据，以及尚未通过的账号／群身份与消息关卡。
 - [重大迭代与最新证据](./specs/research-iteration-review-2026-09-17.md)：Cloud 失败反馈、UIA v2/v3、Hook R1—R3 及样本方向纠正。
 - [UIA 当前卡点](./specs/uia-blockers-register-2026-09-17.md)、[861 当前构建交接](./specs/nonmax-861-build-handoff-2026-09-16.md)：各路线阶段入口。历史操作额度不自动延续。
 

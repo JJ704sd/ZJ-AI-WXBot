@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-18",
+  "route": "pyweixin",
+  "scope": "current account and original mixed group; no substitutes",
+  "upstream_commit": "ebe8d4be9347816d221c38843e5b9e5e480bd8fb",
+  "original_sha256": null,
+  "patched_sha256": null,
+  "offline_regressions": {"before_passed": 3, "before_failed": 6, "after_passed": 9, "after_failed": 0},
+  "focused_pytest": {"passed": 27, "failed": 0},
+  "desktop_observation": {
+    "mechanism": "computer-use sky",
+    "initial_target_count": 1,
+    "state_capture": "window_minimized",
+    "recovery": "window_binding_changed",
+    "complete": false,
+    "activation_executed": false,
+    "chat_tree_captured": false
+  },
+  "new_pywinauto_probe_executed": false,
+  "upstream_installed": false,
+  "account_verified": false,
+  "group_verified": false,
+  "read_verified": false,
+  "send_attempts": 0,
+  "agent_enabled": false
+}

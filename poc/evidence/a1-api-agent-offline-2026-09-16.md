@@ -26,7 +26,7 @@ poc/.venv/Scripts/python.exe poc/scripts/run_api_a1_offline.py
 
 | 项 | 判定 | 证据 |
 |---|---|---|
-| 本机 Weixin 文件版本 | **observed** `4.1.13.65` | `C:\Program Files\Tencent\Weixin\Weixin.exe` FileVersion；与 2026-09-12 文档基线相同 |
+| 本机 Weixin 文件版本 | **observed** `4.1.13.65` | 安装路径已脱敏；与 2026-09-12 文档基线相同 |
 | 本机 WXWork 文件版本 | **observed** `5.0.11.6018` | `C:\Program Files (x86)\WXWork\WXWork.exe` |
 | WCFerry 原版 | **documented** 已归档；release `v39.5.2` 配套微信 `3.9.12.51` | GitHub releases 2026-03-28 |
 | 与当前 4.1.13.65 兼容 | **unsupported** / 无本机 4.x 证据 | 未安装、未注入、未降级客户端 |

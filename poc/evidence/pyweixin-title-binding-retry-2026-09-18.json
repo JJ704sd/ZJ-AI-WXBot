@@ -1,0 +1,1319 @@
+{
+  "observed_at": "2026-09-18",
+  "dll_sha256": null,
+  "rva": null,
+  "mode": "trial",
+  "write_authorized_flag": true,
+  "send_enabled": false,
+  "current_byte": 0,
+  "same_target": true,
+  "status": "observed",
+  "before": {
+    "version": "4.1.13.65",
+    "root_class": "Qt51514QWindowIcon",
+    "complete": true,
+    "sessions": false,
+    "messages": false,
+    "input": false,
+    "process_count": 6,
+    "window_count": 1,
+    "max_depth": 32,
+    "max_nodes": 512,
+    "structure": [
+      {
+        "index": 0,
+        "parent": null,
+        "depth": 0,
+        "role": "Window",
+        "class_name": "Qt51514QWindowIcon",
+        "anchors": []
+      },
+      {
+        "index": 1,
+        "parent": 0,
+        "depth": 1,
+        "role": "Pane",
+        "class_name": "MMUIRenderSubWindowHW",
+        "anchors": []
+      }
+    ],
+    "truncation_reasons": [],
+    "content_containers_pruned": 0,
+    "input_suffix_candidate": false,
+    "scope": "structural_containers_excluding_chat_and_session_items",
+    "binding_stable": true,
+    "node_count": 2,
+    "target_binding": {
+      "title_control_count": 0,
+      "title_matches": false,
+      "account_verified": false,
+      "group_verified": false,
+      "reason": "title_is_not_stable_identity",
+      "read_enabled": false,
+      "send_enabled": false
+    }
+  },
+  "trial": {
+    "status": "observed",
+    "write_attempted": true,
+    "write_readback": true,
+    "restored": true,
+    "observation": {
+      "version": "4.1.13.65",
+      "root_class": "mmui::MainWindow",
+      "complete": true,
+      "sessions": true,
+      "messages": true,
+      "input": true,
+      "process_count": 6,
+      "window_count": 1,
+      "max_depth": 32,
+      "max_nodes": 512,
+      "structure": [
+        {
+          "index": 0,
+          "parent": null,
+          "depth": 0,
+          "role": "Window",
+          "class_name": "mmui::MainWindow",
+          "anchors": []
+        },
+        {
+          "index": 1,
+          "parent": 0,
+          "depth": 1,
+          "role": "Pane",
+          "class_name": "MMUIRenderSubWindowHW",
+          "anchors": []
+        },
+        {
+          "index": 2,
+          "parent": 0,
+          "depth": 1,
+          "role": "Group",
+          "class_name": "other",
+          "anchors": []
+        },
+        {
+          "index": 3,
+          "parent": 2,
+          "depth": 2,
+          "role": "Custom",
+          "class_name": "other",
+          "anchors": []
+        },
+        {
+          "index": 4,
+          "parent": 2,
+          "depth": 2,
+          "role": "ToolBar",
+          "class_name": "mmui::TitleBar",
+          "anchors": []
+        },
+        {
+          "index": 5,
+          "parent": 3,
+          "depth": 3,
+          "role": "Group",
+          "class_name": "mmui::MainView",
+          "anchors": []
+        },
+        {
+          "index": 6,
+          "parent": 4,
+          "depth": 3,
+          "role": "Button",
+          "class_name": "mmui::PinnedButton",
+          "anchors": []
+        },
+        {
+          "index": 7,
+          "parent": 4,
+          "depth": 3,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 8,
+          "parent": 4,
+          "depth": 3,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 9,
+          "parent": 4,
+          "depth": 3,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 10,
+          "parent": 5,
+          "depth": 4,
+          "role": "ToolBar",
+          "class_name": "mmui::MainTabBar",
+          "anchors": []
+        },
+        {
+          "index": 11,
+          "parent": 5,
+          "depth": 4,
+          "role": "Group",
+          "class_name": "other",
+          "anchors": []
+        },
+        {
+          "index": 12,
+          "parent": 6,
+          "depth": 4,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 13,
+          "parent": 7,
+          "depth": 4,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 14,
+          "parent": 8,
+          "depth": 4,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 15,
+          "parent": 9,
+          "depth": 4,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 16,
+          "parent": 10,
+          "depth": 5,
+          "role": "Button",
+          "class_name": "mmui::XTabBarItem",
+          "anchors": []
+        },
+        {
+          "index": 17,
+          "parent": 10,
+          "depth": 5,
+          "role": "Button",
+          "class_name": "mmui::XTabBarItem",
+          "anchors": []
+        },
+        {
+          "index": 18,
+          "parent": 10,
+          "depth": 5,
+          "role": "Button",
+          "class_name": "mmui::XTabBarItem",
+          "anchors": []
+        },
+        {
+          "index": 19,
+          "parent": 10,
+          "depth": 5,
+          "role": "Button",
+          "class_name": "mmui::XTabBarItem",
+          "anchors": []
+        },
+        {
+          "index": 20,
+          "parent": 10,
+          "depth": 5,
+          "role": "Button",
+          "class_name": "mmui::HandoffTabbarView",
+          "anchors": []
+        },
+        {
+          "index": 21,
+          "parent": 10,
+          "depth": 5,
+          "role": "Button",
+          "class_name": "mmui::MainTabBarSettingView",
+          "anchors": []
+        },
+        {
+          "index": 22,
+          "parent": 11,
+          "depth": 5,
+          "role": "Group",
+          "class_name": "mmui::MainView",
+          "anchors": []
+        },
+        {
+          "index": 23,
+          "parent": 12,
+          "depth": 5,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 24,
+          "parent": 13,
+          "depth": 5,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 25,
+          "parent": 14,
+          "depth": 5,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 26,
+          "parent": 15,
+          "depth": 5,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 27,
+          "parent": 16,
+          "depth": 6,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 28,
+          "parent": 16,
+          "depth": 6,
+          "role": "Group",
+          "class_name": "mmui::XBadge",
+          "anchors": []
+        },
+        {
+          "index": 29,
+          "parent": 17,
+          "depth": 6,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 30,
+          "parent": 17,
+          "depth": 6,
+          "role": "Group",
+          "class_name": "mmui::XBadge",
+          "anchors": []
+        },
+        {
+          "index": 31,
+          "parent": 18,
+          "depth": 6,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 32,
+          "parent": 18,
+          "depth": 6,
+          "role": "Group",
+          "class_name": "mmui::XBadge",
+          "anchors": []
+        },
+        {
+          "index": 33,
+          "parent": 19,
+          "depth": 6,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 34,
+          "parent": 19,
+          "depth": 6,
+          "role": "Group",
+          "class_name": "mmui::XBadge",
+          "anchors": []
+        },
+        {
+          "index": 35,
+          "parent": 20,
+          "depth": 6,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 36,
+          "parent": 21,
+          "depth": 6,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 37,
+          "parent": 22,
+          "depth": 6,
+          "role": "Custom",
+          "class_name": "mmui::XSplitterView",
+          "anchors": []
+        },
+        {
+          "index": 38,
+          "parent": 27,
+          "depth": 7,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 39,
+          "parent": 29,
+          "depth": 7,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 40,
+          "parent": 31,
+          "depth": 7,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 41,
+          "parent": 33,
+          "depth": 7,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 42,
+          "parent": 35,
+          "depth": 7,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 43,
+          "parent": 36,
+          "depth": 7,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 44,
+          "parent": 37,
+          "depth": 7,
+          "role": "Custom",
+          "class_name": "mmui::XSplitterView",
+          "anchors": []
+        },
+        {
+          "index": 45,
+          "parent": 42,
+          "depth": 8,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 46,
+          "parent": 43,
+          "depth": 8,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 47,
+          "parent": 44,
+          "depth": 8,
+          "role": "Custom",
+          "class_name": "mmui::XStackedWidget",
+          "anchors": []
+        },
+        {
+          "index": 48,
+          "parent": 44,
+          "depth": 8,
+          "role": "Group",
+          "class_name": "mmui::XView",
+          "anchors": []
+        },
+        {
+          "index": 49,
+          "parent": 44,
+          "depth": 8,
+          "role": "Thumb",
+          "class_name": "other",
+          "anchors": []
+        },
+        {
+          "index": 50,
+          "parent": 47,
+          "depth": 9,
+          "role": "Group",
+          "class_name": "mmui::ChatDetailView",
+          "anchors": []
+        },
+        {
+          "index": 51,
+          "parent": 48,
+          "depth": 9,
+          "role": "Group",
+          "class_name": "mmui::ChatMasterView",
+          "anchors": []
+        },
+        {
+          "index": 52,
+          "parent": 50,
+          "depth": 10,
+          "role": "Custom",
+          "class_name": "mmui::XSplitterView",
+          "anchors": []
+        },
+        {
+          "index": 53,
+          "parent": 51,
+          "depth": 10,
+          "role": "Group",
+          "class_name": "mmui::XVBoxView",
+          "anchors": []
+        },
+        {
+          "index": 54,
+          "parent": 52,
+          "depth": 11,
+          "role": "Custom",
+          "class_name": "mmui::XStackedWidget",
+          "anchors": []
+        },
+        {
+          "index": 55,
+          "parent": 53,
+          "depth": 11,
+          "role": "Group",
+          "class_name": "mmui::XView",
+          "anchors": []
+        },
+        {
+          "index": 56,
+          "parent": 53,
+          "depth": 11,
+          "role": "Group",
+          "class_name": "mmui::XView",
+          "anchors": []
+        },
+        {
+          "index": 57,
+          "parent": 54,
+          "depth": 12,
+          "role": "Group",
+          "class_name": "mmui::ChatMessagePage",
+          "anchors": []
+        },
+        {
+          "index": 58,
+          "parent": 55,
+          "depth": 12,
+          "role": "Group",
+          "class_name": "mmui::XSearchField",
+          "anchors": []
+        },
+        {
+          "index": 59,
+          "parent": 55,
+          "depth": 12,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 60,
+          "parent": 55,
+          "depth": 12,
+          "role": "Group",
+          "class_name": "mmui::XDivider",
+          "anchors": []
+        },
+        {
+          "index": 61,
+          "parent": 56,
+          "depth": 12,
+          "role": "Group",
+          "class_name": "mmui::XView",
+          "anchors": []
+        },
+        {
+          "index": 62,
+          "parent": 57,
+          "depth": 13,
+          "role": "Group",
+          "class_name": "mmui::ChatTitleBarMasterView",
+          "anchors": []
+        },
+        {
+          "index": 63,
+          "parent": 57,
+          "depth": 13,
+          "role": "Custom",
+          "class_name": "mmui::XSplitterView",
+          "anchors": []
+        },
+        {
+          "index": 64,
+          "parent": 58,
+          "depth": 13,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 65,
+          "parent": 58,
+          "depth": 13,
+          "role": "Edit",
+          "class_name": "mmui::XValidatorTextEdit",
+          "anchors": []
+        },
+        {
+          "index": 66,
+          "parent": 59,
+          "depth": 13,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 67,
+          "parent": 61,
+          "depth": 13,
+          "role": "Group",
+          "class_name": "mmui::ChatSessionList",
+          "anchors": []
+        },
+        {
+          "index": 68,
+          "parent": 62,
+          "depth": 14,
+          "role": "Group",
+          "class_name": "mmui::ChatTitleBarChatRoomView",
+          "anchors": []
+        },
+        {
+          "index": 69,
+          "parent": 63,
+          "depth": 14,
+          "role": "Group",
+          "class_name": "mmui::XView",
+          "anchors": []
+        },
+        {
+          "index": 70,
+          "parent": 63,
+          "depth": 14,
+          "role": "Group",
+          "class_name": "mmui::XVBoxView",
+          "anchors": []
+        },
+        {
+          "index": 71,
+          "parent": 63,
+          "depth": 14,
+          "role": "Thumb",
+          "class_name": "other",
+          "anchors": []
+        },
+        {
+          "index": 72,
+          "parent": 64,
+          "depth": 14,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 73,
+          "parent": 65,
+          "depth": 14,
+          "role": "Group",
+          "class_name": "other",
+          "anchors": []
+        },
+        {
+          "index": 74,
+          "parent": 66,
+          "depth": 14,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 75,
+          "parent": 67,
+          "depth": 14,
+          "role": "List",
+          "class_name": "mmui::XTableView",
+          "anchors": [
+            "sessions_label"
+          ]
+        },
+        {
+          "index": 76,
+          "parent": 68,
+          "depth": 15,
+          "role": "Group",
+          "class_name": "mmui::XVBoxView",
+          "anchors": []
+        },
+        {
+          "index": 77,
+          "parent": 68,
+          "depth": 15,
+          "role": "Group",
+          "class_name": "mmui::XDivider",
+          "anchors": []
+        },
+        {
+          "index": 78,
+          "parent": 69,
+          "depth": 15,
+          "role": "Group",
+          "class_name": "mmui::ChatInputView",
+          "anchors": []
+        },
+        {
+          "index": 79,
+          "parent": 70,
+          "depth": 15,
+          "role": "Group",
+          "class_name": "mmui::MessageView",
+          "anchors": []
+        },
+        {
+          "index": 80,
+          "parent": 76,
+          "depth": 16,
+          "role": "Group",
+          "class_name": "mmui::XVBoxView",
+          "anchors": []
+        },
+        {
+          "index": 81,
+          "parent": 76,
+          "depth": 16,
+          "role": "Group",
+          "class_name": "mmui::XView",
+          "anchors": []
+        },
+        {
+          "index": 82,
+          "parent": 78,
+          "depth": 16,
+          "role": "Group",
+          "class_name": "mmui::XVBoxView",
+          "anchors": []
+        },
+        {
+          "index": 83,
+          "parent": 79,
+          "depth": 16,
+          "role": "List",
+          "class_name": "mmui::RecyclerListView",
+          "anchors": [
+            "messages_label"
+          ]
+        },
+        {
+          "index": 84,
+          "parent": 80,
+          "depth": 17,
+          "role": "Group",
+          "class_name": "mmui::XHBoxView",
+          "anchors": []
+        },
+        {
+          "index": 85,
+          "parent": 82,
+          "depth": 17,
+          "role": "Group",
+          "class_name": "mmui::XHBoxView",
+          "anchors": []
+        },
+        {
+          "index": 86,
+          "parent": 82,
+          "depth": 17,
+          "role": "ToolBar",
+          "class_name": "mmui::XHBoxView",
+          "anchors": []
+        },
+        {
+          "index": 87,
+          "parent": 84,
+          "depth": 18,
+          "role": "Group",
+          "class_name": "mmui::XVBoxView",
+          "anchors": []
+        },
+        {
+          "index": 88,
+          "parent": 84,
+          "depth": 18,
+          "role": "Group",
+          "class_name": "mmui::XVBoxView",
+          "anchors": []
+        },
+        {
+          "index": 89,
+          "parent": 85,
+          "depth": 18,
+          "role": "Edit",
+          "class_name": "mmui::ChatInputField",
+          "anchors": [
+            "input_exact"
+          ]
+        },
+        {
+          "index": 90,
+          "parent": 86,
+          "depth": 18,
+          "role": "Group",
+          "class_name": "mmui::ChatInputToolbarLeftView",
+          "anchors": []
+        },
+        {
+          "index": 91,
+          "parent": 86,
+          "depth": 18,
+          "role": "Group",
+          "class_name": "mmui::ChatInputToolbarRightView",
+          "anchors": []
+        },
+        {
+          "index": 92,
+          "parent": 87,
+          "depth": 19,
+          "role": "Group",
+          "class_name": "other",
+          "anchors": []
+        },
+        {
+          "index": 93,
+          "parent": 87,
+          "depth": 19,
+          "role": "Group",
+          "class_name": "mmui::XVBoxView",
+          "anchors": []
+        },
+        {
+          "index": 94,
+          "parent": 88,
+          "depth": 19,
+          "role": "Group",
+          "class_name": "mmui::XHBoxView",
+          "anchors": []
+        },
+        {
+          "index": 95,
+          "parent": 89,
+          "depth": 19,
+          "role": "Group",
+          "class_name": "other",
+          "anchors": []
+        },
+        {
+          "index": 96,
+          "parent": 90,
+          "depth": 19,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 97,
+          "parent": 90,
+          "depth": 19,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 98,
+          "parent": 90,
+          "depth": 19,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 99,
+          "parent": 90,
+          "depth": 19,
+          "role": "Group",
+          "class_name": "mmui::ComposePulldownButton",
+          "anchors": []
+        },
+        {
+          "index": 100,
+          "parent": 90,
+          "depth": 19,
+          "role": "Button",
+          "class_name": "mmui::VoiceInputView",
+          "anchors": []
+        },
+        {
+          "index": 101,
+          "parent": 91,
+          "depth": 19,
+          "role": "Group",
+          "class_name": "mmui::XHBoxView",
+          "anchors": []
+        },
+        {
+          "index": 102,
+          "parent": 93,
+          "depth": 20,
+          "role": "Group",
+          "class_name": "other",
+          "anchors": []
+        },
+        {
+          "index": 103,
+          "parent": 93,
+          "depth": 20,
+          "role": "Group",
+          "class_name": "mmui::XView",
+          "anchors": []
+        },
+        {
+          "index": 104,
+          "parent": 93,
+          "depth": 20,
+          "role": "Group",
+          "class_name": "other",
+          "anchors": []
+        },
+        {
+          "index": 105,
+          "parent": 94,
+          "depth": 20,
+          "role": "Group",
+          "class_name": "mmui::XVBoxView",
+          "anchors": []
+        },
+        {
+          "index": 106,
+          "parent": 96,
+          "depth": 20,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 107,
+          "parent": 97,
+          "depth": 20,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 108,
+          "parent": 98,
+          "depth": 20,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 109,
+          "parent": 99,
+          "depth": 20,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 110,
+          "parent": 99,
+          "depth": 20,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 111,
+          "parent": 100,
+          "depth": 20,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 112,
+          "parent": 101,
+          "depth": 20,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 113,
+          "parent": 101,
+          "depth": 20,
+          "role": "Button",
+          "class_name": "mmui::XOutlineButton",
+          "anchors": []
+        },
+        {
+          "index": 114,
+          "parent": 103,
+          "depth": 21,
+          "role": "Text",
+          "class_name": "mmui::XHBoxView",
+          "anchors": []
+        },
+        {
+          "index": 115,
+          "parent": 105,
+          "depth": 21,
+          "role": "Group",
+          "class_name": "mmui::XView",
+          "anchors": []
+        },
+        {
+          "index": 116,
+          "parent": 106,
+          "depth": 21,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 117,
+          "parent": 107,
+          "depth": 21,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 118,
+          "parent": 108,
+          "depth": 21,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 119,
+          "parent": 109,
+          "depth": 21,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 120,
+          "parent": 110,
+          "depth": 21,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 121,
+          "parent": 111,
+          "depth": 21,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 122,
+          "parent": 112,
+          "depth": 21,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 123,
+          "parent": 113,
+          "depth": 21,
+          "role": "Text",
+          "class_name": "mmui::XTextView",
+          "anchors": []
+        },
+        {
+          "index": 124,
+          "parent": 114,
+          "depth": 22,
+          "role": "Text",
+          "class_name": "mmui::XTextView",
+          "anchors": []
+        },
+        {
+          "index": 125,
+          "parent": 114,
+          "depth": 22,
+          "role": "Text",
+          "class_name": "mmui::XTextView",
+          "anchors": []
+        },
+        {
+          "index": 126,
+          "parent": 114,
+          "depth": 22,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 127,
+          "parent": 115,
+          "depth": 22,
+          "role": "Group",
+          "class_name": "mmui::ChatlogMigrateView",
+          "anchors": []
+        },
+        {
+          "index": 128,
+          "parent": 115,
+          "depth": 22,
+          "role": "Group",
+          "class_name": "mmui::ChatVoIPView",
+          "anchors": []
+        },
+        {
+          "index": 129,
+          "parent": 115,
+          "depth": 22,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 130,
+          "parent": 119,
+          "depth": 22,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 131,
+          "parent": 120,
+          "depth": 22,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 132,
+          "parent": 121,
+          "depth": 22,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 133,
+          "parent": 122,
+          "depth": 22,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 134,
+          "parent": 126,
+          "depth": 23,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 135,
+          "parent": 127,
+          "depth": 23,
+          "role": "Group",
+          "class_name": "mmui::XHBoxView",
+          "anchors": []
+        },
+        {
+          "index": 136,
+          "parent": 128,
+          "depth": 23,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 137,
+          "parent": 129,
+          "depth": 23,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 138,
+          "parent": 135,
+          "depth": 24,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 139,
+          "parent": 135,
+          "depth": 24,
+          "role": "Button",
+          "class_name": "mmui::XButton",
+          "anchors": []
+        },
+        {
+          "index": 140,
+          "parent": 136,
+          "depth": 24,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 141,
+          "parent": 137,
+          "depth": 24,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 142,
+          "parent": 138,
+          "depth": 25,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 143,
+          "parent": 139,
+          "depth": 25,
+          "role": "Group",
+          "class_name": "mmui::XIcon",
+          "anchors": []
+        },
+        {
+          "index": 144,
+          "parent": 140,
+          "depth": 25,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 145,
+          "parent": 142,
+          "depth": 26,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        },
+        {
+          "index": 146,
+          "parent": 143,
+          "depth": 26,
+          "role": "Button",
+          "class_name": "mmui::XImage",
+          "anchors": []
+        }
+      ],
+      "truncation_reasons": [],
+      "content_containers_pruned": 2,
+      "input_suffix_candidate": false,
+      "scope": "structural_containers_excluding_chat_and_session_items",
+      "binding_stable": true,
+      "node_count": 147,
+      "target_binding": {
+        "title_control_count": 1,
+        "title_matches": true,
+        "account_verified": false,
+        "group_verified": false,
+        "reason": "title_is_not_stable_identity",
+        "read_enabled": false,
+        "send_enabled": false
+      }
+    },
+    "send_enabled": false
+  },
+  "after_restore": {
+    "version": "4.1.13.65",
+    "root_class": "Qt51514QWindowIcon",
+    "complete": true,
+    "sessions": false,
+    "messages": false,
+    "input": false,
+    "process_count": 6,
+    "window_count": 1,
+    "max_depth": 32,
+    "max_nodes": 512,
+    "structure": [
+      {
+        "index": 0,
+        "parent": null,
+        "depth": 0,
+        "role": "Window",
+        "class_name": "Qt51514QWindowIcon",
+        "anchors": []
+      },
+      {
+        "index": 1,
+        "parent": 0,
+        "depth": 1,
+        "role": "Pane",
+        "class_name": "MMUIRenderSubWindowHW",
+        "anchors": []
+      }
+    ],
+    "truncation_reasons": [],
+    "content_containers_pruned": 0,
+    "input_suffix_candidate": false,
+    "scope": "structural_containers_excluding_chat_and_session_items",
+    "binding_stable": true,
+    "node_count": 2,
+    "target_binding": {
+      "title_control_count": 0,
+      "title_matches": false,
+      "account_verified": false,
+      "group_verified": false,
+      "reason": "title_is_not_stable_identity",
+      "read_enabled": false,
+      "send_enabled": false
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "observed_at": "2026-09-18",
+  "dll_sha256": null,
+  "rva": null,
+  "mode": "trial",
+  "write_authorized_flag": true,
+  "send_enabled": false,
+  "status": "error",
+  "error_type": "ValueError"
+}

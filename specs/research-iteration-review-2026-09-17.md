@@ -1,5 +1,7 @@
 # 微信 Agent 重大迭代与证据更新
 
+> 历史快照：9 月 18 日 pyweixin 已取得限定临时状态下的聊天结构与标题证据，当前状态见[后续迭代](research-iteration-review-2026-09-18.md)。下文 UIA 控件缺失及路线并行判断保留其当时范围；Hook 等结果未被本次结构实验升级。
+
 更新日期：2026-09-17。综合结论见[技术可行性研究报告](agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)。本文件集中记录 v1.3 新增依据，避免旧交接的阶段停点被当作当前全项目状态。
 
 ## 1. 本次范围

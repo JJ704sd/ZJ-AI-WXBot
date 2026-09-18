@@ -1,0 +1,25 @@
+{
+  "live_process_accessed": false,
+  "B_output_paths": [
+    {
+      "alias": "B-output-1",
+      "call_sites": 1,
+      "syntactic_path_from_entry": true
+    },
+    {
+      "alias": "B-output-2",
+      "call_sites": 1,
+      "syntactic_path_from_entry": true
+    }
+  ],
+  "B_unresolved_branch_count": 1,
+  "B_semantic_sync_verified": false,
+  "C_adapter_tail_transfer_verified": true,
+  "C_callable_concrete_target_resolved": false,
+  "old_receive_candidate_direct_call_in_reviewed_ranges": false,
+  "limitations": [
+    "Selected static ranges and syntactic reachability only.",
+    "No protocol command meaning inferred from integer constants.",
+    "Nearby function address is not evidence of shared purpose."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "reference_commit": "47a660068e2a460011c58316166473fa7aab9eac",
+  "reference_sha256": null,
+  "dll_sha256": null,
+  "dll_bytes": null,
+  "analysis": "static candidate discovery only; heuristic ranking is not semantic proof",
+  "candidate_count": 1,
+  "candidates": [
+    {
+      "rva": null,
+      "section": ".data",
+      "writable": true
+    }
+  ],
+  "candidate_address_redacted": true,
+  "process_memory_read": false,
+  "process_memory_written": false,
+  "verified_gate": false
+}

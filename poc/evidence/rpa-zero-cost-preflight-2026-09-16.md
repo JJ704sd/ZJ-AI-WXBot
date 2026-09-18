@@ -175,7 +175,7 @@ $env:DOTNET_GENERATE_ASPNET_CERTIFICATE = 'false'
 
 对当前 4.1.13.65，可逆 OS 无障碍适配（读屏标志、讲述人）**不能**让 WeChatAuto.SDK 所依赖的聊天 UIA 树出现。结束对该 SDK 的 UIA 路线重复投入。
 
-源码推断（非本机执行）：replica `uia_driver.py` 在设 SPI 之后仍 `WriteProcessMemory` 写入 Weixin.dll gate，并为 4.1.13.65 提供 RVA `0x0AE2B0C8`。该路径需要扩大授权，本轮未执行。
+源码推断（非本机执行）：replica `uia_driver.py` 在设 SPI 之后仍 `WriteProcessMemory` 写入 Weixin.dll gate，并为固定版本提供候选地址。具体地址已脱敏；该路径需要扩大授权，本轮未执行。
 
 剩余不确定性：未冷启动微信；未使用 UIA2 程序集（已用 MSAA 计数替代）；工具窗口未完整遍历（避免再次挂起）。
 

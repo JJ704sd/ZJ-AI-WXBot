@@ -1,0 +1,86 @@
+{
+  "observed_at": "2026-09-18",
+  "send_enabled": false,
+  "trial": {
+    "status": "observed",
+    "write_attempted": true,
+    "write_readback": true,
+    "restored": true,
+    "observation": {
+      "account_verified": false,
+      "group_verified": false,
+      "send_enabled": false,
+      "panel_open_attempted": true,
+      "panel_restored": true,
+      "window_stable": true,
+      "title_control_count": 1,
+      "title_matches": true,
+      "panel_count": 1,
+      "status": "observed",
+      "node_count": 15,
+      "complete": true,
+      "visible_node_count": 15,
+      "role_counts": {
+        "Group": 5,
+        "Edit": 1,
+        "List": 1,
+        "Button": 1,
+        "ListItem": 7
+      },
+      "nonempty_label_count": 7,
+      "panel_visible": true,
+      "detail_matches": [
+        false,
+        false,
+        true
+      ],
+      "member_matches": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "target_stable": true,
+      "scope": "current_group_info_panel_only"
+    },
+    "send_enabled": false
+  },
+  "after_restore": {
+    "version": "4.1.13.65",
+    "root_class": "Qt51514QWindowIcon",
+    "complete": true,
+    "sessions": false,
+    "messages": false,
+    "input": false,
+    "process_count": 6,
+    "window_count": 1,
+    "max_depth": 6,
+    "max_nodes": 128,
+    "structure": [
+      {
+        "index": 0,
+        "parent": null,
+        "depth": 0,
+        "role": "Window",
+        "class_name": "Qt51514QWindowIcon",
+        "anchors": []
+      },
+      {
+        "index": 1,
+        "parent": 0,
+        "depth": 1,
+        "role": "Pane",
+        "class_name": "MMUIRenderSubWindowHW",
+        "anchors": []
+      }
+    ],
+    "truncation_reasons": [],
+    "content_containers_pruned": 0,
+    "input_suffix_candidate": false,
+    "scope": "structural_containers_excluding_chat_and_session_items",
+    "binding_stable": true,
+    "node_count": 2
+  }
+}

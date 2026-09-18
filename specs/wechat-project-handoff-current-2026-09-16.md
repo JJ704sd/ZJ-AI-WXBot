@@ -47,7 +47,7 @@ README 调整补充：已按用户新附件核对固定 ZIP 的 Swagger，更新
 
 | 内容 | 位置或版本 |
 |---|---|
-| 本轮重测微信版本 | `C:\Program Files\Tencent\Weixin\Weixin.exe`，**4.1.13.65**（FileVersion=ProductVersion） |
+| 本轮重测微信版本 | 安装路径已脱敏，**4.1.13.65**（FileVersion=ProductVersion） |
 | 微信进程 | 6 个 `Weixin` 进程；仅 1 个可见主窗口，类名 `Qt51514QWindowIcon` |
 | 861 本地运行目录 | `poc/.local/pad-legacy-861/runtime` |
 | 原账号/群本地绑定 | `poc/.local/poc/live.toml`、`live-t4.toml`，仅按需读取 |
@@ -100,7 +100,7 @@ v6 主窗口树（pulse 前后相同）：
 |---|---|---|
 | 降级到 4.1.9.30 再养号升级 | [WeChatAuto.SDK#3](https://github.com/scottfly189/WeChatAuto.SDK/issues/3) | 禁止降级 |
 | 第三方 `OpenUIA.zip` | 同一 Issue，作者声明未审计 | 不可信二进制 |
-| 热写 `Weixin.dll` accessibility gate | wechatauto-replica `uia_driver.py`：4.1.13.65 兜底 RVA `0x0AE2B0C8`，`WriteProcessMemory` | 写入微信进程内存，属范围扩大 |
+| 热写 `Weixin.dll` accessibility gate | wechatauto-replica `uia_driver.py`：固定版本候选地址已脱敏，`WriteProcessMemory` | 写入微信进程内存，属范围扩大 |
 | `QT_USE_NATIVE_WINDOWS` 并重启微信 | easyChat#129 有人试过，后称控件无效，最终改讲讲述人 | 要重启客户端；讲述人路径已在本机失败 |
 
 剩余不确定性：未做“先置 SPI 再冷启动微信”。replica 源码把 4.1.13.65 的物化写成内部门闩热写，并在重启后字节归零时自愈；因此重启试验仍需要内存写入或中断当前会话，本轮不做。

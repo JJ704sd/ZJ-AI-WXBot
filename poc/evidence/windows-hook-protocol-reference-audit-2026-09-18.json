@@ -1,0 +1,97 @@
+{
+  "schema_version": "hook-protocol-anchor-audit.v1",
+  "module_sha256": null,
+  "live_process_accessed": false,
+  "protocol_verified": false,
+  "anchors": [
+    {
+      "keyword": "longlink",
+      "substring_count": 109,
+      "bounded_ascii_string_count": 100,
+      "tentative_lea_reference_count": 513,
+      "enclosing_runtime_function_count": 136
+    },
+    {
+      "keyword": "shortlink",
+      "substring_count": 52,
+      "bounded_ascii_string_count": 47,
+      "tentative_lea_reference_count": 424,
+      "enclosing_runtime_function_count": 97
+    },
+    {
+      "keyword": "Req2Buf",
+      "substring_count": 8,
+      "bounded_ascii_string_count": 8,
+      "tentative_lea_reference_count": 25,
+      "enclosing_runtime_function_count": 8
+    },
+    {
+      "keyword": "Buf2Resp",
+      "substring_count": 8,
+      "bounded_ascii_string_count": 8,
+      "tentative_lea_reference_count": 27,
+      "enclosing_runtime_function_count": 6
+    },
+    {
+      "keyword": "OnPush",
+      "substring_count": 12,
+      "bounded_ascii_string_count": 12,
+      "tentative_lea_reference_count": 12,
+      "enclosing_runtime_function_count": 6
+    },
+    {
+      "keyword": "new_sync",
+      "substring_count": 2,
+      "bounded_ascii_string_count": 1,
+      "tentative_lea_reference_count": 2,
+      "enclosing_runtime_function_count": 2
+    },
+    {
+      "keyword": "newsendmsg",
+      "substring_count": 2,
+      "bounded_ascii_string_count": 1,
+      "tentative_lea_reference_count": 0,
+      "enclosing_runtime_function_count": 0
+    },
+    {
+      "keyword": "AddMsg",
+      "substring_count": 4,
+      "bounded_ascii_string_count": 2,
+      "tentative_lea_reference_count": 4,
+      "enclosing_runtime_function_count": 4
+    },
+    {
+      "keyword": "SyncKey",
+      "substring_count": 7,
+      "bounded_ascii_string_count": 7,
+      "tentative_lea_reference_count": 0,
+      "enclosing_runtime_function_count": 0
+    },
+    {
+      "keyword": "SyncCheck",
+      "substring_count": 0,
+      "bounded_ascii_string_count": 0,
+      "tentative_lea_reference_count": 0,
+      "enclosing_runtime_function_count": 0
+    },
+    {
+      "keyword": "protobuf",
+      "substring_count": 235,
+      "bounded_ascii_string_count": 199,
+      "tentative_lea_reference_count": 2639,
+      "enclosing_runtime_function_count": 2608
+    },
+    {
+      "keyword": "/cgi-bin/micromsg-bin/",
+      "substring_count": 214,
+      "bounded_ascii_string_count": 211,
+      "tentative_lea_reference_count": 10,
+      "enclosing_runtime_function_count": 2
+    }
+  ],
+  "limitations": [
+    "Case-sensitive ASCII substrings in non-executable sections only.",
+    "LEA byte matches are tentative, not disassembly-validated cross references.",
+    "Strings and reference counts do not prove executed routes or message schemas."
+  ]
+}

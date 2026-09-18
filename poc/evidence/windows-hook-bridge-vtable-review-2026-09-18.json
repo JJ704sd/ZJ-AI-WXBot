@@ -1,0 +1,16 @@
+{
+  "live_process_accessed": false,
+  "col_signature": 1,
+  "col_self_reference_valid": true,
+  "type_name_plain_ascii": false,
+  "rtti_class_identity_verified": false,
+  "push_and_response_in_same_contiguous_pointer_table": true,
+  "absolute_table_pointer_occurrences_in_noncode": 0,
+  "bounded_lea_scan_constructor_reference_count": 0,
+  "runtime_instantiation_verified": false,
+  "business_callback_target_resolved": false,
+  "limitations": [
+    "Two RIP-relative LEA prefix forms only; no absence-of-use conclusion.",
+    "Table contains bridge methods; does not identify delegated business implementation."
+  ]
+}

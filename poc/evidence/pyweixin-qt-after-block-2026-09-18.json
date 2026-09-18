@@ -1,0 +1,11 @@
+{
+  "observed_at": "2026-09-18",
+  "dll_sha256": null,
+  "rva": null,
+  "mode": "read_only_preflight",
+  "write_authorized_flag": false,
+  "send_enabled": false,
+  "status": "error",
+  "error_type": "ValueError",
+  "error_code": "target_not_unique"
+}

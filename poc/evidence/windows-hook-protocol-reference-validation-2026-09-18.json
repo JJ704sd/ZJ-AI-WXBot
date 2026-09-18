@@ -1,0 +1,41 @@
+{
+  "live_process_accessed": false,
+  "references": [
+    {
+      "alias": "new_sync-0",
+      "instruction_boundary": true,
+      "function_bytes": 472,
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "new_sync-1",
+      "instruction_boundary": true,
+      "function_bytes": 9455,
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "AddMsg-0",
+      "instruction_boundary": true,
+      "function_bytes": 1485,
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "AddMsg-1",
+      "instruction_boundary": true,
+      "function_bytes": 598,
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "AddMsg-2",
+      "instruction_boundary": true,
+      "function_bytes": 841,
+      "direct_call_to_old_entry": false
+    },
+    {
+      "alias": "AddMsg-3",
+      "instruction_boundary": true,
+      "function_bytes": 2198,
+      "direct_call_to_old_entry": false
+    }
+  ]
+}

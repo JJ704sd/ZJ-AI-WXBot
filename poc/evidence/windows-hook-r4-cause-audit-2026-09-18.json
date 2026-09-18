@@ -1,0 +1,36 @@
+{
+  "schema_version": "hook-r4-cause-audit.v1",
+  "live_process_accessed": false,
+  "module_disk_identity_matches_record": true,
+  "points": {
+    "entry": {
+      "inside_reported_module": true,
+      "executable": true,
+      "instruction_boundary": true,
+      "function_entry": true,
+      "address_formula": "loaded_base + RVA"
+    },
+    "join": {
+      "inside_reported_module": true,
+      "executable": true,
+      "instruction_boundary": true,
+      "function_entry": false,
+      "address_formula": "loaded_base + RVA"
+    },
+    "callee": {
+      "inside_reported_module": true,
+      "executable": true,
+      "instruction_boundary": true,
+      "function_entry": true,
+      "address_formula": "loaded_base + RVA"
+    }
+  },
+  "marker_start_to_cleanup_end_seconds": null,
+  "normal_completion_recorded": true,
+  "hit_count": 0,
+  "runtime_breakpoint_address_readback_persisted": false,
+  "thread_inventory_persisted": false,
+  "per_thread_debug_register_readback_persisted": false,
+  "same_process_positive_control_present": false,
+  "cause_verified": false
+}

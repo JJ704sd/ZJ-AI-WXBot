@@ -1,0 +1,31 @@
+{
+  "live_process_accessed": false,
+  "scan_forms": [
+    "E8 rel32",
+    "E9 rel32"
+  ],
+  "old_candidate_direct_reference_count": 4,
+  "references": [
+    {
+      "has_unwind_range": true,
+      "instruction_boundary_verified": true,
+      "same_as_network_registration_owner": false
+    },
+    {
+      "has_unwind_range": true,
+      "instruction_boundary_verified": true,
+      "same_as_network_registration_owner": false
+    },
+    {
+      "has_unwind_range": true,
+      "instruction_boundary_verified": true,
+      "same_as_network_registration_owner": false
+    },
+    {
+      "has_unwind_range": true,
+      "instruction_boundary_verified": true,
+      "same_as_network_registration_owner": false
+    }
+  ],
+  "absence_of_indirect_relationship_proven": false
+}

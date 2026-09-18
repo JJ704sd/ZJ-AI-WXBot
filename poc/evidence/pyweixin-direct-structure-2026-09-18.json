@@ -1,0 +1,31 @@
+{
+  "run_id": "redacted-local-run",
+  "observed_at": "2026-09-18",
+  "mechanism": "pywinauto_metadata_only",
+  "observation": {
+    "version": "4.1.13.65",
+    "root_class": "Qt51514QWindowIcon",
+    "complete": true,
+    "sessions": false,
+    "messages": false,
+    "input": false,
+    "process_count": 6,
+    "window_count": 1,
+    "binding_stable": true,
+    "node_count": 2
+  },
+  "admission": {
+    "status": "upstream_entry_blocked",
+    "missing": [
+      "sessions",
+      "messages",
+      "input"
+    ],
+    "account_verified": false,
+    "group_verified": false,
+    "read_verified": false,
+    "mention_status": "unknown",
+    "send_enabled": false,
+    "agent_enabled": false
+  }
+}

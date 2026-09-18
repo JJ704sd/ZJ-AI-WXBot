@@ -1,0 +1,67 @@
+{
+  "live_process_accessed": false,
+  "getter_direct_call_sites": 18,
+  "getter_unique_unwind_ranges": 13,
+  "one_subscription_registration_traced": true,
+  "all_subscribers_resolved": false,
+  "handler_has_integer_filter": true,
+  "second_signal_dispatch_observed_statically": true,
+  "message_sync_semantics_verified": false,
+  "artifacts": [
+    {
+      "artifact": "signal-getter-user-1.txt",
+      "sha256": null,
+      "direct_call_to_old_candidate_or_prior_sync_ranges": false
+    },
+    {
+      "artifact": "slot-invoker.txt",
+      "sha256": null,
+      "direct_call_to_old_candidate_or_prior_sync_ranges": false
+    },
+    {
+      "artifact": "slot-handler.txt",
+      "sha256": null,
+      "direct_call_to_old_candidate_or_prior_sync_ranges": false
+    },
+    {
+      "artifact": "signal-connect.txt",
+      "sha256": null,
+      "direct_call_to_old_candidate_or_prior_sync_ranges": false
+    },
+    {
+      "artifact": "subscriber-parse.txt",
+      "sha256": null,
+      "direct_call_to_old_candidate_or_prior_sync_ranges": false
+    },
+    {
+      "artifact": "subscriber-task-vtable-setup.txt",
+      "sha256": null,
+      "direct_call_to_old_candidate_or_prior_sync_ranges": false
+    },
+    {
+      "artifact": "subscriber-task-worker.txt",
+      "sha256": null,
+      "direct_call_to_old_candidate_or_prior_sync_ranges": false
+    },
+    {
+      "artifact": "subscriber-task-callback.txt",
+      "sha256": null,
+      "direct_call_to_old_candidate_or_prior_sync_ranges": false
+    },
+    {
+      "artifact": "worker-main.txt",
+      "sha256": null,
+      "direct_call_to_old_candidate_or_prior_sync_ranges": false
+    },
+    {
+      "artifact": "worker-continuation.txt",
+      "sha256": null,
+      "direct_call_to_old_candidate_or_prior_sync_ranges": false
+    }
+  ],
+  "limitations": [
+    "Static selected path only; no runtime registration or target-message correlation.",
+    "Direct-call search excludes indirect calls and other paths.",
+    "Leaf artifacts include bounded neighboring bytes; only instructions up to terminal transfer used for role inference."
+  ]
+}

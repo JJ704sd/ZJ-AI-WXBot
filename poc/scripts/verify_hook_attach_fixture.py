@@ -11,8 +11,8 @@ import time
 
 
 class MI:
-    def __init__(self, executable):
-        self.process = subprocess.Popen([str(executable), '-nx', '-q', '--interpreter=mi2',
+    def __init__(self, executable, readnever=False):
+        self.process = subprocess.Popen([str(executable), '-nx', '-q', *(['--readnever'] if readnever else []), '--interpreter=mi2',
                                          '-iex', 'set auto-load off'],
                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                         text=True, encoding='utf-8', errors='replace', bufsize=1,
@@ -44,7 +44,7 @@ class MI:
         raise TimeoutError(command)
 
 
-def scenario(gdb, executable, folder, mode, symbols=('fixture_marker',)):
+def scenario(gdb, executable, folder, mode, symbols=('fixture_marker',), raw_address=False):
     folder.mkdir()
     target = subprocess.Popen([str(executable), str(folder)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                               text=True, creationflags=subprocess.CREATE_NO_WINDOW)
@@ -57,19 +57,26 @@ def scenario(gdb, executable, folder, mode, symbols=('fixture_marker',)):
             if target.poll() is not None or time.monotonic() > deadline:
                 raise RuntimeError('fixture did not become ready')
             time.sleep(.02)
-        debugger = MI(gdb)
+        debugger = MI(gdb, readnever=raw_address)
         for command in ('-gdb-set pagination off', '-gdb-set confirm off', '-gdb-set auto-load off',
                         '-gdb-set debuginfod enabled off', '-gdb-set print frame-arguments none',
                         '-gdb-set mi-async on'):
             debugger.command(command)
-        debugger.command('-file-exec-and-symbols ' + json.dumps(executable.as_posix()))
+        if raw_address:
+            debugger.command('-gdb-set auto-solib-add off')
+            addresses = (folder/'ready').read_text().split()
+            if len(addresses) != len(symbols) or any(not re.fullmatch(r'0x[0-9a-fA-F]+',x) for x in addresses):
+                raise ValueError('invalid fixture-owned addresses')
+            locations = dict(zip(symbols,addresses))
+        else:
+            debugger.command('-file-exec-and-symbols ' + json.dumps(executable.as_posix()))
         debugger.command(f'-target-attach {target.pid}')
         attached = True
         debugger.stops.get(timeout=5)
         stopped = True
         numbers = {}
         for symbol in symbols:
-            inserted = debugger.command('-break-insert -h '+symbol)
+            inserted = debugger.command('-break-insert -h '+('*'+locations[symbol] if raw_address else symbol))
             if 'type="hw breakpoint"' not in inserted:
                 raise RuntimeError('not a hardware breakpoint')
             numbers[re.search(r'number="(\d+)"', inserted)[1]] = symbol
@@ -154,6 +161,7 @@ def main():
     for name in ('gcc', 'gdb', 'output-dir'):
         parser.add_argument('--'+name, required=True, type=Path)
     parser.add_argument('--three-points', action='store_true')
+    parser.add_argument('--raw-address', action='store_true', help='Match live readnever/no-symbol absolute-address configuration')
     args = parser.parse_args()
     folder = args.output_dir.resolve()
     folder.mkdir(parents=True, exist_ok=False)
@@ -172,14 +180,24 @@ def main():
         source = folder/'three_point_fixture.c'
         source.write_text(original.replace(declaration,replacement),encoding='utf-8')
         symbols = ('fixture_marker','fixture_stage_b','fixture_stage_c')
+    if args.raw_address:
+        text = source.read_text()
+        declaration = 'fputs("ready", receipt);'
+        values = ','.join('(unsigned long long)(void *)&'+symbol for symbol in symbols)
+        formatting = ' '.join(['0x%llx']*len(symbols))
+        if text.count(declaration) != 1:
+            raise ValueError('ready declaration changed')
+        source = folder/'raw_address_fixture.c'
+        source.write_text(text.replace(declaration,f'fprintf(receipt,"{formatting}",{values});'),encoding='utf-8')
     executable = folder/'fixture.exe'
     subprocess.run([str(args.gcc), '-g', '-O0', str(source), '-o', str(executable)],
                    check=True, capture_output=True, text=True, timeout=30)
     report = {'schema_version': 'windows-hook-attach-fixture.v1',
               'source_sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
               'breakpoint_count':len(symbols),
+              'raw_address_readnever':args.raw_address,
               'live_wechat_touched': False,
-              'scenarios': [scenario(args.gdb, executable, folder/mode, mode,symbols)
+              'scenarios': [scenario(args.gdb, executable, folder/mode, mode,symbols,args.raw_address)
                             for mode in ('three_threads', 'idle_timeout')]}
     report['passed'] = all(x['passed'] for x in report['scenarios'])
     report['limitations'] = ['Controlled idle timeout only; debugger crash and OS termination not covered.',

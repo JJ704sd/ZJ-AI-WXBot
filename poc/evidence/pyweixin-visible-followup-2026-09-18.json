@@ -1,0 +1,19 @@
+{
+  "observed_at": "2026-09-18",
+  "mechanism": "computer-use sky accessibility",
+  "window_count": 1,
+  "same_returned_window_before_after": true,
+  "observed_structure": ["Window", "Pane:MMUIRenderSubWindowHW"],
+  "document_text_present": false,
+  "chat_semantic_controls_observed": false,
+  "traversal_completeness": "unknown",
+  "pywinauto_root_class": "not_measured",
+  "user_screenshot": "chat interface visible; not copied into repository",
+  "status": "blocked_no_semantic_controls_observed",
+  "account_verified": false,
+  "group_verified": false,
+  "read_verified": false,
+  "send_attempts": 0,
+  "agent_enabled": false,
+  "limitations": "Formatted accessibility snapshot only; not a new direct pywinauto test or proof of all possible provider states. Screenshot does not establish stable account/group identity or native mention metadata."
+}
