@@ -15,11 +15,19 @@
   "B_unresolved_branch_count": 1,
   "B_semantic_sync_verified": false,
   "C_adapter_tail_transfer_verified": true,
-  "C_callable_concrete_target_resolved": false,
+  "C_callable_concrete_target_resolved": true,
   "old_receive_candidate_direct_call_in_reviewed_ranges": false,
   "limitations": [
     "Selected static ranges and syntactic reachability only.",
     "No protocol command meaning inferred from integer constants.",
     "Nearby function address is not evidence of shared purpose."
-  ]
+  ],
+  "C_resolution_scope": "This registration constructs a self-referencing callable; its virtual slot leads through a leaf thunk to a concrete state handler.",
+  "C_concrete_handler_bytes": 512,
+  "C_concrete_handler_uses_incoming_payload": false,
+  "C_downstream_task_semantics_verified": false,
+  "B_entry_enable_guard_observed": true,
+  "B_registration_caller_sets_enable_flag": true,
+  "B_registration_caller_observed_direct_sites": 1,
+  "B_enable_guard_explains_R4_entry_zero": false
 }

@@ -25,12 +25,13 @@
       "address_formula": "loaded_base + RVA"
     }
   },
-  "marker_start_to_cleanup_end_seconds": null,
+  "marker_start_to_cleanup_end_seconds": 25.100834,
   "normal_completion_recorded": true,
   "hit_count": 0,
   "runtime_breakpoint_address_readback_persisted": false,
   "thread_inventory_persisted": false,
   "per_thread_debug_register_readback_persisted": false,
   "same_process_positive_control_present": false,
-  "cause_verified": false
+  "cause_verified": false,
+  "timing_source": "Existing R4 result timestamps; includes cleanup, not a measured active-breakpoint duration."
 }

@@ -9,7 +9,7 @@
   "observed_hits": 3,
   "fixture_completed": true,
   "inferior_exited_normally": true,
-  "source_sha256": "5575565ce8610103f288433e39814e60ed366627f51ddc597734d5524c4276fb",
+  "source_sha256": null,
   "limitations": [
     "Does not verify live-process attach cleanup or multithread breakpoint propagation.",
     "Does not verify Weixin candidate, object layout or message semantics."

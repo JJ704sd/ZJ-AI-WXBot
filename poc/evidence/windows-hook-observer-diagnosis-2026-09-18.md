@@ -30,8 +30,8 @@
 在 `poc` 目录执行，输出目录必须不存在：
 
 ```powershell
-./.venv/Scripts/python.exe -X utf8 scripts/verify_hook_attach_fixture.py --gcc C:/mingw64/bin/gcc.exe --gdb C:/mingw64/bin/gdb.exe --output-dir .local/hook-round1/raw-address-diagnosis-2 --three-points --raw-address
-./.venv/Scripts/python.exe -X utf8 scripts/verify_hook_runner_replay.py --runner .local/hook-round1/run_inbound_three_point_probe_v2.py --gcc C:/mingw64/bin/gcc.exe --output-dir .local/hook-round1/runner-replay-green --inject-command-error
+./.venv/Scripts/python.exe -X utf8 scripts/verify_hook_attach_fixture.py --gcc <gcc-path>/gcc.exe --gdb <gdb-path>/gdb.exe --output-dir .local/hook-round1/raw-address-diagnosis-2 --three-points --raw-address
+./.venv/Scripts/python.exe -X utf8 scripts/verify_hook_runner_replay.py --runner .local/hook-round1/run_inbound_three_point_probe_v2.py --gcc <gcc-path>/gcc.exe --output-dir .local/hook-round1/runner-replay-green --inject-command-error
 $tests = @(Get-ChildItem tests/test_hook_*.py | ForEach-Object { $_.FullName })
 ./.venv/Scripts/python.exe -X utf8 -m pytest @tests -q -p no:cacheprovider --basetemp=.local/hook-round1/pytest-diagnosis-final
 ```

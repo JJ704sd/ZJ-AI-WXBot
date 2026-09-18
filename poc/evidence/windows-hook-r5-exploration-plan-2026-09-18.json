@@ -1,0 +1,29 @@
+{
+  "status": "executed_see_r5_result",
+  "points": {
+    "business_push": {
+      "function_entry": true,
+      "executable": true,
+      "bytes": 309
+    },
+    "subscriber_b": {
+      "function_entry": true,
+      "executable": true,
+      "bytes": 3796
+    },
+    "legacy_candidate": {
+      "function_entry": true,
+      "executable": true,
+      "bytes": 2405
+    }
+  },
+  "module_hash_matches": true,
+  "runner_sha256": null,
+  "attach_limit": 1,
+  "maximum_attach_seconds": 90,
+  "natural_activity_window_seconds": 25,
+  "maximum_raw_stop_events": 10,
+  "message_payload_read": false,
+  "register_sampler_injected": false,
+  "live_process_coverage_verified": false
+}

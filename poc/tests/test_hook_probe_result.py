@@ -36,3 +36,10 @@ def test_baseline_cap_or_early_budget_is_not_a_full_marker_window():
 def test_hits_do_not_prove_message_semantics():
     row=finalize_probe_result(complete(hits=[{'point':'entry'}],receive_entry_verified=True))
     assert row['observation_status']=='hits_observed' and not row['receive_entry_verified']
+
+
+def test_observation_evidence_error_cannot_report_clean_zero_hits():
+    row=finalize_probe_result(complete(observation_evidence_error='final_thread_inventory_failed'))
+    assert row['exit_code']==2
+    assert row['observation_status']=='inconclusive'
+    assert 'observation_evidence_error' in row['execution_errors']

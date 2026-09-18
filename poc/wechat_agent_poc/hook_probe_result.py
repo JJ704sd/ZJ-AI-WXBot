@@ -12,6 +12,8 @@ def finalize_probe_result(result: dict) -> dict:
         reasons.append('debugger_exit_not_clean')
     if result.get('cleanup_error'):
         reasons.append('cleanup_error')
+    if result.get('observation_evidence_error'):
+        reasons.append('observation_evidence_error')
     elapsed, maximum = result.get('elapsed_seconds'), result.get('maximum_attach_seconds')
     if (not isinstance(elapsed,(int,float)) or isinstance(elapsed,bool) or not math.isfinite(elapsed)
             or not isinstance(maximum,(int,float)) or isinstance(maximum,bool) or not math.isfinite(maximum)

@@ -1,6 +1,6 @@
 {
   "schema_version": "windows-hook-attach-fixture.v1",
-  "source_sha256": "b37987a39f9e776beb27dfa37811092eed69e031f443824adaaad8be00e3d60c",
+  "source_sha256": null,
   "live_wechat_touched": false,
   "scenarios": [
     {

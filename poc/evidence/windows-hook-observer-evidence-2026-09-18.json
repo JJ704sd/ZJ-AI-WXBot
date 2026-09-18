@@ -1,0 +1,163 @@
+{
+  "schema_version": "observer-evidence-validation.v1",
+  "live_wechat_touched": false,
+  "raw_address_three_points": {
+    "schema_version": "windows-hook-attach-fixture.v2",
+    "source_sha256": null,
+    "breakpoint_count": 3,
+    "raw_address_readnever": true,
+    "live_wechat_touched": false,
+    "scenarios": [
+      {
+        "mode": "three_threads",
+        "live_wechat_touched": false,
+        "hits": 9,
+        "passed": true,
+        "breakpoint_address_readback_matches": true,
+        "address_reference": "fixture_ready_receipt",
+        "initial_thread_count": 4,
+        "per_thread_debug_registers_verified": false,
+        "target_process_coverage_verified": false,
+        "hits_by_point": {
+          "fixture_marker": 3,
+          "fixture_stage_b": 3,
+          "fixture_stage_c": 3
+        },
+        "hardware_breakpoint_verified": true,
+        "distinct_hit_threads": 3,
+        "initial_threads_with_hits": 2,
+        "new_threads_with_hits": 1,
+        "final_thread_count": 4,
+        "new_threads_in_final_inventory": 1,
+        "mi_thread_created_notifications_in_window": 1,
+        "mi_thread_exited_notifications_in_window": 1,
+        "fixture_thread_identity_matches": true,
+        "breakpoint_table_empty": true,
+        "detached": true,
+        "alive_after_detach": true,
+        "debugger_exit_code": 0,
+        "fixture_exit_code": 0,
+        "post_detach_calls_completed": true
+      },
+      {
+        "mode": "idle_timeout",
+        "live_wechat_touched": false,
+        "hits": 0,
+        "passed": true,
+        "breakpoint_address_readback_matches": true,
+        "address_reference": "fixture_ready_receipt",
+        "initial_thread_count": 4,
+        "per_thread_debug_registers_verified": false,
+        "target_process_coverage_verified": false,
+        "hits_by_point": {
+          "fixture_marker": 0,
+          "fixture_stage_b": 0,
+          "fixture_stage_c": 0
+        },
+        "hardware_breakpoint_verified": true,
+        "idle_budget_expired": true,
+        "final_thread_count": 4,
+        "new_threads_in_final_inventory": 1,
+        "mi_thread_created_notifications_in_window": 1,
+        "mi_thread_exited_notifications_in_window": 1,
+        "breakpoint_table_empty": true,
+        "detached": true,
+        "alive_after_detach": true,
+        "debugger_exit_code": 0,
+        "fixture_exit_code": 0,
+        "post_detach_calls_completed": true
+      }
+    ],
+    "passed": true,
+    "limitations": [
+      "Controlled idle timeout only; debugger crash and OS termination not covered.",
+      "Thread inventories and fixture hits do not verify per-thread debug registers or another process.",
+      "No evidence of Weixin receive semantics or object layout."
+    ]
+  },
+  "symbol_one_point": {
+    "schema_version": "windows-hook-attach-fixture.v2",
+    "source_sha256": null,
+    "breakpoint_count": 1,
+    "raw_address_readnever": false,
+    "live_wechat_touched": false,
+    "scenarios": [
+      {
+        "mode": "three_threads",
+        "live_wechat_touched": false,
+        "hits": 3,
+        "passed": true,
+        "breakpoint_address_readback_matches": true,
+        "address_reference": "insertion_response",
+        "initial_thread_count": 4,
+        "per_thread_debug_registers_verified": false,
+        "target_process_coverage_verified": false,
+        "hits_by_point": {
+          "fixture_marker": 3
+        },
+        "hardware_breakpoint_verified": true,
+        "distinct_hit_threads": 3,
+        "initial_threads_with_hits": 2,
+        "new_threads_with_hits": 1,
+        "final_thread_count": 4,
+        "new_threads_in_final_inventory": 1,
+        "mi_thread_created_notifications_in_window": 1,
+        "mi_thread_exited_notifications_in_window": 1,
+        "fixture_thread_identity_matches": true,
+        "breakpoint_table_empty": true,
+        "detached": true,
+        "alive_after_detach": true,
+        "debugger_exit_code": 0,
+        "fixture_exit_code": 0,
+        "post_detach_calls_completed": true
+      },
+      {
+        "mode": "idle_timeout",
+        "live_wechat_touched": false,
+        "hits": 0,
+        "passed": true,
+        "breakpoint_address_readback_matches": true,
+        "address_reference": "insertion_response",
+        "initial_thread_count": 4,
+        "per_thread_debug_registers_verified": false,
+        "target_process_coverage_verified": false,
+        "hits_by_point": {
+          "fixture_marker": 0
+        },
+        "hardware_breakpoint_verified": true,
+        "idle_budget_expired": true,
+        "final_thread_count": 4,
+        "new_threads_in_final_inventory": 1,
+        "mi_thread_created_notifications_in_window": 1,
+        "mi_thread_exited_notifications_in_window": 1,
+        "breakpoint_table_empty": true,
+        "detached": true,
+        "alive_after_detach": true,
+        "debugger_exit_code": 0,
+        "fixture_exit_code": 0,
+        "post_detach_calls_completed": true
+      }
+    ],
+    "passed": true,
+    "limitations": [
+      "Controlled idle timeout only; debugger crash and OS termination not covered.",
+      "Thread inventories and fixture hits do not verify per-thread debug registers or another process.",
+      "No evidence of Weixin receive semantics or object layout."
+    ]
+  },
+  "controlled_mismatched_readback": {
+    "mode": "three_threads",
+    "live_wechat_touched": false,
+    "hits": 0,
+    "passed": false,
+    "breakpoint_address_readback_matches": false,
+    "address_reference": "fixture_ready_receipt",
+    "error": "breakpoint address readback mismatch"
+  },
+  "existing_result_contract_tests": {
+    "passed": 11,
+    "exit_code": 0,
+    "warning": "pytest cache write permission warning; assertions completed"
+  },
+  "receive_entry_verified": false
+}

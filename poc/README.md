@@ -1,6 +1,6 @@
 # Offline personal-WeChat text AI Agent PoC
 
-2026-09-18 最新状态见[综合报告 v1.4](../specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)与[pyweixin 迭代](../specs/research-iteration-review-2026-09-18.md)：临时状态下结构锚点与标题匹配已有证据，独立账号／群身份、读取、原生 @ 和发送未验收。下述 9 月 17 日说明及命令为历史入口，不据此启动真实动作。
+2026-09-18 最新状态见[综合报告 v1.6](../specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)与[pyweixin 迭代](../specs/research-iteration-review-2026-09-18.md)：临时状态下结构锚点与标题匹配已有证据，独立账号／群身份、读取、原生 @ 和发送未验收。下述 9 月 17 日说明及命令为历史入口，不据此启动真实动作。
 
 2026-09-17 状态入口：[综合报告 v1.3](../specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)及[重大迭代证据](../specs/research-iteration-review-2026-09-17.md)。本目录已包含 API／861 离线适配和有界 UIA／Hook 诊断资产；下文是早期默认离线 CLI 用法，不代表全部路线现状。历史局部实机记录不等于原群自动回复完成，不应据研究文档直接启动真实动作。
 

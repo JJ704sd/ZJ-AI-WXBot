@@ -1,5 +1,8 @@
 # 重大迭代更新：pyweixin 临时结构恢复与身份绑定停点
 
+> 后续更新（综合报告 v1.6）：pyweixin 已完成两轮可见详情采样和恢复，详情词 1/3、成员特征 0/6，身份仍未通过；Hook 已完成 R5 新三点自然活动零命中实测、v3 故障回放及自建夹具线程寄存器核验。夹具通过不等于微信线程覆盖通过，R4 入站样本不能与 R5 新点组拼接。当前基线为本地 HEAD f9ccc35 加未提交后续材料。见[最新综合报告](agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)与[当前台账](route-progress-blockers-2026-09-18.md)。以下 b54f8e2 和标题阶段说明保留为历史快照。
+
+
 日期：2026-09-18。承接[9 月 17 日迭代记录](research-iteration-review-2026-09-17.md)，同步[综合报告 v1.4](agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)。
 
 ## 1. 本轮结论

@@ -1,0 +1,160 @@
+{
+  "schema_version": "hook-r5-natural-activity.v1",
+  "authorized_attach_count": 1,
+  "consumed_attach_count": 1,
+  "observation": {
+    "mode": "three_point_hardware_hits_only",
+    "attach_attempts": 1,
+    "attached": true,
+    "detached": true,
+    "message_payload_read": false,
+    "receive_entry_verified": false,
+    "hits": [],
+    "sample_kind": "natural_activity_no_markers_requested",
+    "maximum_hits": 10,
+    "maximum_attach_seconds": 90,
+    "started_at_utc": "2026-09-18",
+    "hardware_breakpoint_verified": true,
+    "breakpoint_address_readback_matches": true,
+    "initial_thread_count": 126,
+    "per_thread_debug_registers_verified": false,
+    "target_process_coverage_verified": false,
+    "marker_window_start_seconds": 17.016,
+    "marker_window_started_at_utc": "2026-09-18",
+    "stop_reason": "marker_window_complete",
+    "observation_phase": "cleanup",
+    "final_thread_count": 126,
+    "threads_not_in_initial_inventory": 1,
+    "hit_threads_in_initial_inventory": 0,
+    "hit_threads_not_in_initial_inventory": 0,
+    "mi_thread_created_notifications_observed": 1,
+    "mi_thread_exited_notifications_observed": 1,
+    "breakpoint_table_empty": true,
+    "debugger_exit_code": 0,
+    "elapsed_seconds": 42.11,
+    "finished_at_utc": "2026-09-18",
+    "execution_errors": [],
+    "execution_status": "completed",
+    "observation_status": "no_hits",
+    "exit_code": 0
+  },
+  "postflight": {
+    "same_creation_time": true,
+    "debugger_present": false,
+    "responding": true,
+    "has_window": true,
+    "module_count": 1,
+    "same_module_base": true
+  },
+  "connection_owner_counts_after_window": [
+    {
+      "name": "Weixin.exe",
+      "role": "no-type-flag",
+      "is_r5_target": true,
+      "parent_is_r5": false,
+      "established_tcp_count": 1
+    },
+    {
+      "name": "WeChatAppEx.exe",
+      "role": "no-type-flag",
+      "is_r5_target": false,
+      "parent_is_r5": true,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "WeChatAppEx.exe",
+      "role": "utility",
+      "is_r5_target": false,
+      "parent_is_r5": false,
+      "established_tcp_count": 6
+    },
+    {
+      "name": "WeChatAppEx.exe",
+      "role": "gpu-process",
+      "is_r5_target": false,
+      "parent_is_r5": false,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "Weixin.exe",
+      "role": "wxocr",
+      "is_r5_target": false,
+      "parent_is_r5": true,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "WeChatAppEx.exe",
+      "role": "utility",
+      "is_r5_target": false,
+      "parent_is_r5": false,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "Weixin.exe",
+      "role": "wxplayer",
+      "is_r5_target": false,
+      "parent_is_r5": true,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "Weixin.exe",
+      "role": "xplayer",
+      "is_r5_target": false,
+      "parent_is_r5": true,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "Weixin.exe",
+      "role": "wxpublic",
+      "is_r5_target": false,
+      "parent_is_r5": true,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "Weixin.exe",
+      "role": "wxutility",
+      "is_r5_target": false,
+      "parent_is_r5": true,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "WeChatAppEx.exe",
+      "role": "renderer",
+      "is_r5_target": false,
+      "parent_is_r5": false,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "WeChatAppEx.exe",
+      "role": "renderer",
+      "is_r5_target": false,
+      "parent_is_r5": false,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "WeChatAppEx.exe",
+      "role": "renderer",
+      "is_r5_target": false,
+      "parent_is_r5": false,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "WeChatAppEx.exe",
+      "role": "renderer",
+      "is_r5_target": false,
+      "parent_is_r5": false,
+      "established_tcp_count": 0
+    },
+    {
+      "name": "WeChatAppEx.exe",
+      "role": "renderer",
+      "is_r5_target": false,
+      "parent_is_r5": false,
+      "established_tcp_count": 0
+    }
+  ],
+  "controlled_inbound_event_present": false,
+  "receive_path_verified": false,
+  "cause_verified": false,
+  "conclusion": "inconclusive_no_hits_without_controlled_event_or_per_thread_coverage"
+}

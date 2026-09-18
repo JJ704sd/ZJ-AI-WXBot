@@ -20,7 +20,8 @@
 
 - [pyweixin 当前账号／原混合群构建（2026-09-18）](./specs/pyweixin-build-2026-09-18.md)：用户选定单一路线；源码缺陷修补、有界结构准入与能力权限表。尚未接通原群。
 
-- [综合技术可行性报告 v1.4](./specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)：跨路线结论、商业条件与验收要求；当前集中 pyweixin 独立身份绑定。
+- [综合技术可行性报告 v1.6](./specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)：跨路线结论、商业条件与验收要求；当前集中 pyweixin 独立身份绑定。
+- [方案进度与卡点台账](./specs/route-progress-blockers-2026-09-18.md)：各路线实测深度、阻塞原因与下一条有效证据。
 - [9 月 18 日重大迭代](./specs/research-iteration-review-2026-09-18.md)：临时结构恢复、三个锚点和目标标题通过的证据，以及尚未通过的账号／群身份与消息关卡。
 - [重大迭代与最新证据](./specs/research-iteration-review-2026-09-17.md)：Cloud 失败反馈、UIA v2/v3、Hook R1—R3 及样本方向纠正。
 - [UIA 当前卡点](./specs/uia-blockers-register-2026-09-17.md)、[861 当前构建交接](./specs/nonmax-861-build-handoff-2026-09-16.md)：各路线阶段入口。历史操作额度不自动延续。
