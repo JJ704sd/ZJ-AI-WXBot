@@ -1,0 +1,7 @@
+# Direct native dependencies already present in the isolated audit environment.
+# No wxauto4 import or upstream aggregate entry point is required.
+# Windows OCR uses the installed Windows zh-Hans language component.
+Pillow==12.3.0
+comtypes==1.4.16
+psutil==7.2.2
+pywin32==312

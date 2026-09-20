@@ -1,0 +1,7 @@
+{
+  "width": 800,
+  "height": 600,
+  "header": [300, 0, 800, 80],
+  "messages": [300, 80, 800, 500],
+  "expected_title": "OCR Test Group"
+}

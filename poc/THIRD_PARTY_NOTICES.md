@@ -16,5 +16,7 @@
 
 ## Dependencies
 
+- Local OCR experiments use `rapidocr-onnxruntime==1.4.4` (installed package metadata: Apache-2.0), from https://github.com/RapidAI/RapidOCR, in a separate ignored environment. Package-bundled ONNX files are not vendored in this repository. Versions and model hashes are recorded in `requirements-rapidocr.lock` and `evidence/uia-ocr-live-2026-09-20.md`.
+
 - `zstandard` is declared in `pyproject.toml` and locked by `uv lock`.
 - `sqlcipher3` is an extra, not installed by default, and live SQLCipher open is still blocked without an authorized key reference.
