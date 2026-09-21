@@ -1,12 +1,15 @@
 # Offline personal-WeChat text AI Agent PoC
 
+2026-09-21 当前状态见[报告 v1.12](../specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)：局部受控文本收发已有证据；限定编号恢复后可生成本地草稿，但原自动观察中断，真实 @、持续和规模业务未验收。下文旧日期说明是历史阶段，默认离线命令不开放真实操作。
+
+
 2026-09-20 M3 图像验证：[实测与本地 OCR 对照](evidence/m3-ocr-2026-09-20.md)。2 次明确授权调用、729 tokens；实图两条编号文字 2/2 完整识别，合成图仍有 `Al/AI` 错误。独立入口 `python -m wechat_agent_poc.m3_ocr`，未接入默认读取循环或自动回复。
 
 2026-09-20 编号续测：[两条编号文字 2/2 新增可见](evidence/uia-ocr-numbered-2026-09-20.md)。基线是真实截图后 OCR，发送后是完整实时调用；前后窗口尺寸不同，尚不证明持续监听／去重。`screen_region` 现按实际可见且无遮挡检查，不再无条件要求键盘焦点。41 项相关测试通过；真实 @ 和自动回复仍未验收。
 
 2026-09-20 最新：[真机采集证据](evidence/uia-ocr-live-2026-09-20.md)。UIA 实际 2 节点、语义不可用；屏幕区域＋本地 RapidOCR 已取得真实窗口 6 行文字，其中两条正文文字经画面对照匹配。标题 `AI/Al` 仍不一致，状态 `REVIEW_REQUIRED`，账号／群身份、新消息、真实 @、发送未通过。运行见 [UIA＋OCR 方案](../specs/uia-ocr-hybrid-2026-09-20.md)；快照不进入 Agent 队列，原 UIA reader 与 API／861 保持原契约。
 
-2026-09-18 最新状态见[综合报告 v1.6](../specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)与[pyweixin 迭代](../specs/research-iteration-review-2026-09-18.md)：临时状态下结构锚点与标题匹配已有证据，独立账号／群身份、读取、原生 @ 和发送未验收。下述 9 月 17 日说明及命令为历史入口，不据此启动真实动作。
+2026-09-18 历史状态见[综合报告 v1.6](../specs/agent-feasibility-v1.6-historical-2026-09-18.md)与[pyweixin 迭代](../specs/research-iteration-review-2026-09-18.md)：临时状态下结构锚点与标题匹配已有证据，独立账号／群身份、读取、原生 @ 和发送未验收。下述 9 月 17 日说明及命令为历史入口，不据此启动真实动作。
 
 2026-09-17 状态入口：[综合报告 v1.3](../specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)及[重大迭代证据](../specs/research-iteration-review-2026-09-17.md)。本目录已包含 API／861 离线适配和有界 UIA／Hook 诊断资产；下文是早期默认离线 CLI 用法，不代表全部路线现状。历史局部实机记录不等于原群自动回复完成，不应据研究文档直接启动真实动作。
 
