@@ -142,7 +142,7 @@ def test_layout_size_mismatch_prevents_reads():
 
 
 def test_label_normalization_does_not_hide_english_errors_or_change_body():
-    assert label_key('中 技 AI target (7)') == label_key('中技AI target (7)')
+    assert label_key('合成 AI target (7)') == label_key('合成AI target (7)')
     assert label_key('Hello wo rld') != label_key('Hello world')
     assert label_key('群 (7)') != label_key('群 (6)')
     assert checked_lines([line('中 文')], 500, 420)[0]['text'] == '中 文'

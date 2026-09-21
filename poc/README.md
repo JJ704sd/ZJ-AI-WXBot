@@ -18,6 +18,10 @@ Live WeChat database open, process key extraction, debugger attach, and real sen
 
 ### 2026-09-20 受控 M3 回复
 
+限定编号测试后续已人工恢复读取并生成一次 M3 本地草稿，未发送；已修复采集间窗口平移导致的中断。存在观察缺口，仍未通过连续自动触发验证。
+
+后续限定编号自动草稿触发器已实现并通过相关离线检查；真机完成两次采集后因窗口隐藏/最小化停止，自动触发未通过，模型及发送次数均为 0。见 [触发验证记录](evidence/controlled-trigger-2026-09-20.md)。
+
 一次 M3 回复已提交，本机目标群气泡可见，操作人已确认“收到”。这是单次受控回复验证，尚未完成原生 @ 自动触发或定时询问。详见 [验证记录](evidence/controlled-send-2026-09-20.md)。该 run 已写入 `submit.lock`，不要重新发送。
 
 From `poc/`:
