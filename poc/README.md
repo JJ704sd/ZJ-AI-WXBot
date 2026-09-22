@@ -1,6 +1,6 @@
 # Offline personal-WeChat text AI Agent PoC
 
-2026-09-21 当前状态见[报告 v1.12](../specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)：局部受控文本收发已有证据；限定编号恢复后可生成本地草稿，但原自动观察中断，真实 @、持续和规模业务未验收。下文旧日期说明是历史阶段，默认离线命令不开放真实操作。
+2026-09-21 当前状态见[报告 v1.13](../specs/agent-personal-wechat-mixed-group-feasibility-report-2026-09-16.md)：局部受控文本收发已有证据；限定编号恢复后可生成本地草稿，但原自动观察中断，真实 @、持续和规模业务未验收。下文旧日期说明是历史阶段，默认离线命令不开放真实操作。
 
 
 2026-09-20 M3 图像验证：[实测与本地 OCR 对照](evidence/m3-ocr-2026-09-20.md)。2 次明确授权调用、729 tokens；实图两条编号文字 2/2 完整识别，合成图仍有 `Al/AI` 错误。独立入口 `python -m wechat_agent_poc.m3_ocr`，未接入默认读取循环或自动回复。
