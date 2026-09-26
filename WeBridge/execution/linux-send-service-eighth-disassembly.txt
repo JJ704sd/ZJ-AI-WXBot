@@ -1,0 +1,169 @@
+
+STATIC RANGE 0x4830994..0x483099c
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4830994:      	ldr	x0, [x0, #0x250]
+ 4830998:      	ret
+
+
+STATIC RANGE 0x6717d18..0x6717e40
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 6717d18:      	stp	x29, x30, [sp, #-0x20]!
+ 6717d1c:      	str	x19, [sp, #0x10]
+ 6717d20:      	mov	x29, sp
+ 6717d24:      	ldr	x6, [x0]
+ 6717d28:      	mov	x19, x0
+ 6717d2c:      	cmp	x6, x0
+ 6717d30:      	b.eq	0x6717d6c <main+0x30daed4>
+ 6717d34:      	adrp	x0, 0xeba000
+ 6717d38:      	add	x0, x0, #0xc23
+ 6717d3c:      	adrp	x2, 0xea7000
+ 6717d40:      	add	x2, x2, #0x4a3
+ 6717d44:      	adrp	x3, 0xde6000
+ 6717d48:      	add	x3, x3, #0x7f3
+ 6717d4c:      	adrp	x4, 0xefd000
+ 6717d50:      	add	x4, x4, #0x782
+ 6717d54:      	mov	w1, #0x55               // =85
+ 6717d58:      	mov	x5, x19
+ 6717d5c:      	bl	0x69fe370 <main+0x33c14d8>
+ 6717d60:      	ldr	x8, [x19]
+ 6717d64:      	cmp	x8, x19
+ 6717d68:      	b.ne	0x6717ddc <main+0x30daf44>
+ 6717d6c:      	add	x0, x19, #0x8
+ 6717d70:      	bl	0x7d7e820 <pthread_mutex_lock@plt>
+ 6717d74:      	mov	w19, w0
+ 6717d78:      	cmp	w0, #0x15
+ 6717d7c:      	b.gt	0x6717dac <main+0x30daf14>
+ 6717d80:      	cbz	w19, 0x6717e2c <main+0x30daf94>
+ 6717d84:      	cmp	w19, #0xb
+ 6717d88:      	b.ne	0x6717dec <main+0x30daf54>
+ 6717d8c:      	adrp	x0, 0xeba000
+ 6717d90:      	add	x0, x0, #0xc23
+ 6717d94:      	adrp	x2, 0xea7000
+ 6717d98:      	add	x2, x2, #0x4a3
+ 6717d9c:      	adrp	x3, 0xe1c000
+ 6717da0:      	add	x3, x3, #0x24
+ 6717da4:      	mov	w1, #0x5f               // =95
+ 6717da8:      	b	0x6717e28 <main+0x30daf90>
+ 6717dac:      	cmp	w19, #0x23
+ 6717db0:      	b.eq	0x6717e0c <main+0x30daf74>
+ 6717db4:      	cmp	w19, #0x16
+ 6717db8:      	b.ne	0x6717dec <main+0x30daf54>
+ 6717dbc:      	adrp	x0, 0xeba000
+ 6717dc0:      	add	x0, x0, #0xc23
+ 6717dc4:      	adrp	x2, 0xea7000
+ 6717dc8:      	add	x2, x2, #0x4a3
+ 6717dcc:      	adrp	x3, 0xf0f000
+ 6717dd0:      	add	x3, x3, #0x418
+ 6717dd4:      	mov	w1, #0x5d               // =93
+ 6717dd8:      	b	0x6717e28 <main+0x30daf90>
+ 6717ddc:      	mov	w0, wzr
+ 6717de0:      	ldr	x19, [sp, #0x10]
+ 6717de4:      	ldp	x29, x30, [sp], #0x20
+ 6717de8:      	ret
+ 6717dec:      	adrp	x0, 0xeba000
+ 6717df0:      	add	x0, x0, #0xc23
+ 6717df4:      	adrp	x2, 0xea7000
+ 6717df8:      	add	x2, x2, #0x4a3
+ 6717dfc:      	adrp	x3, 0xf28000
+ 6717e00:      	add	x3, x3, #0xbe0
+ 6717e04:      	mov	w1, #0x63               // =99
+ 6717e08:      	b	0x6717e28 <main+0x30daf90>
+ 6717e0c:      	adrp	x0, 0xeba000
+ 6717e10:      	add	x0, x0, #0xc23
+ 6717e14:      	adrp	x2, 0xea7000
+ 6717e18:      	add	x2, x2, #0x4a3
+ 6717e1c:      	adrp	x3, 0xfd3000
+ 6717e20:      	add	x3, x3, #0xf3d
+ 6717e24:      	mov	w1, #0x61               // =97
+ 6717e28:      	bl	0x69fe150 <main+0x33c12b8>
+ 6717e2c:      	cmp	w19, #0x0
+ 6717e30:      	cset	w0, eq
+ 6717e34:      	ldr	x19, [sp, #0x10]
+ 6717e38:      	ldp	x29, x30, [sp], #0x20
+ 6717e3c:      	ret
+
+
+STATIC RANGE 0x6717e40..0x6717f4c
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 6717e40:      	stp	x29, x30, [sp, #-0x20]!
+ 6717e44:      	str	x19, [sp, #0x10]
+ 6717e48:      	mov	x29, sp
+ 6717e4c:      	ldr	x6, [x0]
+ 6717e50:      	mov	x19, x0
+ 6717e54:      	cmp	x6, x0
+ 6717e58:      	b.eq	0x6717e88 <main+0x30daff0>
+ 6717e5c:      	adrp	x0, 0xeba000
+ 6717e60:      	add	x0, x0, #0xc23
+ 6717e64:      	adrp	x2, 0xe3e000
+ 6717e68:      	add	x2, x2, #0x5c7
+ 6717e6c:      	adrp	x3, 0xde6000
+ 6717e70:      	add	x3, x3, #0x7f3
+ 6717e74:      	adrp	x4, 0xefd000
+ 6717e78:      	add	x4, x4, #0x782
+ 6717e7c:      	mov	w1, #0x6c               // =108
+ 6717e80:      	mov	x5, x19
+ 6717e84:      	bl	0x69fe370 <main+0x33c14d8>
+ 6717e88:      	add	x0, x19, #0x8
+ 6717e8c:      	bl	0x7d7e850 <pthread_mutex_unlock@plt>
+ 6717e90:      	mov	w19, w0
+ 6717e94:      	cmp	w0, #0xa
+ 6717e98:      	b.gt	0x6717ec8 <main+0x30db030>
+ 6717e9c:      	cbz	w19, 0x6717f38 <main+0x30db0a0>
+ 6717ea0:      	cmp	w19, #0x1
+ 6717ea4:      	b.ne	0x6717ef8 <main+0x30db060>
+ 6717ea8:      	adrp	x0, 0xeba000
+ 6717eac:      	add	x0, x0, #0xc23
+ 6717eb0:      	adrp	x2, 0xe3e000
+ 6717eb4:      	add	x2, x2, #0x5c7
+ 6717eb8:      	adrp	x3, 0xeba000
+ 6717ebc:      	add	x3, x3, #0xc81
+ 6717ec0:      	mov	w1, #0x76               // =118
+ 6717ec4:      	b	0x6717f34 <main+0x30db09c>
+ 6717ec8:      	cmp	w19, #0xb
+ 6717ecc:      	b.eq	0x6717f18 <main+0x30db080>
+ 6717ed0:      	cmp	w19, #0x16
+ 6717ed4:      	b.ne	0x6717ef8 <main+0x30db060>
+ 6717ed8:      	adrp	x0, 0xeba000
+ 6717edc:      	add	x0, x0, #0xc23
+ 6717ee0:      	adrp	x2, 0xe3e000
+ 6717ee4:      	add	x2, x2, #0x5c7
+ 6717ee8:      	adrp	x3, 0xf0f000
+ 6717eec:      	add	x3, x3, #0x418
+ 6717ef0:      	mov	w1, #0x72               // =114
+ 6717ef4:      	b	0x6717f34 <main+0x30db09c>
+ 6717ef8:      	adrp	x0, 0xeba000
+ 6717efc:      	add	x0, x0, #0xc23
+ 6717f00:      	adrp	x2, 0xe3e000
+ 6717f04:      	add	x2, x2, #0x5c7
+ 6717f08:      	adrp	x3, 0xf28000
+ 6717f0c:      	add	x3, x3, #0xbe0
+ 6717f10:      	mov	w1, #0x78               // =120
+ 6717f14:      	b	0x6717f34 <main+0x30db09c>
+ 6717f18:      	adrp	x0, 0xeba000
+ 6717f1c:      	add	x0, x0, #0xc23
+ 6717f20:      	adrp	x2, 0xe3e000
+ 6717f24:      	add	x2, x2, #0x5c7
+ 6717f28:      	adrp	x3, 0xe1c000
+ 6717f2c:      	add	x3, x3, #0x24
+ 6717f30:      	mov	w1, #0x74               // =116
+ 6717f34:      	bl	0x69fe150 <main+0x33c12b8>
+ 6717f38:      	cmp	w19, #0x0
+ 6717f3c:      	cset	w0, eq
+ 6717f40:      	ldr	x19, [sp, #0x10]
+ 6717f44:      	ldp	x29, x30, [sp], #0x20
+ 6717f48:      	ret

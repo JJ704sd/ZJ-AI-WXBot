@@ -1,0 +1,1306 @@
+{
+  "generated_utc": "2026-09-21T07:09:31.424002+00:00",
+  "mode": "read_only_disk_analysis",
+  "app": "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app",
+  "core": "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/Resources/wechat.dylib",
+  "version": {
+    "CFBundleShortVersionString": "4.1.11",
+    "WeChatBundleVersion": "4.1.11.53",
+    "CFBundleVersion": "269109",
+    "CFBundleIdentifier": "com.tencent.xinWeChat",
+    "LSMinimumSystemVersion": "12.0"
+  },
+  "main_sha256": "b583a21419f798ff55e3a53560c508bde507365898db12a33028a8718f9f5352",
+  "warning": "No addresses in this report are approved for injection or calling.",
+  "arm64_slice": {
+    "offset": 171196416,
+    "size": 159876992,
+    "sha256": "ca241e81235fde5ab37b985f6189afa3c2a8c092b1e54aeebeecec8f51508432",
+    "sections": [
+      {
+        "name": "__text",
+        "segment": "__TEXT",
+        "addr": 98304,
+        "size": 108626452,
+        "offset": 98304
+      },
+      {
+        "name": "__stubs",
+        "segment": "__TEXT",
+        "addr": 108724756,
+        "size": 20496,
+        "offset": 108724756
+      },
+      {
+        "name": "__objc_stubs",
+        "segment": "__TEXT",
+        "addr": 108745280,
+        "size": 24064,
+        "offset": 108745280
+      },
+      {
+        "name": "__init_offsets",
+        "segment": "__TEXT",
+        "addr": 108769344,
+        "size": 65984,
+        "offset": 108769344
+      },
+      {
+        "name": "__objc_methlist",
+        "segment": "__TEXT",
+        "addr": 108835328,
+        "size": 11636,
+        "offset": 108835328
+      },
+      {
+        "name": "__gcc_except_tab",
+        "segment": "__TEXT",
+        "addr": 108846964,
+        "size": 4365580,
+        "offset": 108846964
+      },
+      {
+        "name": "__const",
+        "segment": "__TEXT",
+        "addr": 113212544,
+        "size": 33886509,
+        "offset": 113212544
+      },
+      {
+        "name": "__cstring",
+        "segment": "__TEXT",
+        "addr": 147099056,
+        "size": 1030735,
+        "offset": 147099056
+      },
+      {
+        "name": "__objc_methname",
+        "segment": "__TEXT",
+        "addr": 148129791,
+        "size": 49251,
+        "offset": 148129791
+      },
+      {
+        "name": "__ustring",
+        "segment": "__TEXT",
+        "addr": 148179042,
+        "size": 2220,
+        "offset": 148179042
+      },
+      {
+        "name": "__oslogstring",
+        "segment": "__TEXT",
+        "addr": 148181262,
+        "size": 74,
+        "offset": 148181262
+      },
+      {
+        "name": "__objc_classname",
+        "segment": "__TEXT",
+        "addr": 148181336,
+        "size": 2327,
+        "offset": 148181336
+      },
+      {
+        "name": "__objc_methtype",
+        "segment": "__TEXT",
+        "addr": 148183663,
+        "size": 12244,
+        "offset": 148183663
+      },
+      {
+        "name": "qtmetadata",
+        "segment": "__TEXT",
+        "addr": 148195907,
+        "size": 594,
+        "offset": 148195907
+      },
+      {
+        "name": ".qtmimedatabase",
+        "segment": "__TEXT",
+        "addr": 148197376,
+        "size": 336838,
+        "offset": 148197376
+      },
+      {
+        "name": "__unwind_info",
+        "segment": "__TEXT",
+        "addr": 148534216,
+        "size": 1583824,
+        "offset": 148534216
+      },
+      {
+        "name": "__eh_frame",
+        "segment": "__TEXT",
+        "addr": 150118040,
+        "size": 6216,
+        "offset": 150118040
+      },
+      {
+        "name": "__got",
+        "segment": "__DATA_CONST",
+        "addr": 150126592,
+        "size": 17096,
+        "offset": 150126592
+      },
+      {
+        "name": "__const",
+        "segment": "__DATA_CONST",
+        "addr": 150143696,
+        "size": 4537392,
+        "offset": 150143696
+      },
+      {
+        "name": "__cfstring",
+        "segment": "__DATA_CONST",
+        "addr": 154681088,
+        "size": 9152,
+        "offset": 154681088
+      },
+      {
+        "name": "__objc_classlist",
+        "segment": "__DATA_CONST",
+        "addr": 154690240,
+        "size": 536,
+        "offset": 154690240
+      },
+      {
+        "name": "__objc_nlclslist",
+        "segment": "__DATA_CONST",
+        "addr": 154690776,
+        "size": 8,
+        "offset": 154690776
+      },
+      {
+        "name": "__objc_catlist",
+        "segment": "__DATA_CONST",
+        "addr": 154690784,
+        "size": 56,
+        "offset": 154690784
+      },
+      {
+        "name": "__objc_nlcatlist",
+        "segment": "__DATA_CONST",
+        "addr": 154690840,
+        "size": 8,
+        "offset": 154690840
+      },
+      {
+        "name": "__objc_protolist",
+        "segment": "__DATA_CONST",
+        "addr": 154690848,
+        "size": 288,
+        "offset": 154690848
+      },
+      {
+        "name": "__objc_imageinfo",
+        "segment": "__DATA_CONST",
+        "addr": 154691136,
+        "size": 8,
+        "offset": 154691136
+      },
+      {
+        "name": "__objc_const",
+        "segment": "__DATA",
+        "addr": 154697728,
+        "size": 35544,
+        "offset": 154697728
+      },
+      {
+        "name": "__objc_selrefs",
+        "segment": "__DATA",
+        "addr": 154733272,
+        "size": 14248,
+        "offset": 154733272
+      },
+      {
+        "name": "__objc_protorefs",
+        "segment": "__DATA",
+        "addr": 154747520,
+        "size": 40,
+        "offset": 154747520
+      },
+      {
+        "name": "__objc_classrefs",
+        "segment": "__DATA",
+        "addr": 154747560,
+        "size": 1568,
+        "offset": 154747560
+      },
+      {
+        "name": "__objc_superrefs",
+        "segment": "__DATA",
+        "addr": 154749128,
+        "size": 336,
+        "offset": 154749128
+      },
+      {
+        "name": "__objc_ivar",
+        "segment": "__DATA",
+        "addr": 154749464,
+        "size": 700,
+        "offset": 154749464
+      },
+      {
+        "name": "__objc_data",
+        "segment": "__DATA",
+        "addr": 154750168,
+        "size": 5360,
+        "offset": 154750168
+      },
+      {
+        "name": "__data",
+        "segment": "__DATA",
+        "addr": 154755584,
+        "size": 2380472,
+        "offset": 154755584
+      },
+      {
+        "name": "__thread_vars",
+        "segment": "__DATA",
+        "addr": 157136056,
+        "size": 1560,
+        "offset": 157136056
+      },
+      {
+        "name": "__thread_data",
+        "segment": "__DATA",
+        "addr": 157137616,
+        "size": 12,
+        "offset": 157137616
+      },
+      {
+        "name": "__thread_bss",
+        "segment": "__DATA",
+        "addr": 157137632,
+        "size": 3784,
+        "offset": 0
+      },
+      {
+        "name": "__bss",
+        "segment": "__DATA",
+        "addr": 157141440,
+        "size": 2613816,
+        "offset": 0
+      },
+      {
+        "name": "__common",
+        "segment": "__DATA",
+        "addr": 159755264,
+        "size": 63064,
+        "offset": 0
+      },
+      {
+        "name": "__info",
+        "segment": "__DATAS",
+        "addr": 159825920,
+        "size": 80,
+        "offset": 157138944
+      }
+    ],
+    "segments": [
+      {
+        "name": "__TEXT",
+        "vmaddr": 0,
+        "vmsize": 150126592,
+        "fileoff": 0,
+        "filesize": 150126592,
+        "initprot": 5
+      },
+      {
+        "name": "__DATA_CONST",
+        "vmaddr": 150126592,
+        "vmsize": 4571136,
+        "fileoff": 150126592,
+        "filesize": 4571136,
+        "initprot": 3
+      },
+      {
+        "name": "__DATA",
+        "vmaddr": 154697728,
+        "vmsize": 5128192,
+        "fileoff": 154697728,
+        "filesize": 2441216,
+        "initprot": 3
+      },
+      {
+        "name": "__DATAS",
+        "vmaddr": 159825920,
+        "vmsize": 16384,
+        "fileoff": 157138944,
+        "filesize": 80,
+        "initprot": 1
+      },
+      {
+        "name": "__LINKEDIT",
+        "vmaddr": 159842304,
+        "vmsize": 2736128,
+        "fileoff": 157155328,
+        "filesize": 2721664,
+        "initprot": 1
+      }
+    ],
+    "uuid": "db02430b-e2c5-3d68-ad53-37bf53403191",
+    "function_starts_count": 356527
+  },
+  "anchors": {
+    "MMStartTask": {
+      "count": 1,
+      "sample_hits": [
+        {
+          "match_slice_offset": "0x8c6bb96",
+          "string_vmaddr": "0x8c6bb96",
+          "text": "MMStartTask"
+        }
+      ]
+    },
+    "req2buf": {
+      "count": 15,
+      "sample_hits": [
+        {
+          "match_slice_offset": "0x7e59d00",
+          "string_vmaddr": "0x7e59cf0",
+          "text": "serverid:%_ aak:req2buf error:%_set serverid %_"
+        },
+        {
+          "match_slice_offset": "0x8c6cb2e",
+          "string_vmaddr": "0x8c6cb2e",
+          "text": "req2buf taskid:%_"
+        },
+        {
+          "match_slice_offset": "0x8c801ff",
+          "string_vmaddr": "0x8c801e7",
+          "text": "bufReq.size:%_ is_start_req2buf_thread_:%_"
+        },
+        {
+          "match_slice_offset": "0x8c802fb",
+          "string_vmaddr": "0x8c802fb",
+          "text": "req2buf result fail. socket: %_"
+        },
+        {
+          "match_slice_offset": "0x8c8031b",
+          "string_vmaddr": "0x8c8031b",
+          "text": "req2buf destroy socket: %_."
+        },
+        {
+          "match_slice_offset": "0x8c81acf",
+          "string_vmaddr": "0x8c81ab7",
+          "text": "bufReq.size:%_ is_start_req2buf_thread:%_"
+        },
+        {
+          "match_slice_offset": "0x8c81b1f",
+          "string_vmaddr": "0x8c81b1f",
+          "text": "req2buf result fail."
+        },
+        {
+          "match_slice_offset": "0x8cd35f8",
+          "string_vmaddr": "0x8cd35f8",
+          "text": "req2buf thread is no start."
+        },
+        {
+          "match_slice_offset": "0x8cd3614",
+          "string_vmaddr": "0x8cd3614",
+          "text": "req2buf_result is null."
+        },
+        {
+          "match_slice_offset": "0x8cd362c",
+          "string_vmaddr": "0x8cd362c",
+          "text": "req2buf thread in thread_pool no running"
+        },
+        {
+          "match_slice_offset": "0x8cd3655",
+          "string_vmaddr": "0x8cd3655",
+          "text": "req2buf thread_ wait end"
+        },
+        {
+          "match_slice_offset": "0x8cd366e",
+          "string_vmaddr": "0x8cd366e",
+          "text": "req2buf_thread_ join %_ ret %_"
+        },
+        {
+          "match_slice_offset": "0x8cd36c9",
+          "string_vmaddr": "0x8cd36c9",
+          "text": "req2buf already ready"
+        },
+        {
+          "match_slice_offset": "0x8cd36e7",
+          "string_vmaddr": "0x8cd36df",
+          "text": "waiting req2buf_ready_cv"
+        },
+        {
+          "match_slice_offset": "0x8cd370f",
+          "string_vmaddr": "0x8cd370f",
+          "text": "req2buf ready notify success"
+        }
+      ]
+    },
+    "Req2Buf": {
+      "count": 5,
+      "sample_hits": [
+        {
+          "match_slice_offset": "0x7e59bd0",
+          "string_vmaddr": "0x7e59bd0",
+          "text": "Req2Buf"
+        },
+        {
+          "match_slice_offset": "0x8c6cb26",
+          "string_vmaddr": "0x8c6cb26",
+          "text": "Req2Buf"
+        },
+        {
+          "match_slice_offset": "0x8c6e57e",
+          "string_vmaddr": "0x8c6e57e",
+          "text": "Req2BufTime:"
+        },
+        {
+          "match_slice_offset": "0x8cd35ea",
+          "string_vmaddr": "0x8cd35db",
+          "text": "__CancelAndWaitReq2BufThread"
+        },
+        {
+          "match_slice_offset": "0x8cd368f",
+          "string_vmaddr": "0x8cd368d",
+          "text": "__Req2Buf"
+        }
+      ]
+    },
+    "Buf2Resp": {
+      "count": 5,
+      "sample_hits": [
+        {
+          "match_slice_offset": "0x8c6bf7a",
+          "string_vmaddr": "0x8c6bf78",
+          "text": "MMBuf2Resp"
+        },
+        {
+          "match_slice_offset": "0x8c6c777",
+          "string_vmaddr": "0x8c6c775",
+          "text": "MMBuf2Resp flags:%_"
+        },
+        {
+          "match_slice_offset": "0x8c6cb97",
+          "string_vmaddr": "0x8c6cb97",
+          "text": "Buf2Resp"
+        },
+        {
+          "match_slice_offset": "0x8c6cba0",
+          "string_vmaddr": "0x8c6cba0",
+          "text": "Buf2Resp taskid:%_"
+        },
+        {
+          "match_slice_offset": "0x8c6e58b",
+          "string_vmaddr": "0x8c6e58b",
+          "text": "Buf2RespTime:"
+        }
+      ]
+    },
+    "buf2Resp": {
+      "count": 0,
+      "sample_hits": []
+    },
+    "buf2resp": {
+      "count": 0,
+      "sample_hits": []
+    },
+    "/cgi-bin/micromsg-bin/newsendmsg": {
+      "count": 0,
+      "sample_hits": []
+    },
+    "/cgi-bin/micromsg-bin/openim": {
+      "count": 0,
+      "sample_hits": []
+    },
+    "@im.chatroom": {
+      "count": 0,
+      "sample_hits": []
+    },
+    "@openim": {
+      "count": 1,
+      "sample_hits": [
+        {
+          "match_slice_offset": "0x7ea0778",
+          "string_vmaddr": "0x7ea076c",
+          "text": "c�.ʢk\u0006��0��@openim"
+        }
+      ]
+    },
+    "N4mars3cdn10CdnManagerE": {
+      "count": 8,
+      "sample_hits": [
+        {
+          "match_slice_offset": "0x7fa5452",
+          "string_vmaddr": "0x7fa5452",
+          "text": "N4mars3cdn10CdnManagerE"
+        },
+        {
+          "match_slice_offset": "0x7fa54af",
+          "string_vmaddr": "0x7fa5488",
+          "text": "NSt3__110__function6__funcINS_6__bindIMN4mars3cdn10CdnManagerEFvjPKcEJRPS5_RKNS_12placeholders4__phILi1EEERKNSD_ILi2EEEEEENS_9allocatorISK_EEFvjS7_EEE"
+        },
+        {
+          "match_slice_offset": "0x7fa5554",
+          "string_vmaddr": "0x7fa5544",
+          "text": "NSt3__16__bindIMN4mars3cdn10CdnManagerEFvjPKcEJRPS3_RKNS_12placeholders4__phILi1EEERKNSB_ILi2EEEEEE"
+        },
+        {
+          "match_slice_offset": "0x7fa55c5",
+          "string_vmaddr": "0x7fa55a8",
+          "text": "NSt3__118__weak_result_typeIMN4mars3cdn10CdnManagerEFvjPKcEEE"
+        },
+        {
+          "match_slice_offset": "0x7fbcd52",
+          "string_vmaddr": "0x7fbccc2",
+          "text": "\u0002\u0004\u000eNSt3__110__function6__funcIZN8mmcronet14CronetReporter16ReportGroupIDKeyERKNS_6vectorINS4_IjNS_9allocatorIjEEEENS5_IS7_EEEEE3$_0NS5_ISC_EEFvPN4mars3cdn10CdnManagerEEEE"
+        },
+        {
+          "match_slice_offset": "0x7fbcd8b",
+          "string_vmaddr": "0x7fbcd6d",
+          "text": "NSt3__110__function6__baseIFvPN4mars3cdn10CdnManagerEEEE"
+        },
+        {
+          "match_slice_offset": "0x7fbce73",
+          "string_vmaddr": "0x7fbce11",
+          "text": "NSt3__110__function6__funcIZN8mmcronet14CronetReporter11ReportIDKeyEjjjE3$_0NS_9allocatorIS4_EEFvPN4mars3cdn10CdnManagerEEEE"
+        },
+        {
+          "match_slice_offset": "0x7fbcf1f",
+          "string_vmaddr": "0x7fbcec0",
+          "text": "NSt3__110__function6__funcIZN8mmcronet14CronetReporter8ReportKVEjPKcE3$_0NS_9allocatorIS6_EEFvPN4mars3cdn10CdnManagerEEEE"
+        }
+      ]
+    },
+    "AutoBuffer::Write": {
+      "count": 0,
+      "sample_hits": []
+    }
+  },
+  "candidate_string_references": [
+    {
+      "adrp_vmaddr": "0x5116f68",
+      "add_vmaddr": "0x5116f6c",
+      "target_vmaddr": "0x8c6bb96",
+      "anchors": [
+        "MMStartTask"
+      ],
+      "function_start_candidate": "0x5116f30",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5116ff0",
+      "add_vmaddr": "0x5116ff4",
+      "target_vmaddr": "0x8c6bb96",
+      "anchors": [
+        "MMStartTask"
+      ],
+      "function_start_candidate": "0x5116f30",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x511f5dc",
+      "add_vmaddr": "0x511f5e0",
+      "target_vmaddr": "0x8c6bf78",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x511f560",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x511f678",
+      "add_vmaddr": "0x511f67c",
+      "target_vmaddr": "0x8c6bf78",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x511f560",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x511f8b0",
+      "add_vmaddr": "0x511f8b4",
+      "target_vmaddr": "0x8c6bf78",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x511f560",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x511f97c",
+      "add_vmaddr": "0x511f980",
+      "target_vmaddr": "0x8c6c775",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x511f560",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x511fa00",
+      "add_vmaddr": "0x511fa04",
+      "target_vmaddr": "0x8c6bf78",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x511f560",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x511fba8",
+      "add_vmaddr": "0x511fbac",
+      "target_vmaddr": "0x8c6bf78",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x511f560",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x511fc6c",
+      "add_vmaddr": "0x511fc70",
+      "target_vmaddr": "0x8c6bf78",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x511f560",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x511fe18",
+      "add_vmaddr": "0x511fe1c",
+      "target_vmaddr": "0x8c6bf78",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x511f560",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x511ff60",
+      "add_vmaddr": "0x511ff64",
+      "target_vmaddr": "0x8c6bf78",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x511f560",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5121014",
+      "add_vmaddr": "0x5121018",
+      "target_vmaddr": "0x8c6bb96",
+      "anchors": [
+        "MMStartTask"
+      ],
+      "function_start_candidate": "0x5120fd8",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5122c64",
+      "add_vmaddr": "0x5122c68",
+      "target_vmaddr": "0x8c6cb26",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x5122c00",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5122d30",
+      "add_vmaddr": "0x5122d34",
+      "target_vmaddr": "0x8c6cb2e",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x5122c00",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5122d7c",
+      "add_vmaddr": "0x5122d80",
+      "target_vmaddr": "0x8c6cb26",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x5122c00",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5122df4",
+      "add_vmaddr": "0x5122df8",
+      "target_vmaddr": "0x8c6cb26",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x5122c00",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5122ff8",
+      "add_vmaddr": "0x5122ffc",
+      "target_vmaddr": "0x8c6cb97",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x5122f78",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x51230c4",
+      "add_vmaddr": "0x51230c8",
+      "target_vmaddr": "0x8c6cba0",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x5122f78",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x512314c",
+      "add_vmaddr": "0x5123150",
+      "target_vmaddr": "0x8c6cb97",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x5122f78",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x51232cc",
+      "add_vmaddr": "0x51232d0",
+      "target_vmaddr": "0x8c6cb97",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x5122f78",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5123370",
+      "add_vmaddr": "0x5123374",
+      "target_vmaddr": "0x8c6cb97",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x5122f78",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5137d50",
+      "add_vmaddr": "0x5137d54",
+      "target_vmaddr": "0x8c6e57e",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x5135cec",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5137e20",
+      "add_vmaddr": "0x5137e24",
+      "target_vmaddr": "0x8c6e58b",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x5135cec",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x51b1a44",
+      "add_vmaddr": "0x51b1a48",
+      "target_vmaddr": "0x8c801e7",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x51b189c",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x51b373c",
+      "add_vmaddr": "0x51b3740",
+      "target_vmaddr": "0x8c802fb",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x51b2650",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x51b37f4",
+      "add_vmaddr": "0x51b37f8",
+      "target_vmaddr": "0x8c8031b",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x51b2650",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x51bf254",
+      "add_vmaddr": "0x51bf258",
+      "target_vmaddr": "0x8c81ab7",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x51bf0b0",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x51c0820",
+      "add_vmaddr": "0x51c0824",
+      "target_vmaddr": "0x8c81b1f",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x51bfd20",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5267b6c",
+      "add_vmaddr": "0x5267b70",
+      "target_vmaddr": "0x7fa5452",
+      "anchors": [
+        "N4mars3cdn10CdnManagerE"
+      ],
+      "function_start_candidate": "0x5267b68",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54f1698",
+      "add_vmaddr": "0x54f169c",
+      "target_vmaddr": "0x8cd368d",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54f14c8",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54f1718",
+      "add_vmaddr": "0x54f171c",
+      "target_vmaddr": "0x8cd368d",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54f14c8",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54f18f0",
+      "add_vmaddr": "0x54f18f4",
+      "target_vmaddr": "0x8cd368d",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54f14c8",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54f1a1c",
+      "add_vmaddr": "0x54f1a20",
+      "target_vmaddr": "0x8cd368d",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54f14c8",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54f1b80",
+      "add_vmaddr": "0x54f1b84",
+      "target_vmaddr": "0x8cd368d",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54f14c8",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54f3574",
+      "add_vmaddr": "0x54f3578",
+      "target_vmaddr": "0x8c81b1f",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x54f31c8",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54f3624",
+      "add_vmaddr": "0x54f3628",
+      "target_vmaddr": "0x8c8031b",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x54f31c8",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54f3a9c",
+      "add_vmaddr": "0x54f3aa0",
+      "target_vmaddr": "0x8cd36df",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x54f39fc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54f3bd0",
+      "add_vmaddr": "0x54f3bd4",
+      "target_vmaddr": "0x8cd36c9",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x54f39fc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54f3c6c",
+      "add_vmaddr": "0x54f3c70",
+      "target_vmaddr": "0x8cd370f",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x54f39fc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbb48",
+      "add_vmaddr": "0x54fbb4c",
+      "target_vmaddr": "0x8cd35db",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbbe4",
+      "add_vmaddr": "0x54fbbe8",
+      "target_vmaddr": "0x8cd35db",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbc18",
+      "add_vmaddr": "0x54fbc1c",
+      "target_vmaddr": "0x8cd362c",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbc40",
+      "add_vmaddr": "0x54fbc44",
+      "target_vmaddr": "0x8cd35db",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbc74",
+      "add_vmaddr": "0x54fbc78",
+      "target_vmaddr": "0x8cd35f8",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbcc0",
+      "add_vmaddr": "0x54fbcc4",
+      "target_vmaddr": "0x8cd35db",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbd1c",
+      "add_vmaddr": "0x54fbd20",
+      "target_vmaddr": "0x8cd35db",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbd50",
+      "add_vmaddr": "0x54fbd54",
+      "target_vmaddr": "0x8cd3614",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbd80",
+      "add_vmaddr": "0x54fbd84",
+      "target_vmaddr": "0x8cd35db",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbdb4",
+      "add_vmaddr": "0x54fbdb8",
+      "target_vmaddr": "0x8cd3655",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbddc",
+      "add_vmaddr": "0x54fbde0",
+      "target_vmaddr": "0x8cd35db",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbe48",
+      "add_vmaddr": "0x54fbe4c",
+      "target_vmaddr": "0x8cd35db",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x54fbeb8",
+      "add_vmaddr": "0x54fbebc",
+      "target_vmaddr": "0x8cd366e",
+      "anchors": [
+        "req2buf"
+      ],
+      "function_start_candidate": "0x54fb9dc",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5524258",
+      "add_vmaddr": "0x552425c",
+      "target_vmaddr": "0x8c6cb26",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x55241ec",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x5524350",
+      "add_vmaddr": "0x5524354",
+      "target_vmaddr": "0x8c6cb97",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x55242e4",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x552a0f0",
+      "add_vmaddr": "0x552a0f4",
+      "target_vmaddr": "0x8c6cb26",
+      "anchors": [
+        "Req2Buf"
+      ],
+      "function_start_candidate": "0x552a030",
+      "status": "unverified_static_candidate"
+    },
+    {
+      "adrp_vmaddr": "0x552a24c",
+      "add_vmaddr": "0x552a250",
+      "target_vmaddr": "0x8c6cb97",
+      "anchors": [
+        "Buf2Resp"
+      ],
+      "function_start_candidate": "0x552a18c",
+      "status": "unverified_static_candidate"
+    }
+  ],
+  "old_config_locations": {
+    "sendFuncAddr": {
+      "old_rva": "0x5120fd8",
+      "current_word_le": "0xd10503ff",
+      "bytes_16": "ff0305d1fc6f11a9f44f12a9fd7b13a9",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "req2bufEnterAddr": {
+      "old_rva": "0x3e58e8c",
+      "current_word_le": "0xf8460f09",
+      "bytes_16": "090f46f8c90100b4e80318aa2a2140b9",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "req2bufExitAddr": {
+      "old_rva": "0x3E59DE0",
+      "current_word_le": "0xa8c66ffc",
+      "bytes_16": "fc6fc6a8c0035fd6e08b40f9e89340f9",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "buf2RespAddr": {
+      "old_rva": "0x3e7e670",
+      "current_word_le": "0x5280003c",
+      "bytes_16": "3c008052e0c30091bf030094e0230191",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "blrX8Addr": {
+      "old_rva": "0x3e58f0c",
+      "current_word_le": "0x9104e3e4",
+      "bytes_16": "e4e3049100013fd6e803029140e5054f",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "autoBufferWriteFunc": {
+      "old_rva": "0x3E7FA8C",
+      "current_word_le": "0xa9bd57f6",
+      "bytes_16": "f657bda9f44f01a9fd7b02a9fd830091",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "uploadImageAddr": {
+      "old_rva": "0x529bd7c",
+      "current_word_le": "0xa9ba6ffc",
+      "bytes_16": "fc6fbaa9fa6701a9f85f02a9f65703a9",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "cdnGetServiceAddr": {
+      "old_rva": "0x50a15d0",
+      "current_word_le": "0xd10643ff",
+      "bytes_16": "ff4306d1f85f15a9f65716a9f44f17a9",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "cdnManagerGetterAddr": {
+      "old_rva": "0x5259290",
+      "current_word_le": "0xd10103ff",
+      "bytes_16": "ff0301d1f44f02a9fd7b03a9fdc30091",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "cndOnCompleteAddr": {
+      "old_rva": "0x3E1575C",
+      "current_word_le": "0xa9bc5ff8",
+      "bytes_16": "f85fbca9f65701a9f44f02a9fd7b03a9",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "uploadGetCallbackWrapperAddr": {
+      "old_rva": "0x525ab20",
+      "current_word_le": "0xf9400908",
+      "bytes_16": "080940f9e10315aae20314aae30313aa",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "uploadGetCallbackWrapperFuncAddr": {
+      "old_rva": "0x3E14FF8",
+      "current_word_le": "0xd1002000",
+      "bytes_16": "002000d11affff17ff8303d1f85f0aa9",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "uploadOnCompleteAddr": {
+      "old_rva": "0x525B2D8",
+      "current_word_le": "0xf9401908",
+      "bytes_16": "081940f9e10313aae20315aa00013fd6",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "uploadOnCompleteFuncAddr": {
+      "old_rva": "0x3E1617C",
+      "current_word_le": "0xd1002000",
+      "bytes_16": "002000d177fdff17fc6fbaa9fa6701a9",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "startDownloadMedia": {
+      "old_rva": "0x529c9e4",
+      "current_word_le": "0xa9bc6ffc",
+      "bytes_16": "fc6fbca9f65701a9f44f02a9fd7b03a9",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "downloadImagAddr": {
+      "old_rva": "0x53c0004",
+      "current_word_le": "0xaa1603e1",
+      "bytes_16": "e10316aaeaaff397685241f9147141f9",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "downloadFileAddr": {
+      "old_rva": "0x535ea98",
+      "current_word_le": "0xaa1603e1",
+      "bytes_16": "e10316aa4535f597ff0700b9685241f9",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    },
+    "downloadVideoAddr": {
+      "old_rva": "0x5378a18",
+      "current_word_le": "0xaa1403e0",
+      "bytes_16": "e00314aaa921fd9700008052b9a2f597",
+      "is_blr_x8": false,
+      "warning": "Old address content only, not a compatibility result"
+    }
+  },
+  "matching_nm_symbols": [
+    "00000000045cd25c T _SetWeixinCallbackFunc",
+    "000000000001837c T _WeChatMain"
+  ],
+  "signature_verify": {
+    "command": [
+      "codesign",
+      "--verify",
+      "--deep",
+      "--strict",
+      "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app"
+    ],
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app: invalid signature (code or signature have been modified)\nIn architecture: arm64\n"
+  },
+  "signature_metadata": {
+    "command": [
+      "codesign",
+      "-dv",
+      "--verbose=4",
+      "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "Executable=/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/MacOS/WeChat\nIdentifier=com.tencent.xinWeChat\nFormat=app bundle with Mach-O universal (x86_64 arm64)\nCodeDirectory v=20500 size=9665 flags=0x10000(runtime) hashes=291+7 location=embedded\nVersionPlatform=1\nVersionMin=786432\nVersionSDK=983552\nHash type=sha256 size=32\nCandidateCDHash sha1=dbcdb57a6ffec14224698d1e101b24a05b61f12d\nCandidateCDHashFull sha1=dbcdb57a6ffec14224698d1e101b24a05b61f12d\nCandidateCDHash sha256=a70c6775e83796ecb73cc7ad5615686bb4ffcfef\nCandidateCDHashFull sha256=a70c6775e83796ecb73cc7ad5615686bb4ffcfef32aed95fef13432b0155ce26\nHash choices=sha1,sha256\nCMSDigest=6e29ba40da68539c61dc486b816463990d5a6d5bf7246ed0fffad27c51754cca\nCMSDigestType=2\nExecutable Segment base=0\nExecutable Segment limit=1081344\nExecutable Segment flags=0x1\nPage size=4096\nCDHash=a70c6775e83796ecb73cc7ad5615686bb4ffcfef\nSignature size=9173\nAuthority=(unavailable)\nInfo.plist=not bound\nTeamIdentifier=5A4RE8SF68\nRuntime Version=15.2.0\nSealed Resources version=2 rules=13 files=207\nInternal requirements count=1 size=184\n"
+  },
+  "entitlements": {
+    "command": [
+      "codesign",
+      "-d",
+      "--entitlements",
+      ":-",
+      "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "Executable=/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/MacOS/WeChat\nwarning: Specifying ':' in the path is deprecated and will not work in a future release\nwarning: binary contains an invalid entitlements blob. The OS will ignore these entitlements.\n"
+  }
+}

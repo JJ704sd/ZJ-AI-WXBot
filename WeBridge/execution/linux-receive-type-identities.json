@@ -1,0 +1,18 @@
+{
+  "AddMsg_typename": {
+    "va": "0xf5f9c9",
+    "value": "micromsg.AddMsg"
+  },
+  "NewSyncResponse_typename": {
+    "va": "0xea50c8",
+    "value": "micromsg.NewSyncResponse"
+  },
+  "SKBuiltinString_typename": {
+    "va": "0xdf52b9",
+    "value": "micromsg.SKBuiltinString_t"
+  },
+  "NewSync_CGI": {
+    "va": "0xf06b66",
+    "value": "/cgi-bin/micromsg-bin/newsync"
+  }
+}

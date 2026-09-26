@@ -1,0 +1,482 @@
+[
+  {
+    "adrp_va": "0x397e798",
+    "add_va": "0x397e79c",
+    "target_va": "0xe8b109",
+    "anchors": [
+      "msgsource"
+    ],
+    "unwind_start_candidate": "0x397e788",
+    "fde_va": "0x3298bac",
+    "next_index_start": "0x397e878",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x4852314",
+    "add_va": "0x4852318",
+    "target_va": "0xe8b109",
+    "anchors": [
+      "msgsource"
+    ],
+    "unwind_start_candidate": "0x48522b8",
+    "fde_va": "0x33a20dc",
+    "next_index_start": "0x4852f8c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x48524d4",
+    "add_va": "0x48524d8",
+    "target_va": "0xe47219",
+    "anchors": [
+      "atuserlist"
+    ],
+    "unwind_start_candidate": "0x48522b8",
+    "fde_va": "0x33a20dc",
+    "next_index_start": "0x4852f8c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x4852fd8",
+    "add_va": "0x4852fdc",
+    "target_va": "0xe8b109",
+    "anchors": [
+      "msgsource"
+    ],
+    "unwind_start_candidate": "0x4852f8c",
+    "fde_va": "0x33a2118",
+    "next_index_start": "0x4853964",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x4853010",
+    "add_va": "0x4853014",
+    "target_va": "0xe47219",
+    "anchors": [
+      "atuserlist"
+    ],
+    "unwind_start_candidate": "0x4852f8c",
+    "fde_va": "0x33a2118",
+    "next_index_start": "0x4853964",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x48539d8",
+    "add_va": "0x48539dc",
+    "target_va": "0xe8b109",
+    "anchors": [
+      "msgsource"
+    ],
+    "unwind_start_candidate": "0x4853964",
+    "fde_va": "0x33a2160",
+    "next_index_start": "0x4853d68",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x48dfa1c",
+    "add_va": "0x48dfa20",
+    "target_va": "0xe8b109",
+    "anchors": [
+      "msgsource"
+    ],
+    "unwind_start_candidate": "0x48df9f8",
+    "fde_va": "0x33aa684",
+    "next_index_start": "0x48dfb18",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x49977c8",
+    "add_va": "0x49977cc",
+    "target_va": "0xf06b66",
+    "anchors": [
+      "/cgi-bin/micromsg-bin/newsync"
+    ],
+    "unwind_start_candidate": "0x49975b8",
+    "fde_va": "0x33b63f0",
+    "next_index_start": "0x4997c74",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x4999590",
+    "add_va": "0x4999594",
+    "target_va": "0xf06b66",
+    "anchors": [
+      "/cgi-bin/micromsg-bin/newsync"
+    ],
+    "unwind_start_candidate": "0x4999538",
+    "fde_va": "0x33b6744",
+    "next_index_start": "0x499971c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x4ca1ba4",
+    "add_va": "0x4ca1ba8",
+    "target_va": "0xe1506f",
+    "anchors": [
+      "AddMsg"
+    ],
+    "unwind_start_candidate": "0x4ca196c",
+    "fde_va": "0x33edd68",
+    "next_index_start": "0x4ca1fa4",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x4ca27e0",
+    "add_va": "0x4ca27e4",
+    "target_va": "0xe1506f",
+    "anchors": [
+      "AddMsg"
+    ],
+    "unwind_start_candidate": "0x4ca27cc",
+    "fde_va": "0x33edecc",
+    "next_index_start": "0x4ca296c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x4ca47a0",
+    "add_va": "0x4ca47a4",
+    "target_va": "0xe1506f",
+    "anchors": [
+      "AddMsg"
+    ],
+    "unwind_start_candidate": "0x4ca46d8",
+    "fde_va": "0x33ee168",
+    "next_index_start": "0x4ca4888",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x4ca52d0",
+    "add_va": "0x4ca52d4",
+    "target_va": "0xe1506f",
+    "anchors": [
+      "AddMsg"
+    ],
+    "unwind_start_candidate": "0x4ca4f4c",
+    "fde_va": "0x33ee1f8",
+    "next_index_start": "0x4ca57bc",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x4f95828",
+    "add_va": "0x4f9582c",
+    "target_va": "0xe8b109",
+    "anchors": [
+      "msgsource"
+    ],
+    "unwind_start_candidate": "0x4f95778",
+    "fde_va": "0x3424cf8",
+    "next_index_start": "0x4f959f4",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x56db424",
+    "add_va": "0x56db428",
+    "target_va": "0xf06b66",
+    "anchors": [
+      "/cgi-bin/micromsg-bin/newsync"
+    ],
+    "unwind_start_candidate": "0x56db2c8",
+    "fde_va": "0x34b46a8",
+    "next_index_start": "0x56dbd40",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x5c130dc",
+    "add_va": "0x5c130e0",
+    "target_va": "0xdbf63c",
+    "anchors": [
+      "NewSync",
+      "micromsg.NewSyncRequest"
+    ],
+    "unwind_start_candidate": "0x5c130c4",
+    "fde_va": "0x2e9dd5c",
+    "next_index_start": "0x5c13114",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x5c13d60",
+    "add_va": "0x5c13d64",
+    "target_va": "0xea50c8",
+    "anchors": [
+      "NewSync",
+      "micromsg.NewSyncResponse"
+    ],
+    "unwind_start_candidate": "0x5c13d48",
+    "fde_va": "0x2e9defc",
+    "next_index_start": "0x5c13d98",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x5c15df0",
+    "add_va": "0x5c15df4",
+    "target_va": "0xf5f9c9",
+    "anchors": [
+      "AddMsg",
+      "micromsg.AddMsg"
+    ],
+    "unwind_start_candidate": "0x5c15dec",
+    "fde_va": "0x2e9e364",
+    "next_index_start": "0x5c15e14",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6180a00",
+    "add_va": "0x6180a04",
+    "target_va": "0xe5f03e",
+    "anchors": [
+      "AddMsg"
+    ],
+    "unwind_start_candidate": "0x6180a00",
+    "fde_va": "0x2f44a30",
+    "next_index_start": "0x6180a2c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6a67420",
+    "add_va": "0x6a67424",
+    "target_va": "0xdb1f50",
+    "anchors": [
+      "Buf2Resp"
+    ],
+    "unwind_start_candidate": "0x6a673bc",
+    "fde_va": "0x3021830",
+    "next_index_start": "0x6a6752c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6a674d4",
+    "add_va": "0x6a674d8",
+    "target_va": "0xdb1f50",
+    "anchors": [
+      "Buf2Resp"
+    ],
+    "unwind_start_candidate": "0x6a673bc",
+    "fde_va": "0x3021830",
+    "next_index_start": "0x6a6752c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6aa0834",
+    "add_va": "0x6aa0838",
+    "target_va": "0xdb1f50",
+    "anchors": [
+      "Buf2Resp"
+    ],
+    "unwind_start_candidate": "0x6aa07ac",
+    "fde_va": "0x3028468",
+    "next_index_start": "0x6aa08c0",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6b5a9f4",
+    "add_va": "0x6b5a9f8",
+    "target_va": "0xdc4a56",
+    "anchors": [
+      "Buf2Resp",
+      "MMBuf2Resp"
+    ],
+    "unwind_start_candidate": "0x6b5a978",
+    "fde_va": "0x30422e8",
+    "next_index_start": "0x6b5bc8c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6b5aa90",
+    "add_va": "0x6b5aa94",
+    "target_va": "0xdc4a56",
+    "anchors": [
+      "Buf2Resp",
+      "MMBuf2Resp"
+    ],
+    "unwind_start_candidate": "0x6b5a978",
+    "fde_va": "0x30422e8",
+    "next_index_start": "0x6b5bc8c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6b5aeec",
+    "add_va": "0x6b5aef0",
+    "target_va": "0xdc4a56",
+    "anchors": [
+      "Buf2Resp",
+      "MMBuf2Resp"
+    ],
+    "unwind_start_candidate": "0x6b5a978",
+    "fde_va": "0x30422e8",
+    "next_index_start": "0x6b5bc8c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6b5af9c",
+    "add_va": "0x6b5afa0",
+    "target_va": "0xdd5fba",
+    "anchors": [
+      "Buf2Resp",
+      "MMBuf2Resp"
+    ],
+    "unwind_start_candidate": "0x6b5a978",
+    "fde_va": "0x30422e8",
+    "next_index_start": "0x6b5bc8c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6b5b040",
+    "add_va": "0x6b5b044",
+    "target_va": "0xdc4a56",
+    "anchors": [
+      "Buf2Resp",
+      "MMBuf2Resp"
+    ],
+    "unwind_start_candidate": "0x6b5a978",
+    "fde_va": "0x30422e8",
+    "next_index_start": "0x6b5bc8c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6b5b380",
+    "add_va": "0x6b5b384",
+    "target_va": "0xdc4a56",
+    "anchors": [
+      "Buf2Resp",
+      "MMBuf2Resp"
+    ],
+    "unwind_start_candidate": "0x6b5a978",
+    "fde_va": "0x30422e8",
+    "next_index_start": "0x6b5bc8c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6b5b4b0",
+    "add_va": "0x6b5b4b4",
+    "target_va": "0xdc4a56",
+    "anchors": [
+      "Buf2Resp",
+      "MMBuf2Resp"
+    ],
+    "unwind_start_candidate": "0x6b5a978",
+    "fde_va": "0x30422e8",
+    "next_index_start": "0x6b5bc8c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6b5b7cc",
+    "add_va": "0x6b5b7d0",
+    "target_va": "0xdc4a56",
+    "anchors": [
+      "Buf2Resp",
+      "MMBuf2Resp"
+    ],
+    "unwind_start_candidate": "0x6b5a978",
+    "fde_va": "0x30422e8",
+    "next_index_start": "0x6b5bc8c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6b5b9f0",
+    "add_va": "0x6b5b9f4",
+    "target_va": "0xdc4a56",
+    "anchors": [
+      "Buf2Resp",
+      "MMBuf2Resp"
+    ],
+    "unwind_start_candidate": "0x6b5a978",
+    "fde_va": "0x30422e8",
+    "next_index_start": "0x6b5bc8c",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6c172a8",
+    "add_va": "0x6c172ac",
+    "target_va": "0xdb1f50",
+    "anchors": [
+      "Buf2Resp"
+    ],
+    "unwind_start_candidate": "0x6c17238",
+    "fde_va": "0x30548a4",
+    "next_index_start": "0x6c17798",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6c1735c",
+    "add_va": "0x6c17360",
+    "target_va": "0xdc51d4",
+    "anchors": [
+      "Buf2Resp"
+    ],
+    "unwind_start_candidate": "0x6c17238",
+    "fde_va": "0x30548a4",
+    "next_index_start": "0x6c17798",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6c1740c",
+    "add_va": "0x6c17410",
+    "target_va": "0xdb1f50",
+    "anchors": [
+      "Buf2Resp"
+    ],
+    "unwind_start_candidate": "0x6c17238",
+    "fde_va": "0x30548a4",
+    "next_index_start": "0x6c17798",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6c175b0",
+    "add_va": "0x6c175b4",
+    "target_va": "0xdb1f50",
+    "anchors": [
+      "Buf2Resp"
+    ],
+    "unwind_start_candidate": "0x6c17238",
+    "fde_va": "0x30548a4",
+    "next_index_start": "0x6c17798",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6c176ec",
+    "add_va": "0x6c176f0",
+    "target_va": "0xdb1f50",
+    "anchors": [
+      "Buf2Resp"
+    ],
+    "unwind_start_candidate": "0x6c17238",
+    "fde_va": "0x30548a4",
+    "next_index_start": "0x6c17798",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6c4dd88",
+    "add_va": "0x6c4dd8c",
+    "target_va": "0xf25af8",
+    "anchors": [
+      "NewSync"
+    ],
+    "unwind_start_candidate": "0x6c4dbe0",
+    "fde_va": "0x3059cd0",
+    "next_index_start": "0x6c4de80",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6c4dda0",
+    "add_va": "0x6c4dda4",
+    "target_va": "0xf9b1c9",
+    "anchors": [
+      "NewSync"
+    ],
+    "unwind_start_candidate": "0x6c4dbe0",
+    "fde_va": "0x3059cd0",
+    "next_index_start": "0x6c4de80",
+    "status": "requires_disassembly_and_dataflow_review"
+  },
+  {
+    "adrp_va": "0x6c6ec68",
+    "add_va": "0x6c6ec6c",
+    "target_va": "0xeac423",
+    "anchors": [
+      "Buf2Resp"
+    ],
+    "unwind_start_candidate": "0x6c6c0d8",
+    "fde_va": "0x305c5cc",
+    "next_index_start": "0x6c6f8bc",
+    "status": "requires_disassembly_and_dataflow_review"
+  }
+]

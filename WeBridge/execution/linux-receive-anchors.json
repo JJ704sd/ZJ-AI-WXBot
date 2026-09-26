@@ -1,0 +1,160 @@
+{
+  "micromsg.NewSyncResponse": [
+    {
+      "match_offset": "0xea50c8",
+      "string_offset": "0xea50c8",
+      "string_va": "0xea50c8",
+      "text": "micromsg.NewSyncResponse"
+    }
+  ],
+  "micromsg.AddMsg": [
+    {
+      "match_offset": "0xf5f9c9",
+      "string_offset": "0xf5f9c9",
+      "string_va": "0xf5f9c9",
+      "text": "micromsg.AddMsg"
+    }
+  ],
+  "micromsg.NewSyncRequest": [
+    {
+      "match_offset": "0xdbf63c",
+      "string_offset": "0xdbf63c",
+      "string_va": "0xdbf63c",
+      "text": "micromsg.NewSyncRequest"
+    }
+  ],
+  "NewSync": [
+    {
+      "match_offset": "0xdbf645",
+      "string_offset": "0xdbf63c",
+      "string_va": "0xdbf63c",
+      "text": "micromsg.NewSyncRequest"
+    },
+    {
+      "match_offset": "0xe1f20c",
+      "string_offset": "0xe1f20c",
+      "string_va": "0xe1f20c",
+      "text": "NewSyncType"
+    },
+    {
+      "match_offset": "0xea50d1",
+      "string_offset": "0xea50c8",
+      "string_va": "0xea50c8",
+      "text": "micromsg.NewSyncResponse"
+    },
+    {
+      "match_offset": "0xf11b12",
+      "string_offset": "0xf11b12",
+      "string_va": "0xf11b12",
+      "text": "NewSyncResult"
+    },
+    {
+      "match_offset": "0xf25af8",
+      "string_offset": "0xf25af8",
+      "string_va": "0xf25af8",
+      "text": "NewSyncStart"
+    },
+    {
+      "match_offset": "0xf6734c",
+      "string_offset": "0xf6734c",
+      "string_va": "0xf6734c",
+      "text": "NewSyncEnd"
+    },
+    {
+      "match_offset": "0xf9b1c9",
+      "string_offset": "0xf9b1c9",
+      "string_va": "0xf9b1c9",
+      "text": "NewSyncRBytes"
+    }
+  ],
+  "/cgi-bin/micromsg-bin/newsync": [
+    {
+      "match_offset": "0xf06b66",
+      "string_offset": "0xf06b66",
+      "string_va": "0xf06b66",
+      "text": "/cgi-bin/micromsg-bin/newsync"
+    }
+  ],
+  "AddMsg": [
+    {
+      "match_offset": "0xe15076",
+      "string_offset": "0xe1506f",
+      "string_va": "0xe1506f",
+      "text": "HistoryAddMsgInfo"
+    },
+    {
+      "match_offset": "0xe5f049",
+      "string_offset": "0xe5f03e",
+      "string_va": "0xe5f03e",
+      "text": "ilink.IlinkAddMsgCmd"
+    },
+    {
+      "match_offset": "0xf5f9d2",
+      "string_offset": "0xf5f9c9",
+      "string_va": "0xf5f9c9",
+      "text": "micromsg.AddMsg"
+    }
+  ],
+  "msgsource": [
+    {
+      "match_offset": "0xe8b109",
+      "string_offset": "0xe8b109",
+      "string_va": "0xe8b109",
+      "text": "msgsource"
+    }
+  ],
+  "atuserlist": [
+    {
+      "match_offset": "0xe47219",
+      "string_offset": "0xe47219",
+      "string_va": "0xe47219",
+      "text": "atuserlist"
+    }
+  ],
+  "MMBuf2Resp": [
+    {
+      "match_offset": "0xdc4a56",
+      "string_offset": "0xdc4a56",
+      "string_va": "0xdc4a56",
+      "text": "MMBuf2Resp"
+    },
+    {
+      "match_offset": "0xdd5fba",
+      "string_offset": "0xdd5fba",
+      "string_va": "0xdd5fba",
+      "text": "MMBuf2Resp flags:%_"
+    }
+  ],
+  "Buf2Resp": [
+    {
+      "match_offset": "0xdb1f50",
+      "string_offset": "0xdb1f50",
+      "string_va": "0xdb1f50",
+      "text": "Buf2Resp"
+    },
+    {
+      "match_offset": "0xdc4a58",
+      "string_offset": "0xdc4a56",
+      "string_va": "0xdc4a56",
+      "text": "MMBuf2Resp"
+    },
+    {
+      "match_offset": "0xdc51d4",
+      "string_offset": "0xdc51d4",
+      "string_va": "0xdc51d4",
+      "text": "Buf2Resp taskid:%_"
+    },
+    {
+      "match_offset": "0xdd5fbc",
+      "string_offset": "0xdd5fba",
+      "string_va": "0xdd5fba",
+      "text": "MMBuf2Resp flags:%_"
+    },
+    {
+      "match_offset": "0xeac423",
+      "string_offset": "0xeac423",
+      "string_va": "0xeac423",
+      "text": "Buf2RespTime:"
+    }
+  ]
+}

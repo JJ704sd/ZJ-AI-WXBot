@@ -1,0 +1,25 @@
+name: wechat-lab
+services:
+  wechat:
+    image: ghcr.io/thisnick/agent-wechat@sha256:b47d26150955a4e079a9771383282babc14fc8fbc0647a84921abf826631de29
+    platform: linux/arm64
+    container_name: wechat-lab-linux
+    ports:
+      - "127.0.0.1:16174:6174"
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp=unconfined
+    volumes:
+      - lab-data:/data
+      - lab-home:/home/wechat
+      - ../../.secrets/linux-token:/data/auth-token:ro
+    environment:
+      ENABLE_VNC: "1"
+    shm_size: "256m"
+    mem_limit: "3g"
+    cpus: 2
+    restart: "no"
+volumes:
+  lab-data:
+  lab-home:

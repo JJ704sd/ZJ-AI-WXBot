@@ -1,0 +1,127 @@
+{
+  "observed_date": "2026-09-18",
+  "method": "Public GitHub REST metadata; installed app metadata; static file format inspection. No downloaded program executed.",
+  "local_environment": {
+    "macos": "26.6.2",
+    "os_build": "25G83",
+    "arch": "arm64",
+    "wechat_bundle_version": "4.1.13.10",
+    "wechat_build": "269578",
+    "sip": "enabled"
+  },
+  "wechatpadpro": {
+    "repo": "https://github.com/WeChatPadPro/WeChatPadPro",
+    "commit": "5cf4fc76c5457691798079bd921e09f60cf5afd7",
+    "tree_truncated": false,
+    "files": [
+      ".env",
+      ".env.example",
+      ".github/CODEOWNERS",
+      ".idea/.gitignore",
+      ".idea/.name",
+      ".idea/WeChatPadPro.iml",
+      ".idea/easycode.ignore",
+      ".idea/inspectionProfiles/Project_Default.xml",
+      ".idea/inspectionProfiles/profiles_settings.xml",
+      ".idea/misc.xml",
+      ".idea/modules.xml",
+      ".idea/vcs.xml",
+      ".mailmap",
+      "README.md",
+      "README_zh.md",
+      "deploy/.env",
+      "deploy/docker-compose.yml",
+      "redis/Dockerfile",
+      "redis/redis.conf",
+      "sensitive_patterns.txt",
+      "static/doc/4270252wc57e-4b66-9ae3-0a81fc001255.png",
+      "static/doc/apipost1.png",
+      "static/doc/apipost2.png",
+      "static/doc/error_mysql.png",
+      "static/doc/img.png",
+      "static/doc/img_1.png",
+      "static/doc/logout_error.png",
+      "static/doc/redis_memory_management.md",
+      "static/doc/redis_usage_guide.md",
+      "static/doc/update_notes.md",
+      "static/qrcode/3e97923ae306962c9f7c42133519aae3.jpg",
+      "static/qrcode/README.md",
+      "static/qrcode/diabao.JPG",
+      "static/qrcode/dianbao.png",
+      "static/qrcode/empty.png",
+      "static/qrcode/zanzhu.jpg",
+      "static/qrcode/图片_20260602154815_530_12.jpg",
+      "static/templates/err.tmpl",
+      "static/templates/login.tmpl",
+      "static/templates/message.tmpl",
+      "usage_guide_for_old_users.md",
+      "version.txt",
+      "webhook_config.json",
+      "微信功能使用说明.md",
+      "微信登录安全验证码解决流程.md",
+      "微信登录验证码API使用指南.md"
+    ],
+    "latest_public_release": {
+      "tag_name": "v2.01",
+      "published_at": "2025-08-22T11:51:50Z",
+      "html_url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/tag/v2.01"
+    },
+    "release_assets": [
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-amd64.zip",
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-amd64.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-arm64.zip",
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-arm64.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-mips64.zip",
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-mips64.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-mips64le.zip",
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-mips64le.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-ppc64.zip",
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-ppc64.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-ppc64le.zip",
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-ppc64le.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_macos-amd64.zip",
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_macos-amd64.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_macos-arm64.zip",
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_macos-arm64.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_windows-amd64.zip",
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_windows-amd64.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_windows-arm64.zip",
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_windows-arm64.zip"
+      }
+    ]
+  },
+  "ipad860": {
+    "commit": "4d567bd6ee3206b5f112768225d7498abfc442b1",
+    "static_binaries": [
+      {
+        "path": "lib/libv08.so",
+        "git_blob": "07a388964e3b114cf2c1c0f0698e6bb17deb6060",
+        "format": "ELF 64-bit LSB shared object, x86-64"
+      },
+      {
+        "path": "lib/v08.dll",
+        "git_blob": "2ec92166339fdbbba1b209c62d740f120db47f32",
+        "format": "PE32+ DLL, x86-64, MS Windows"
+      }
+    ]
+  }
+}

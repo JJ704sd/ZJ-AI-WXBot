@@ -1,0 +1,3038 @@
+{
+  "sha256": "f487e4f56930456a25fb0d7b058c77e2dcd364e268d49bdfff4dc0e3be26ba36",
+  "size": 183094832,
+  "image_base": "0x180000000",
+  "runtime_function_count": 446808,
+  "anchors": {
+    "/cgi-bin/micromsg-bin/newsendmsg": [
+      "0x88bc91c"
+    ],
+    "TextMessageHandler": [
+      "0x88b2661"
+    ],
+    "Begin StartSendMessageSyncStage": [
+      "0x84f4710"
+    ],
+    "SaveSendMessagesAtOnce": [],
+    "GetAddSendMessageToDb": [
+      "0x84f4730"
+    ],
+    "micromsg.SendMsgRequestNew": [
+      "0x87a8128"
+    ],
+    "micromsg.MicroMsgRequestNew": [
+      "0x87a8098"
+    ]
+  },
+  "references": [
+    {
+      "anchor": "Begin StartSendMessageSyncStage",
+      "instruction_rva": "0x1710edf",
+      "data_rva": "0x84f4710",
+      "function_rva": "0x1710e20",
+      "disassembly_confirmed": true,
+      "instruction": "lea    r9,[rip+0x6de382a]        # 0x1884f4710"
+    },
+    {
+      "anchor": "Begin StartSendMessageSyncStage",
+      "instruction_rva": "0x1714ee2",
+      "data_rva": "0x84f4710",
+      "function_rva": "0x1714e40",
+      "disassembly_confirmed": true,
+      "instruction": "lea    r9,[rip+0x6ddf827]        # 0x1884f4710"
+    },
+    {
+      "anchor": "Begin StartSendMessageSyncStage",
+      "instruction_rva": "0x1710f0c",
+      "data_rva": "0x84f471f",
+      "function_rva": "0x1710e20",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x6de380c]        # 0x1884f471f"
+    },
+    {
+      "anchor": "Begin StartSendMessageSyncStage",
+      "instruction_rva": "0x1710f17",
+      "data_rva": "0x84f4710",
+      "function_rva": "0x1710e20",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x6de37f2]        # 0x1884f4710"
+    },
+    {
+      "anchor": "GetAddSendMessageToDb",
+      "instruction_rva": "0x17110ad",
+      "data_rva": "0x84f4730",
+      "function_rva": "0x1710e20",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x6de367c]        # 0x1884f4730"
+    },
+    {
+      "anchor": "Begin StartSendMessageSyncStage",
+      "instruction_rva": "0x1714f06",
+      "data_rva": "0x84f471f",
+      "function_rva": "0x1714e40",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x6ddf812]        # 0x1884f471f"
+    },
+    {
+      "anchor": "Begin StartSendMessageSyncStage",
+      "instruction_rva": "0x1714f11",
+      "data_rva": "0x84f4710",
+      "function_rva": "0x1714e40",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x6ddf7f8]        # 0x1884f4710"
+    },
+    {
+      "anchor": "micromsg.MicroMsgRequestNew",
+      "instruction_rva": "0x2c6cced",
+      "data_rva": "0x87a8098",
+      "function_rva": "0x2c6ccc0",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x5b3b3a4]        # 0x1887a8098"
+    },
+    {
+      "anchor": "micromsg.MicroMsgRequestNew",
+      "instruction_rva": "0x2c6ccf7",
+      "data_rva": "0x87a80a3",
+      "function_rva": "0x2c6ccc0",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x5b3b3a5]        # 0x1887a80a3"
+    },
+    {
+      "anchor": "micromsg.SendMsgRequestNew",
+      "instruction_rva": "0x2c6d28d",
+      "data_rva": "0x87a8128",
+      "function_rva": "0x2c6d260",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x5b3ae94]        # 0x1887a8128"
+    },
+    {
+      "anchor": "micromsg.SendMsgRequestNew",
+      "instruction_rva": "0x2c6d297",
+      "data_rva": "0x87a8132",
+      "function_rva": "0x2c6d260",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x5b3ae94]        # 0x1887a8132"
+    },
+    {
+      "anchor": "TextMessageHandler",
+      "instruction_rva": "0x3673928",
+      "data_rva": "0x88b2661",
+      "function_rva": "0x36738c0",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm6,XMMWORD PTR [rip+0x523ed32]        # 0x1888b2661"
+    },
+    {
+      "anchor": "/cgi-bin/micromsg-bin/newsendmsg",
+      "instruction_rva": "0x36ceca5",
+      "data_rva": "0x88bc92c",
+      "function_rva": "0x36ce7a0",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x51edc80]        # 0x1888bc92c"
+    },
+    {
+      "anchor": "/cgi-bin/micromsg-bin/newsendmsg",
+      "instruction_rva": "0x36cecb0",
+      "data_rva": "0x88bc91c",
+      "function_rva": "0x36ce7a0",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x51edc65]        # 0x1888bc91c"
+    },
+    {
+      "anchor": "/cgi-bin/micromsg-bin/newsendmsg",
+      "instruction_rva": "0x36d30d4",
+      "data_rva": "0x88bc92c",
+      "function_rva": "0x36d3060",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x51e9851]        # 0x1888bc92c"
+    },
+    {
+      "anchor": "/cgi-bin/micromsg-bin/newsendmsg",
+      "instruction_rva": "0x36d30df",
+      "data_rva": "0x88bc91c",
+      "function_rva": "0x36d3060",
+      "disassembly_confirmed": true,
+      "instruction": "movups xmm0,XMMWORD PTR [rip+0x51e9836]        # 0x1888bc91c"
+    }
+  ],
+  "functions": {
+    "0xdf40": {
+      "begin_rva": "0xdf40",
+      "end_rva": "0xe161",
+      "unwind_rva": "0x8eee204",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0xdf6f",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0xdfc2",
+          "opcode": "jmp",
+          "target_rva": "0xdfe8"
+        },
+        {
+          "instruction_rva": "0xe015",
+          "opcode": "jmp",
+          "target_rva": "0xe03d"
+        },
+        {
+          "instruction_rva": "0xe06d",
+          "opcode": "jmp",
+          "target_rva": "0xe098"
+        },
+        {
+          "instruction_rva": "0xe0cd",
+          "opcode": "jmp",
+          "target_rva": "0xe0d1"
+        }
+      ],
+      "absolute_pointer_refs": [],
+      "instruction_count": 153
+    },
+    "0x6b2c30": {
+      "begin_rva": "0x6b2c30",
+      "end_rva": "0x6b2cf3",
+      "unwind_rva": "0x9020e64",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x6b2c4e",
+          "opcode": "call",
+          "target_rva": "0x4df240"
+        },
+        {
+          "instruction_rva": "0x6b2c5a",
+          "opcode": "call",
+          "target_rva": "0x6b2d30"
+        },
+        {
+          "instruction_rva": "0x6b2c96",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x6b2ced",
+          "opcode": "call",
+          "target_rva": "0x6860478"
+        }
+      ],
+      "absolute_pointer_refs": [],
+      "instruction_count": 48
+    },
+    "0x1677a30": {
+      "begin_rva": "0x1677a30",
+      "end_rva": "0x1677d39",
+      "unwind_rva": "0x929347c",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x1677a56",
+          "opcode": "call",
+          "target_rva": "0x410c0"
+        },
+        {
+          "instruction_rva": "0x1677a65",
+          "opcode": "call",
+          "target_rva": "0x426b0"
+        },
+        {
+          "instruction_rva": "0x1677ab4",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x1677ad2",
+          "opcode": "jmp",
+          "target_rva": "0x1677add"
+        },
+        {
+          "instruction_rva": "0x1677ad7",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x1677afc",
+          "opcode": "jmp",
+          "target_rva": "0x1677b1b"
+        },
+        {
+          "instruction_rva": "0x1677b2c",
+          "opcode": "jmp",
+          "target_rva": "0x1677b00"
+        },
+        {
+          "instruction_rva": "0x1677b3c",
+          "opcode": "call",
+          "target_rva": "0x5a8a0"
+        },
+        {
+          "instruction_rva": "0x1677b5d",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x1677bbb",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x1677bd9",
+          "opcode": "jmp",
+          "target_rva": "0x1677be4"
+        },
+        {
+          "instruction_rva": "0x1677bde",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x1677c0a",
+          "opcode": "jmp",
+          "target_rva": "0x1677c2b"
+        },
+        {
+          "instruction_rva": "0x1677c3c",
+          "opcode": "jmp",
+          "target_rva": "0x1677c10"
+        },
+        {
+          "instruction_rva": "0x1677c54",
+          "opcode": "call",
+          "target_rva": "0x5a8a0"
+        },
+        {
+          "instruction_rva": "0x1677c8a",
+          "opcode": "call",
+          "target_rva": "0x18ce40"
+        },
+        {
+          "instruction_rva": "0x1677cb7",
+          "opcode": "call",
+          "target_rva": "0x2bbcb0"
+        },
+        {
+          "instruction_rva": "0x1677cea",
+          "opcode": "call",
+          "target_rva": "0x1678000"
+        },
+        {
+          "instruction_rva": "0x1677d27",
+          "opcode": "call",
+          "target_rva": "0xb070"
+        },
+        {
+          "instruction_rva": "0x1677d2d",
+          "opcode": "call",
+          "target_rva": "0xb070"
+        },
+        {
+          "instruction_rva": "0x1677d33",
+          "opcode": "call",
+          "target_rva": "0x6860478"
+        }
+      ],
+      "absolute_pointer_refs": [
+        "0x84ec9d8"
+      ],
+      "instruction_count": 203
+    },
+    "0x1710e20": {
+      "begin_rva": "0x1710e20",
+      "end_rva": "0x1711f96",
+      "unwind_rva": "0x92b792c",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x1710e7f",
+          "opcode": "call",
+          "target_rva": "0x18ce40"
+        },
+        {
+          "instruction_rva": "0x1710ec8",
+          "opcode": "call",
+          "target_rva": "0x9498d0"
+        },
+        {
+          "instruction_rva": "0x1710ef2",
+          "opcode": "call",
+          "target_rva": "0x54470"
+        },
+        {
+          "instruction_rva": "0x1710ef8",
+          "opcode": "jmp",
+          "target_rva": "0x1710f25"
+        },
+        {
+          "instruction_rva": "0x1710f34",
+          "opcode": "call",
+          "target_rva": "0x368df40"
+        },
+        {
+          "instruction_rva": "0x1710f7b",
+          "opcode": "jmp",
+          "target_rva": "0x1710f7f"
+        },
+        {
+          "instruction_rva": "0x1710fa1",
+          "opcode": "call",
+          "target_rva": "0x1712530"
+        },
+        {
+          "instruction_rva": "0x1710fbf",
+          "opcode": "call",
+          "target_rva": "0x16c04f0"
+        },
+        {
+          "instruction_rva": "0x171101c",
+          "opcode": "jmp",
+          "target_rva": "0x1711020"
+        },
+        {
+          "instruction_rva": "0x1711039",
+          "opcode": "call",
+          "target_rva": "0x1714440"
+        },
+        {
+          "instruction_rva": "0x1711054",
+          "opcode": "call",
+          "target_rva": "0x1714640"
+        },
+        {
+          "instruction_rva": "0x171106e",
+          "opcode": "call",
+          "target_rva": "0x368cad0"
+        },
+        {
+          "instruction_rva": "0x171108a",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x17110f9",
+          "opcode": "call",
+          "target_rva": "0x91f0"
+        },
+        {
+          "instruction_rva": "0x1711102",
+          "opcode": "jmp",
+          "target_rva": "0x171112a"
+        },
+        {
+          "instruction_rva": "0x171111f",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x171115d",
+          "opcode": "call",
+          "target_rva": "0xf2a2a0"
+        },
+        {
+          "instruction_rva": "0x17111aa",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x17111ef",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x171120b",
+          "opcode": "call",
+          "target_rva": "0x68740"
+        },
+        {
+          "instruction_rva": "0x1711222",
+          "opcode": "call",
+          "target_rva": "0x68870"
+        },
+        {
+          "instruction_rva": "0x1711271",
+          "opcode": "call",
+          "target_rva": "0x68bc0"
+        },
+        {
+          "instruction_rva": "0x1711281",
+          "opcode": "call",
+          "target_rva": "0x368df30"
+        },
+        {
+          "instruction_rva": "0x171132d",
+          "opcode": "call",
+          "target_rva": "0x368cad0"
+        },
+        {
+          "instruction_rva": "0x17113aa",
+          "opcode": "call",
+          "target_rva": "0x69160"
+        },
+        {
+          "instruction_rva": "0x17113f0",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x17113fc",
+          "opcode": "call",
+          "target_rva": "0x68cc0"
+        },
+        {
+          "instruction_rva": "0x1711441",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x1711473",
+          "opcode": "jmp",
+          "target_rva": "0x17114e9"
+        },
+        {
+          "instruction_rva": "0x1711478",
+          "opcode": "call",
+          "target_rva": "0x368df50"
+        },
+        {
+          "instruction_rva": "0x17114af",
+          "opcode": "jmp",
+          "target_rva": "0x1711542"
+        },
+        {
+          "instruction_rva": "0x17114dd",
+          "opcode": "jmp",
+          "target_rva": "0x17115c1"
+        },
+        {
+          "instruction_rva": "0x171151d",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x171152c",
+          "opcode": "jmp",
+          "target_rva": "0x1711f77"
+        },
+        {
+          "instruction_rva": "0x1711535",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x171153b",
+          "opcode": "jmp",
+          "target_rva": "0x17117f1"
+        },
+        {
+          "instruction_rva": "0x1711564",
+          "opcode": "call",
+          "target_rva": "0x17147d0"
+        },
+        {
+          "instruction_rva": "0x1711587",
+          "opcode": "call",
+          "target_rva": "0x368df40"
+        },
+        {
+          "instruction_rva": "0x17115ba",
+          "opcode": "jmp",
+          "target_rva": "0x171184f"
+        },
+        {
+          "instruction_rva": "0x17115d6",
+          "opcode": "call",
+          "target_rva": "0x16bc6f0"
+        },
+        {
+          "instruction_rva": "0x171162b",
+          "opcode": "jmp",
+          "target_rva": "0x1711634"
+        },
+        {
+          "instruction_rva": "0x1711659",
+          "opcode": "jmp",
+          "target_rva": "0x171180e"
+        },
+        {
+          "instruction_rva": "0x1711683",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x17116a1",
+          "opcode": "jmp",
+          "target_rva": "0x17117f1"
+        },
+        {
+          "instruction_rva": "0x17116ab",
+          "opcode": "call",
+          "target_rva": "0x68740"
+        },
+        {
+          "instruction_rva": "0x17116bf",
+          "opcode": "call",
+          "target_rva": "0x68870"
+        },
+        {
+          "instruction_rva": "0x1711708",
+          "opcode": "call",
+          "target_rva": "0x68bc0"
+        },
+        {
+          "instruction_rva": "0x171175e",
+          "opcode": "call",
+          "target_rva": "0x69160"
+        },
+        {
+          "instruction_rva": "0x171176b",
+          "opcode": "call",
+          "target_rva": "0x68cc0"
+        },
+        {
+          "instruction_rva": "0x17117aa",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x17117cc",
+          "opcode": "call",
+          "target_rva": "0x368e9d0"
+        },
+        {
+          "instruction_rva": "0x17117e2",
+          "opcode": "jmp",
+          "target_rva": "0x1711e81"
+        },
+        {
+          "instruction_rva": "0x17117eb",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x1711809",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x171182c",
+          "opcode": "jmp",
+          "target_rva": "0x1711830"
+        },
+        {
+          "instruction_rva": "0x1711848",
+          "opcode": "jmp",
+          "target_rva": "0x1711eaa"
+        },
+        {
+          "instruction_rva": "0x171186e",
+          "opcode": "call",
+          "target_rva": "0x367d6d0"
+        },
+        {
+          "instruction_rva": "0x17118cd",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x17118d7",
+          "opcode": "jmp",
+          "target_rva": "0x17118ff"
+        },
+        {
+          "instruction_rva": "0x17118f9",
+          "opcode": "call",
+          "target_rva": "0x54470"
+        },
+        {
+          "instruction_rva": "0x1711916",
+          "opcode": "jmp",
+          "target_rva": "0x171191a"
+        },
+        {
+          "instruction_rva": "0x17119c8",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x17119da",
+          "opcode": "call",
+          "target_rva": "0x368cad0"
+        },
+        {
+          "instruction_rva": "0x17119f6",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x1711a5e",
+          "opcode": "call",
+          "target_rva": "0x91f0"
+        },
+        {
+          "instruction_rva": "0x1711a64",
+          "opcode": "jmp",
+          "target_rva": "0x1711a93"
+        },
+        {
+          "instruction_rva": "0x1711a81",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x1711ac6",
+          "opcode": "call",
+          "target_rva": "0xf2a2a0"
+        },
+        {
+          "instruction_rva": "0x1711b0c",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x1711b51",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x1711b6d",
+          "opcode": "call",
+          "target_rva": "0x68740"
+        },
+        {
+          "instruction_rva": "0x1711b80",
+          "opcode": "call",
+          "target_rva": "0x68870"
+        },
+        {
+          "instruction_rva": "0x1711bc9",
+          "opcode": "call",
+          "target_rva": "0x68bc0"
+        },
+        {
+          "instruction_rva": "0x1711be3",
+          "opcode": "call",
+          "target_rva": "0x368cad0"
+        },
+        {
+          "instruction_rva": "0x1711c5d",
+          "opcode": "call",
+          "target_rva": "0x69160"
+        },
+        {
+          "instruction_rva": "0x1711ca3",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x1711caf",
+          "opcode": "call",
+          "target_rva": "0x68cc0"
+        },
+        {
+          "instruction_rva": "0x1711cee",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x1711d54",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x1711d5a",
+          "opcode": "jmp",
+          "target_rva": "0x1711dd7"
+        },
+        {
+          "instruction_rva": "0x1711dae",
+          "opcode": "jmp",
+          "target_rva": "0x1711e24"
+        },
+        {
+          "instruction_rva": "0x1711dd1",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x1711def",
+          "opcode": "jmp",
+          "target_rva": "0x1711e07"
+        },
+        {
+          "instruction_rva": "0x1711df5",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x1711dfb",
+          "opcode": "jmp",
+          "target_rva": "0x1711e07"
+        },
+        {
+          "instruction_rva": "0x1711e01",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x1711e1f",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x1711e46",
+          "opcode": "jmp",
+          "target_rva": "0x1711e4a"
+        },
+        {
+          "instruction_rva": "0x1711ef1",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x1711f32",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x1711f77",
+          "opcode": "call",
+          "target_rva": "0x6860478"
+        },
+        {
+          "instruction_rva": "0x1711f7d",
+          "opcode": "call",
+          "target_rva": "0x8960"
+        },
+        {
+          "instruction_rva": "0x1711f83",
+          "opcode": "call",
+          "target_rva": "0x8960"
+        },
+        {
+          "instruction_rva": "0x1711f89",
+          "opcode": "call",
+          "target_rva": "0x8960"
+        },
+        {
+          "instruction_rva": "0x1711f8f",
+          "opcode": "call",
+          "target_rva": "0x8960"
+        }
+      ],
+      "absolute_pointer_refs": [],
+      "instruction_count": 1007
+    },
+    "0x1714e40": {
+      "begin_rva": "0x1714e40",
+      "end_rva": "0x171586e",
+      "unwind_rva": "0x92b860c",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x1714e9a",
+          "opcode": "call",
+          "target_rva": "0x18ce40"
+        },
+        {
+          "instruction_rva": "0x1714ed1",
+          "opcode": "call",
+          "target_rva": "0x9498d0"
+        },
+        {
+          "instruction_rva": "0x1714ef2",
+          "opcode": "call",
+          "target_rva": "0x54470"
+        },
+        {
+          "instruction_rva": "0x1714ef8",
+          "opcode": "jmp",
+          "target_rva": "0x1714f1f"
+        },
+        {
+          "instruction_rva": "0x1714f48",
+          "opcode": "jmp",
+          "target_rva": "0x1714f4c"
+        },
+        {
+          "instruction_rva": "0x1714f6e",
+          "opcode": "call",
+          "target_rva": "0x17147d0"
+        },
+        {
+          "instruction_rva": "0x1714fc2",
+          "opcode": "jmp",
+          "target_rva": "0x17150fa"
+        },
+        {
+          "instruction_rva": "0x1714fcc",
+          "opcode": "call",
+          "target_rva": "0x68740"
+        },
+        {
+          "instruction_rva": "0x1714fe0",
+          "opcode": "call",
+          "target_rva": "0x68870"
+        },
+        {
+          "instruction_rva": "0x1715029",
+          "opcode": "call",
+          "target_rva": "0x68bc0"
+        },
+        {
+          "instruction_rva": "0x171507f",
+          "opcode": "call",
+          "target_rva": "0x69160"
+        },
+        {
+          "instruction_rva": "0x171508c",
+          "opcode": "call",
+          "target_rva": "0x68cc0"
+        },
+        {
+          "instruction_rva": "0x17150cb",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x17150ed",
+          "opcode": "call",
+          "target_rva": "0x368e9d0"
+        },
+        {
+          "instruction_rva": "0x17150f3",
+          "opcode": "jmp",
+          "target_rva": "0x17157bf"
+        },
+        {
+          "instruction_rva": "0x1715115",
+          "opcode": "call",
+          "target_rva": "0x367ed20"
+        },
+        {
+          "instruction_rva": "0x1715134",
+          "opcode": "call",
+          "target_rva": "0x68740"
+        },
+        {
+          "instruction_rva": "0x171514b",
+          "opcode": "call",
+          "target_rva": "0x68870"
+        },
+        {
+          "instruction_rva": "0x171519a",
+          "opcode": "call",
+          "target_rva": "0x68bc0"
+        },
+        {
+          "instruction_rva": "0x17151b4",
+          "opcode": "call",
+          "target_rva": "0x368cad0"
+        },
+        {
+          "instruction_rva": "0x171522e",
+          "opcode": "call",
+          "target_rva": "0x69160"
+        },
+        {
+          "instruction_rva": "0x1715234",
+          "opcode": "jmp",
+          "target_rva": "0x17155bc"
+        },
+        {
+          "instruction_rva": "0x1715248",
+          "opcode": "call",
+          "target_rva": "0x368df40"
+        },
+        {
+          "instruction_rva": "0x171525f",
+          "opcode": "call",
+          "target_rva": "0x368df10"
+        },
+        {
+          "instruction_rva": "0x171526f",
+          "opcode": "call",
+          "target_rva": "0x170e5f0"
+        },
+        {
+          "instruction_rva": "0x17152bc",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x17152e5",
+          "opcode": "jmp",
+          "target_rva": "0x17152e9"
+        },
+        {
+          "instruction_rva": "0x1715319",
+          "opcode": "call",
+          "target_rva": "0x16c04f0"
+        },
+        {
+          "instruction_rva": "0x171534d",
+          "opcode": "jmp",
+          "target_rva": "0x1715356"
+        },
+        {
+          "instruction_rva": "0x1715370",
+          "opcode": "call",
+          "target_rva": "0x54470"
+        },
+        {
+          "instruction_rva": "0x171538d",
+          "opcode": "jmp",
+          "target_rva": "0x17153be"
+        },
+        {
+          "instruction_rva": "0x17153a6",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x1715463",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x17154c0",
+          "opcode": "call",
+          "target_rva": "0x68740"
+        },
+        {
+          "instruction_rva": "0x17154d7",
+          "opcode": "call",
+          "target_rva": "0x68870"
+        },
+        {
+          "instruction_rva": "0x1715526",
+          "opcode": "call",
+          "target_rva": "0x68bc0"
+        },
+        {
+          "instruction_rva": "0x1715540",
+          "opcode": "call",
+          "target_rva": "0x368cad0"
+        },
+        {
+          "instruction_rva": "0x17155b6",
+          "opcode": "call",
+          "target_rva": "0x69160"
+        },
+        {
+          "instruction_rva": "0x1715603",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x171560f",
+          "opcode": "call",
+          "target_rva": "0x68cc0"
+        },
+        {
+          "instruction_rva": "0x171563d",
+          "opcode": "jmp",
+          "target_rva": "0x171579b"
+        },
+        {
+          "instruction_rva": "0x1715656",
+          "opcode": "call",
+          "target_rva": "0x368cad0"
+        },
+        {
+          "instruction_rva": "0x17156c8",
+          "opcode": "call",
+          "target_rva": "0x91f0"
+        },
+        {
+          "instruction_rva": "0x17156d1",
+          "opcode": "jmp",
+          "target_rva": "0x17156f8"
+        },
+        {
+          "instruction_rva": "0x17156eb",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x1715728",
+          "opcode": "call",
+          "target_rva": "0xf2a2a0"
+        },
+        {
+          "instruction_rva": "0x1715775",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x17157ba",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x1715825",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x1715868",
+          "opcode": "call",
+          "target_rva": "0x6860478"
+        }
+      ],
+      "absolute_pointer_refs": [],
+      "instruction_count": 570
+    },
+    "0x2c6c060": {
+      "begin_rva": "0x2c6c060",
+      "end_rva": "0x2c6c2f2",
+      "unwind_rva": "0x9682cd4",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x2c6c08c",
+          "opcode": "jmp",
+          "target_rva": "0x2c6c2ba"
+        },
+        {
+          "instruction_rva": "0x2c6c0aa",
+          "opcode": "call",
+          "target_rva": "0x14f8660"
+        },
+        {
+          "instruction_rva": "0x2c6c0ba",
+          "opcode": "call",
+          "target_rva": "0x14f8690"
+        },
+        {
+          "instruction_rva": "0x2c6c0c7",
+          "opcode": "call",
+          "target_rva": "0x14f88b0"
+        },
+        {
+          "instruction_rva": "0x2c6c0d1",
+          "opcode": "call",
+          "target_rva": "0x101ea0"
+        },
+        {
+          "instruction_rva": "0x2c6c104",
+          "opcode": "call",
+          "target_rva": "0x5d3710"
+        },
+        {
+          "instruction_rva": "0x2c6c12d",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x2c6c171",
+          "opcode": "call",
+          "target_rva": "0x54470"
+        },
+        {
+          "instruction_rva": "0x2c6c199",
+          "opcode": "jmp",
+          "target_rva": "0x2c6c2aa"
+        },
+        {
+          "instruction_rva": "0x2c6c1a3",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x2c6c1b0",
+          "opcode": "call",
+          "target_rva": "0x5d1970"
+        },
+        {
+          "instruction_rva": "0x2c6c1d6",
+          "opcode": "jmp",
+          "target_rva": "0x2c6c104"
+        },
+        {
+          "instruction_rva": "0x2c6c1f4",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x2c6c261",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x2c6c2a5",
+          "opcode": "call",
+          "target_rva": "0x54470"
+        },
+        {
+          "instruction_rva": "0x2c6c2e0",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x2c6c2f0",
+          "opcode": "jmp",
+          "target_rva": "0x2c6c2ba"
+        }
+      ],
+      "absolute_pointer_refs": [],
+      "instruction_count": 184
+    },
+    "0x2c6ccc0": {
+      "begin_rva": "0x2c6ccc0",
+      "end_rva": "0x2c6cd0f",
+      "unwind_rva": "0x8eeba8c",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x2c6ccd5",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        }
+      ],
+      "absolute_pointer_refs": [
+        "0x87a8040"
+      ],
+      "instruction_count": 18
+    },
+    "0x2c6d230": {
+      "begin_rva": "0x2c6d230",
+      "end_rva": "0x2c6d25f",
+      "unwind_rva": "0x8eed170",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x2c6d253",
+          "opcode": "jmp",
+          "target_rva": "0x2c6cda0"
+        }
+      ],
+      "absolute_pointer_refs": [],
+      "instruction_count": 19
+    },
+    "0x2c6d260": {
+      "begin_rva": "0x2c6d260",
+      "end_rva": "0x2c6d2af",
+      "unwind_rva": "0x8eeba8c",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x2c6d275",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        }
+      ],
+      "absolute_pointer_refs": [
+        "0x87a80d0"
+      ],
+      "instruction_count": 18
+    },
+    "0x2c72de0": {
+      "begin_rva": "0x2c72de0",
+      "end_rva": "0x2c72eba",
+      "unwind_rva": "0x8fbeb70",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x2c72dfc",
+          "opcode": "call",
+          "target_rva": "0xcec270"
+        },
+        {
+          "instruction_rva": "0x2c72e1e",
+          "opcode": "jmp",
+          "target_rva": "0x2c72e47"
+        },
+        {
+          "instruction_rva": "0x2c72e36",
+          "opcode": "call",
+          "target_rva": "0x2c6c060"
+        },
+        {
+          "instruction_rva": "0x2c72e5b",
+          "opcode": "call",
+          "target_rva": "0xcec270"
+        },
+        {
+          "instruction_rva": "0x2c72e6d",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x2c72ea7",
+          "opcode": "jmp",
+          "target_rva": "0x2c72e2f"
+        }
+      ],
+      "absolute_pointer_refs": [],
+      "instruction_count": 66
+    },
+    "0x36738c0": {
+      "begin_rva": "0x36738c0",
+      "end_rva": "0x3676a1d",
+      "unwind_rva": "0x98239bc",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x36738fc",
+          "opcode": "call",
+          "target_rva": "0x3595a90"
+        },
+        {
+          "instruction_rva": "0x367390e",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367394b",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x367398b",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36739c5",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3673a15",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3673a55",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673a94",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673aa0",
+          "opcode": "call",
+          "target_rva": "0x3595bb0"
+        },
+        {
+          "instruction_rva": "0x3673ab2",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3673af0",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x3673b30",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673b6a",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3673bbb",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3673bfb",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673c3a",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673c4c",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3673c82",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3673c97",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3673cd7",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673d16",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673d22",
+          "opcode": "call",
+          "target_rva": "0x3595cd0"
+        },
+        {
+          "instruction_rva": "0x3673d34",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3673d71",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x3673db1",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673deb",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3673e20",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3673e35",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3673e75",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673eb4",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673ec6",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3673efb",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3673f10",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3673f50",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673f8f",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3673fa1",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3673fd6",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3673feb",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x367402b",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367406a",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367407c",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36740b1",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x36740c6",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3674106",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674145",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674151",
+          "opcode": "call",
+          "target_rva": "0x3595df0"
+        },
+        {
+          "instruction_rva": "0x3674163",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36741a1",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x36741e1",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367421b",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367426e",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x36742ae",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36742ed",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36742f9",
+          "opcode": "call",
+          "target_rva": "0x3595fa0"
+        },
+        {
+          "instruction_rva": "0x367430b",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3674344",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x3674384",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36743b8",
+          "opcode": "call",
+          "target_rva": "0x35960c0"
+        },
+        {
+          "instruction_rva": "0x36743ca",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367440f",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x367444f",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674483",
+          "opcode": "call",
+          "target_rva": "0x3678c40"
+        },
+        {
+          "instruction_rva": "0x3674495",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36744d2",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x3674512",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367454c",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367457d",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3674592",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x36745d2",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674611",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674623",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3674654",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3674669",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x36746a9",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36746e8",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36746fa",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367472b",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3674740",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3674780",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36747bf",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36747d1",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3674802",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3674817",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3674857",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674896",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36748a8",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36748d9",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x36748ee",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x367492e",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367496d",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367497f",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36749b0",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x36749c5",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3674a05",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674a44",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674a56",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3674a87",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3674a9c",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3674adc",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674b1b",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674b2d",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3674b5e",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3674b73",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3674bb3",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674bf2",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674c04",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3674c35",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3674c4a",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3674c8a",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674cc9",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674cdb",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3674d0c",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3674d21",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3674d61",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674da0",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674db2",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3674de5",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3674dfa",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3674e3a",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674e79",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674e8b",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3674ebf",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3674ed4",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3674f14",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674f53",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3674f65",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3674f96",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3674fab",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3674feb",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367502a",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367503c",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367506d",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3675082",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x36750c2",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675101",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675113",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3675144",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3675159",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3675199",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36751d8",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36751ea",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367521b",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3675230",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3675270",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36752af",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36752c1",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36752f2",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3675307",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3675347",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675386",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675398",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36753c9",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x36753de",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x367541e",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367545d",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367546f",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36754a0",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x36754b5",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x36754f5",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675534",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675546",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3675579",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x367558e",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x36755ce",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367560d",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367561f",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3675650",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3675665",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x36756a5",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36756e4",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36756f6",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3675727",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x367573c",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x367577c",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36757bb",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36757cd",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36757fe",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3675813",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3675853",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675892",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36758a4",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36758d5",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x36758ea",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x367592a",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675969",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675975",
+          "opcode": "call",
+          "target_rva": "0x3679200"
+        },
+        {
+          "instruction_rva": "0x3675987",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36759c2",
+          "opcode": "call",
+          "target_rva": "0x3678d60"
+        },
+        {
+          "instruction_rva": "0x3675a02",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675a3c",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3675a6f",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3675a84",
+          "opcode": "call",
+          "target_rva": "0xf7e9e0"
+        },
+        {
+          "instruction_rva": "0x3675ac4",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675b03",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675b0f",
+          "opcode": "call",
+          "target_rva": "0x3679310"
+        },
+        {
+          "instruction_rva": "0x3675b21",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3675b65",
+          "opcode": "call",
+          "target_rva": "0x3678d60"
+        },
+        {
+          "instruction_rva": "0x3675ba5",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675bdf",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3675c14",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3675c29",
+          "opcode": "call",
+          "target_rva": "0xf7e9e0"
+        },
+        {
+          "instruction_rva": "0x3675c69",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675ca8",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675cba",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3675cef",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3675d04",
+          "opcode": "call",
+          "target_rva": "0xf7e9e0"
+        },
+        {
+          "instruction_rva": "0x3675d44",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675d83",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675d8f",
+          "opcode": "call",
+          "target_rva": "0x3679420"
+        },
+        {
+          "instruction_rva": "0x3675da1",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3675ddf",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x3675e1f",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675e59",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3675eac",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3675eec",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675f2b",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675f37",
+          "opcode": "call",
+          "target_rva": "0x35961d0"
+        },
+        {
+          "instruction_rva": "0x3675f49",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3675f84",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x3675fc4",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3675ffe",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367604e",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x367608e",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36760cd",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36760df",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3676112",
+          "opcode": "call",
+          "target_rva": "0x36736e0"
+        },
+        {
+          "instruction_rva": "0x3676127",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x3676167",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36761a6",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36761b2",
+          "opcode": "call",
+          "target_rva": "0x35962f0"
+        },
+        {
+          "instruction_rva": "0x36761c4",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3676201",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x3676241",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367627b",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36762cd",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x367630d",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367634c",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3676358",
+          "opcode": "call",
+          "target_rva": "0x3679530"
+        },
+        {
+          "instruction_rva": "0x367636a",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36763a8",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x36763e8",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3676422",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367647a",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x36764ba",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36764f9",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3676505",
+          "opcode": "call",
+          "target_rva": "0x3596450"
+        },
+        {
+          "instruction_rva": "0x3676517",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x3676552",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x3676592",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36765cc",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367661c",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x367665c",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367669b",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36766a7",
+          "opcode": "call",
+          "target_rva": "0x3596570"
+        },
+        {
+          "instruction_rva": "0x36766b9",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36766f4",
+          "opcode": "call",
+          "target_rva": "0x1719580"
+        },
+        {
+          "instruction_rva": "0x3676734",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367676c",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36767bc",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x36767fc",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367683b",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367684d",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367689d",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x36768dd",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367691c",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x367692e",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x367697e",
+          "opcode": "call",
+          "target_rva": "0x676480"
+        },
+        {
+          "instruction_rva": "0x36769ba",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36769f5",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x3676a17",
+          "opcode": "call",
+          "target_rva": "0x6860478"
+        }
+      ],
+      "absolute_pointer_refs": [],
+      "instruction_count": 3032
+    },
+    "0x36ce7a0": {
+      "begin_rva": "0x36ce7a0",
+      "end_rva": "0x36cf2b1",
+      "unwind_rva": "0x98375f0",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x36ce82d",
+          "opcode": "jmp",
+          "target_rva": "0x36ce848"
+        },
+        {
+          "instruction_rva": "0x36ce83a",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36ce86c",
+          "opcode": "call",
+          "target_rva": "0x36d12d0"
+        },
+        {
+          "instruction_rva": "0x36ce8ab",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36ce8be",
+          "opcode": "call",
+          "target_rva": "0x36d1c10"
+        },
+        {
+          "instruction_rva": "0x36ce903",
+          "opcode": "call",
+          "target_rva": "0x361d00"
+        },
+        {
+          "instruction_rva": "0x36ce935",
+          "opcode": "call",
+          "target_rva": "0x2c6cd10"
+        },
+        {
+          "instruction_rva": "0x36ce98a",
+          "opcode": "jmp",
+          "target_rva": "0x36cea1e"
+        },
+        {
+          "instruction_rva": "0x36ce9b1",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36ce9cf",
+          "opcode": "jmp",
+          "target_rva": "0x36ce9ea"
+        },
+        {
+          "instruction_rva": "0x36ce9e4",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36cea0b",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x36cea72",
+          "opcode": "jmp",
+          "target_rva": "0x36ceb07"
+        },
+        {
+          "instruction_rva": "0x36ceaa1",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36ceabf",
+          "opcode": "jmp",
+          "target_rva": "0x36ceada"
+        },
+        {
+          "instruction_rva": "0x36cead4",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36ceafb",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x36ceb23",
+          "opcode": "call",
+          "target_rva": "0x36d13f0"
+        },
+        {
+          "instruction_rva": "0x36ceb6c",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36cebce",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36cebf3",
+          "opcode": "call",
+          "target_rva": "0x2c6ce60"
+        },
+        {
+          "instruction_rva": "0x36cec4d",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36cec82",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36cecfd",
+          "opcode": "call",
+          "target_rva": "0x54470"
+        },
+        {
+          "instruction_rva": "0x36ced03",
+          "opcode": "jmp",
+          "target_rva": "0x36ced2d"
+        },
+        {
+          "instruction_rva": "0x36ced23",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x36ced88",
+          "opcode": "call",
+          "target_rva": "0x5d4520"
+        },
+        {
+          "instruction_rva": "0x36cedc7",
+          "opcode": "call",
+          "target_rva": "0x34a630"
+        },
+        {
+          "instruction_rva": "0x36cedd8",
+          "opcode": "call",
+          "target_rva": "0x68740"
+        },
+        {
+          "instruction_rva": "0x36cedef",
+          "opcode": "call",
+          "target_rva": "0x68870"
+        },
+        {
+          "instruction_rva": "0x36cee45",
+          "opcode": "call",
+          "target_rva": "0x68bc0"
+        },
+        {
+          "instruction_rva": "0x36ceece",
+          "opcode": "jmp",
+          "target_rva": "0x36cf0ba"
+        },
+        {
+          "instruction_rva": "0x36cef1b",
+          "opcode": "call",
+          "target_rva": "0x5d4520"
+        },
+        {
+          "instruction_rva": "0x36cef6b",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36cefda",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36cf061",
+          "opcode": "jmp",
+          "target_rva": "0x36cf29e"
+        },
+        {
+          "instruction_rva": "0x36cf068",
+          "opcode": "jmp",
+          "target_rva": "0x36cef24"
+        },
+        {
+          "instruction_rva": "0x36cf136",
+          "opcode": "jmp",
+          "target_rva": "0x36cf18a"
+        },
+        {
+          "instruction_rva": "0x36cf203",
+          "opcode": "call",
+          "target_rva": "0x69160"
+        },
+        {
+          "instruction_rva": "0x36cf20c",
+          "opcode": "call",
+          "target_rva": "0x68cc0"
+        },
+        {
+          "instruction_rva": "0x36cf254",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36cf26c",
+          "opcode": "jmp",
+          "target_rva": "0x36cef70"
+        },
+        {
+          "instruction_rva": "0x36cf29e",
+          "opcode": "call",
+          "target_rva": "0x6860478"
+        },
+        {
+          "instruction_rva": "0x36cf2a4",
+          "opcode": "call",
+          "target_rva": "0x8960"
+        },
+        {
+          "instruction_rva": "0x36cf2aa",
+          "opcode": "call",
+          "target_rva": "0x8960"
+        }
+      ],
+      "absolute_pointer_refs": [],
+      "instruction_count": 636
+    },
+    "0x36d3060": {
+      "begin_rva": "0x36d3060",
+      "end_rva": "0x36d32ee",
+      "unwind_rva": "0x9838734",
+      "direct_calls_or_jumps": [
+        {
+          "instruction_rva": "0x36d30ba",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36d311b",
+          "opcode": "call",
+          "target_rva": "0x54470"
+        },
+        {
+          "instruction_rva": "0x36d3121",
+          "opcode": "jmp",
+          "target_rva": "0x36d313d"
+        },
+        {
+          "instruction_rva": "0x36d3133",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x36d3142",
+          "opcode": "call",
+          "target_rva": "0x680d0fc"
+        },
+        {
+          "instruction_rva": "0x36d3153",
+          "opcode": "call",
+          "target_rva": "0x36d33a0"
+        },
+        {
+          "instruction_rva": "0x36d316e",
+          "opcode": "call",
+          "target_rva": "0x2c6d230"
+        },
+        {
+          "instruction_rva": "0x36d31c0",
+          "opcode": "jmp",
+          "target_rva": "0x36d31e8"
+        },
+        {
+          "instruction_rva": "0x36d321b",
+          "opcode": "call",
+          "target_rva": "0x54470"
+        },
+        {
+          "instruction_rva": "0x36d3221",
+          "opcode": "jmp",
+          "target_rva": "0x36d3244"
+        },
+        {
+          "instruction_rva": "0x36d323a",
+          "opcode": "call",
+          "target_rva": "0x68960d0"
+        },
+        {
+          "instruction_rva": "0x36d3268",
+          "opcode": "call",
+          "target_rva": "0x5d4a40"
+        },
+        {
+          "instruction_rva": "0x36d3278",
+          "opcode": "call",
+          "target_rva": "0x5d4e00"
+        },
+        {
+          "instruction_rva": "0x36d32bd",
+          "opcode": "call",
+          "target_rva": "0x680d140"
+        },
+        {
+          "instruction_rva": "0x36d32e8",
+          "opcode": "call",
+          "target_rva": "0x6860478"
+        }
+      ],
+      "absolute_pointer_refs": [],
+      "instruction_count": 183
+    }
+  },
+  "legacy_address_mapping": {
+    "create_param2": {
+      "rva": "0xdf40",
+      "section": ".text",
+      "function_begin": "0xdf40",
+      "is_function_begin": true
+    },
+    "send_message": {
+      "rva": "0x1677a30",
+      "section": ".text",
+      "function_begin": "0x1677a30",
+      "is_function_begin": true
+    },
+    "param1_vtable": {
+      "rva": "0x84ec9c8",
+      "section": ".rdata",
+      "function_begin": null,
+      "is_function_begin": false
+    },
+    "param2_global": {
+      "rva": "0xa0ce0b0",
+      "section": ".data",
+      "function_begin": null,
+      "is_function_begin": false
+    },
+    "param2_1": {
+      "rva": "0x8595f58",
+      "section": ".rdata",
+      "function_begin": null,
+      "is_function_begin": false
+    },
+    "param2_2": {
+      "rva": "0x8595e98",
+      "section": ".rdata",
+      "function_begin": null,
+      "is_function_begin": false
+    },
+    "param2_3": {
+      "rva": "0x8595dd8",
+      "section": ".rdata",
+      "function_begin": null,
+      "is_function_begin": false
+    },
+    "text_constructor": {
+      "rva": "0x6b2c30",
+      "section": ".text",
+      "function_begin": "0x6b2c30",
+      "is_function_begin": true
+    },
+    "text_vtable": {
+      "rva": "0x8279358",
+      "section": ".rdata",
+      "function_begin": null,
+      "is_function_begin": false
+    },
+    "newsendmsg_request": {
+      "rva": "0x36d3060",
+      "section": ".text",
+      "function_begin": "0x36d3060",
+      "is_function_begin": true
+    },
+    "outer_copy": {
+      "rva": "0x2c6d230",
+      "section": ".text",
+      "function_begin": "0x2c6d230",
+      "is_function_begin": true
+    },
+    "outer_parser": {
+      "rva": "0x2c6cf10",
+      "section": ".text",
+      "function_begin": "0x2c6cf10",
+      "is_function_begin": true
+    },
+    "repeat_copy": {
+      "rva": "0x2c72de0",
+      "section": ".text",
+      "function_begin": "0x2c72de0",
+      "is_function_begin": true
+    },
+    "element_copy": {
+      "rva": "0x2c6c060",
+      "section": ".text",
+      "function_begin": "0x2c6c060",
+      "is_function_begin": true
+    },
+    "element_vtable": {
+      "rva": "0x87a8038",
+      "section": ".rdata",
+      "function_begin": null,
+      "is_function_begin": false
+    }
+  },
+  "schema": "windows-hook-send-static.v1",
+  "live_process_accessed": false,
+  "code_invoked": false,
+  "abi_verified": false,
+  "delivery_verified": false,
+  "limitations": [
+    "Current-function semantics need further callgraph and object-layout evidence.",
+    "No candidate in this report is approved for invocation."
+  ]
+}

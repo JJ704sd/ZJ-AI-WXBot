@@ -1,0 +1,495 @@
+
+STATIC RANGE 0x5bbc884 .. 0x5bbc8a8
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 5bbc884:      	adrp	x8, 0x7fba000
+ 5bbc888:      	add	x8, x8, #0xb28
+ 5bbc88c:      	stp	xzr, xzr, [x0, #0x8]
+ 5bbc890:      	str	wzr, [x0, #0x18]
+ 5bbc894:      	add	x8, x8, #0x10
+ 5bbc898:      	str	xzr, [x0, #0x20]
+ 5bbc89c:      	str	x8, [x0]
+ 5bbc8a0:      	str	wzr, [x0, #0x28]
+ 5bbc8a4:      	ret
+
+STATIC RANGE 0x5bbc984 .. 0x5bbca30
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 5bbc984:      	sub	sp, sp, #0x60
+ 5bbc988:      	stp	x29, x30, [sp, #0x40]
+ 5bbc98c:      	stp	x20, x19, [sp, #0x50]
+ 5bbc990:      	add	x29, sp, #0x40
+ 5bbc994:      	mov	x20, x1
+ 5bbc998:      	mov	x19, x0
+ 5bbc99c:      	cmp	x1, x0
+ 5bbc9a0:      	b.ne	0x5bbc9e0 <main+0x257fb48>
+ 5bbc9a4:      	adrp	x2, 0xfd1000
+ 5bbc9a8:      	add	x2, x2, #0x22d
+ 5bbc9ac:      	add	x0, sp, #0x10
+ 5bbc9b0:      	mov	w1, #0x3                // =3
+ 5bbc9b4:      	mov	w3, #0x350              // =848
+ 5bbc9b8:      	bl	0x6b24758 <main+0x34e78c0>
+ 5bbc9bc:      	adrp	x1, 0xdf1000
+ 5bbc9c0:      	add	x1, x1, #0x3b5
+ 5bbc9c4:      	add	x0, sp, #0x10
+ 5bbc9c8:      	bl	0x6b24200 <main+0x34e7368>
+ 5bbc9cc:      	mov	x1, x0
+ 5bbc9d0:      	add	x0, sp, #0xf
+ 5bbc9d4:      	bl	0x6b24268 <main+0x34e73d0>
+ 5bbc9d8:      	add	x0, sp, #0x10
+ 5bbc9dc:      	bl	0x6b24770 <main+0x34e78d8>
+ 5bbc9e0:      	add	x0, x19, #0x8
+ 5bbc9e4:      	add	x1, x20, #0x8
+ 5bbc9e8:      	bl	0x5bbefc4 <main+0x258212c>
+ 5bbc9ec:      	ldrb	w8, [x20, #0x28]
+ 5bbc9f0:      	tbz	w8, #0x0, 0x5bbca08 <main+0x257fb70>
+ 5bbc9f4:      	ldr	w8, [x19, #0x28]
+ 5bbc9f8:      	ldr	w9, [x20, #0x20]
+ 5bbc9fc:      	orr	w8, w8, #0x1
+ 5bbca00:      	str	w9, [x19, #0x20]
+ 5bbca04:      	str	w8, [x19, #0x28]
+ 5bbca08:      	ldp	x20, x19, [sp, #0x50]
+ 5bbca0c:      	ldp	x29, x30, [sp, #0x40]
+ 5bbca10:      	add	sp, sp, #0x60
+ 5bbca14:      	ret
+ 5bbca18:      	b	0x5bbca1c <main+0x257fb84>
+ 5bbca1c:      	mov	x19, x0
+ 5bbca20:      	add	x0, sp, #0x10
+ 5bbca24:      	bl	0x6b24770 <main+0x34e78d8>
+ 5bbca28:      	mov	x0, x19
+ 5bbca2c:      	bl	0x3617d08 <.text+0xd08>
+
+STATIC RANGE 0x5bbcad0 .. 0x5bbcb10
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 5bbcad0:      	stp	x29, x30, [sp, #-0x20]!
+ 5bbcad4:      	stp	x20, x19, [sp, #0x10]
+ 5bbcad8:      	mov	x29, sp
+ 5bbcadc:      	mov	w0, #0x30               // =48
+ 5bbcae0:      	bl	0x7d7e420
+ 5bbcae4:      	mov	x19, x0
+ 5bbcae8:      	bl	0x5bbc884 <main+0x257f9ec>
+ 5bbcaec:      	mov	x0, x19
+ 5bbcaf0:      	ldp	x20, x19, [sp, #0x10]
+ 5bbcaf4:      	ldp	x29, x30, [sp], #0x20
+ 5bbcaf8:      	ret
+ 5bbcafc:      	mov	x20, x0
+ 5bbcb00:      	mov	x0, x19
+ 5bbcb04:      	bl	0x3636070 <.text+0x1f070>
+ 5bbcb08:      	mov	x0, x20
+ 5bbcb0c:      	bl	0x3617d08 <.text+0xd08>
+
+STATIC RANGE 0x5bbcb10 .. 0x5bbcb74
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 5bbcb10:      	stp	x29, x30, [sp, #-0x20]!
+ 5bbcb14:      	stp	x20, x19, [sp, #0x10]
+ 5bbcb18:      	mov	x29, sp
+ 5bbcb1c:      	ldrb	w8, [x0, #0x28]
+ 5bbcb20:      	mov	x19, x0
+ 5bbcb24:      	cbz	w8, 0x5bbcb2c <main+0x257fc94>
+ 5bbcb28:      	str	wzr, [x19, #0x20]
+ 5bbcb2c:      	ldr	w8, [x19, #0x10]
+ 5bbcb30:      	cmp	w8, #0x1
+ 5bbcb34:      	b.lt	0x5bbcb60 <main+0x257fcc8>
+ 5bbcb38:      	mov	x20, xzr
+ 5bbcb3c:      	ldr	x8, [x19, #0x8]
+ 5bbcb40:      	ldr	x0, [x8, x20, lsl #3]
+ 5bbcb44:      	ldr	x8, [x0]
+ 5bbcb48:      	ldr	x8, [x8, #0x20]
+ 5bbcb4c:      	blr	x8
+ 5bbcb50:      	ldrsw	x8, [x19, #0x10]
+ 5bbcb54:      	add	x20, x20, #0x1
+ 5bbcb58:      	cmp	x20, x8
+ 5bbcb5c:      	b.lt	0x5bbcb3c <main+0x257fca4>
+ 5bbcb60:      	str	wzr, [x19, #0x10]
+ 5bbcb64:      	str	wzr, [x19, #0x28]
+ 5bbcb68:      	ldp	x20, x19, [sp, #0x10]
+ 5bbcb6c:      	ldp	x29, x30, [sp], #0x20
+ 5bbcb70:      	ret
+
+STATIC RANGE 0x5bbcb74 .. 0x5bbcdf0
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 5bbcb74:      	stp	x29, x30, [sp, #-0x40]!
+ 5bbcb78:      	str	x23, [sp, #0x10]
+ 5bbcb7c:      	stp	x22, x21, [sp, #0x20]
+ 5bbcb80:      	stp	x20, x19, [sp, #0x30]
+ 5bbcb84:      	mov	x29, sp
+ 5bbcb88:      	mov	x19, x1
+ 5bbcb8c:      	mov	x20, x0
+ 5bbcb90:      	mov	w23, #-0x55555556       // =-1431655766
+ 5bbcb94:      	ldp	x8, x9, [x19, #0x8]
+ 5bbcb98:      	cmp	x8, x9
+ 5bbcb9c:      	b.hs	0x5bbcbc0 <main+0x257fd28>
+ 5bbcba0:      	ldrsb	w9, [x8]
+ 5bbcba4:      	tbnz	w9, #0x1f, 0x5bbcbc0 <main+0x257fd28>
+ 5bbcba8:      	and	w1, w9, #0xff
+ 5bbcbac:      	add	x8, x8, #0x1
+ 5bbcbb0:      	str	w1, [x19, #0x20]
+ 5bbcbb4:      	str	x8, [x19, #0x8]
+ 5bbcbb8:      	cbnz	w1, 0x5bbcbd4 <main+0x257fd3c>
+ 5bbcbbc:      	b	0x5bbcdc4 <main+0x257ff2c>
+ 5bbcbc0:      	mov	x0, x19
+ 5bbcbc4:      	bl	0x6b25ea8 <main+0x34e9010>
+ 5bbcbc8:      	mov	w1, w0
+ 5bbcbcc:      	str	w0, [x19, #0x20]
+ 5bbcbd0:      	cbz	w1, 0x5bbcdc4 <main+0x257ff2c>
+ 5bbcbd4:      	lsr	w9, w1, #3
+ 5bbcbd8:      	and	w8, w1, #0x7
+ 5bbcbdc:      	cmp	w9, #0x2
+ 5bbcbe0:      	b.eq	0x5bbcc18 <main+0x257fd80>
+ 5bbcbe4:      	cmp	w9, #0x1
+ 5bbcbe8:      	b.ne	0x5bbcc20 <main+0x257fd88>
+ 5bbcbec:      	cbnz	w8, 0x5bbcc20 <main+0x257fd88>
+ 5bbcbf0:      	ldp	x8, x9, [x19, #0x8]
+ 5bbcbf4:      	cmp	x8, x9
+ 5bbcbf8:      	b.hs	0x5bbcc38 <main+0x257fda0>
+ 5bbcbfc:      	ldrsb	w10, [x8]
+ 5bbcc00:      	tbnz	w10, #0x1f, 0x5bbcc38 <main+0x257fda0>
+ 5bbcc04:      	and	w10, w10, #0xff
+ 5bbcc08:      	add	x8, x8, #0x1
+ 5bbcc0c:      	stur	w10, [x20, #0x20]
+ 5bbcc10:      	str	x8, [x19, #0x8]
+ 5bbcc14:      	b	0x5bbcc4c <main+0x257fdb4>
+ 5bbcc18:      	cmp	w8, #0x2
+ 5bbcc1c:      	b.eq	0x5bbcc74 <main+0x257fddc>
+ 5bbcc20:      	cmp	w8, #0x4
+ 5bbcc24:      	b.eq	0x5bbcdc4 <main+0x257ff2c>
+ 5bbcc28:      	mov	x0, x19
+ 5bbcc2c:      	bl	0x6b26ef0 <main+0x34ea058>
+ 5bbcc30:      	tbnz	w0, #0x0, 0x5bbcb94 <main+0x257fcfc>
+ 5bbcc34:      	b	0x5bbcdbc <main+0x257ff24>
+ 5bbcc38:      	add	x1, x20, #0x20
+ 5bbcc3c:      	mov	x0, x19
+ 5bbcc40:      	bl	0x6b25cf4 <main+0x34e8e5c>
+ 5bbcc44:      	tbz	w0, #0x0, 0x5bbcdbc <main+0x257ff24>
+ 5bbcc48:      	ldp	x8, x9, [x19, #0x8]
+ 5bbcc4c:      	ldr	w10, [x20, #0x28]
+ 5bbcc50:      	cmp	x8, x9
+ 5bbcc54:      	orr	w10, w10, #0x1
+ 5bbcc58:      	str	w10, [x20, #0x28]
+ 5bbcc5c:      	b.hs	0x5bbcb94 <main+0x257fcfc>
+ 5bbcc60:      	ldrb	w9, [x8]
+ 5bbcc64:      	cmp	w9, #0x12
+ 5bbcc68:      	b.ne	0x5bbcb94 <main+0x257fcfc>
+ 5bbcc6c:      	add	x8, x8, #0x1
+ 5bbcc70:      	str	x8, [x19, #0x8]
+ 5bbcc74:      	ldp	w9, w8, [x20, #0x10]
+ 5bbcc78:      	sxtw	x9, w9
+ 5bbcc7c:      	cmp	w9, w8
+ 5bbcc80:      	b.ge	0x5bbcc98 <main+0x257fe00>
+ 5bbcc84:      	ldr	x8, [x20, #0x8]
+ 5bbcc88:      	add	w10, w9, #0x1
+ 5bbcc8c:      	str	w10, [x20, #0x10]
+ 5bbcc90:      	ldr	x21, [x8, x9, lsl #3]
+ 5bbcc94:      	b	0x5bbcce0 <main+0x257fe48>
+ 5bbcc98:      	ldr	w9, [x20, #0x18]
+ 5bbcc9c:      	cmp	w8, w9
+ 5bbcca0:      	b.ne	0x5bbccb4 <main+0x257fe1c>
+ 5bbcca4:      	add	x0, x20, #0x8
+ 5bbcca8:      	add	w1, w8, #0x1
+ 5bbccac:      	bl	0x6b23bf4 <main+0x34e6d5c>
+ 5bbccb0:      	ldr	w8, [x20, #0x14]
+ 5bbccb4:      	add	w8, w8, #0x1
+ 5bbccb8:      	mov	w0, #0x38               // =56
+ 5bbccbc:      	str	w8, [x20, #0x14]
+ 5bbccc0:      	bl	0x7d7e420
+ 5bbccc4:      	mov	x21, x0
+ 5bbccc8:      	bl	0x5bbbc50 <main+0x257edb8>
+ 5bbcccc:      	ldrsw	x8, [x20, #0x10]
+ 5bbccd0:      	ldr	x9, [x20, #0x8]
+ 5bbccd4:      	add	w10, w8, #0x1
+ 5bbccd8:      	str	x21, [x9, x8, lsl #3]
+ 5bbccdc:      	str	w10, [x20, #0x10]
+ 5bbcce0:      	ldp	x8, x9, [x19, #0x8]
+ 5bbcce4:      	str	w23, [x29, #0x1c]
+ 5bbcce8:      	cmp	x8, x9
+ 5bbccec:      	b.hs	0x5bbcd0c <main+0x257fe74>
+ 5bbccf0:      	ldrsb	w9, [x8]
+ 5bbccf4:      	tbnz	w9, #0x1f, 0x5bbcd0c <main+0x257fe74>
+ 5bbccf8:      	and	w9, w9, #0xff
+ 5bbccfc:      	add	x8, x8, #0x1
+ 5bbcd00:      	str	w9, [x29, #0x1c]
+ 5bbcd04:      	str	x8, [x19, #0x8]
+ 5bbcd08:      	b	0x5bbcd1c <main+0x257fe84>
+ 5bbcd0c:      	add	x1, x29, #0x1c
+ 5bbcd10:      	mov	x0, x19
+ 5bbcd14:      	bl	0x6b25cf4 <main+0x34e8e5c>
+ 5bbcd18:      	tbz	w0, #0x0, 0x5bbcdbc <main+0x257ff24>
+ 5bbcd1c:      	ldp	w8, w9, [x19, #0x38]
+ 5bbcd20:      	add	w10, w8, #0x1
+ 5bbcd24:      	cmp	w8, w9
+ 5bbcd28:      	str	w10, [x19, #0x38]
+ 5bbcd2c:      	b.ge	0x5bbcdbc <main+0x257ff24>
+ 5bbcd30:      	ldr	w1, [x29, #0x1c]
+ 5bbcd34:      	mov	x0, x19
+ 5bbcd38:      	bl	0x6b254e0 <main+0x34e8648>
+ 5bbcd3c:      	mov	w22, w0
+ 5bbcd40:      	mov	x0, x21
+ 5bbcd44:      	mov	x1, x19
+ 5bbcd48:      	bl	0x5bbc090 <main+0x257f1f8>
+ 5bbcd4c:      	tbz	w0, #0x0, 0x5bbcdbc <main+0x257ff24>
+ 5bbcd50:      	ldrb	w8, [x19, #0x24]
+ 5bbcd54:      	cbz	w8, 0x5bbcdbc <main+0x257ff24>
+ 5bbcd58:      	mov	x0, x19
+ 5bbcd5c:      	mov	w1, w22
+ 5bbcd60:      	bl	0x6b2555c <main+0x34e86c4>
+ 5bbcd64:      	ldr	w8, [x19, #0x38]
+ 5bbcd68:      	subs	w8, w8, #0x1
+ 5bbcd6c:      	b.lt	0x5bbcd74 <main+0x257fedc>
+ 5bbcd70:      	str	w8, [x19, #0x38]
+ 5bbcd74:      	ldp	x8, x9, [x19, #0x8]
+ 5bbcd78:      	cmp	x8, x9
+ 5bbcd7c:      	b.hs	0x5bbcd8c <main+0x257fef4>
+ 5bbcd80:      	ldrb	w10, [x8]
+ 5bbcd84:      	cmp	w10, #0x12
+ 5bbcd88:      	b.eq	0x5bbcc6c <main+0x257fdd4>
+ 5bbcd8c:      	cmp	x8, x9
+ 5bbcd90:      	b.ne	0x5bbcb94 <main+0x257fcfc>
+ 5bbcd94:      	ldr	w8, [x19, #0x2c]
+ 5bbcd98:      	cbnz	w8, 0x5bbcdac <main+0x257ff14>
+ 5bbcd9c:      	ldr	w8, [x19, #0x18]
+ 5bbcda0:      	ldr	w9, [x19, #0x28]
+ 5bbcda4:      	cmp	w8, w9
+ 5bbcda8:      	b.ne	0x5bbcb94 <main+0x257fcfc>
+ 5bbcdac:      	mov	w0, #0x1                // =1
+ 5bbcdb0:      	str	wzr, [x19, #0x20]
+ 5bbcdb4:      	strb	w0, [x19, #0x24]
+ 5bbcdb8:      	b	0x5bbcdc8 <main+0x257ff30>
+ 5bbcdbc:      	mov	w0, wzr
+ 5bbcdc0:      	b	0x5bbcdc8 <main+0x257ff30>
+ 5bbcdc4:      	mov	w0, #0x1                // =1
+ 5bbcdc8:      	ldp	x20, x19, [sp, #0x30]
+ 5bbcdcc:      	ldr	x23, [sp, #0x10]
+ 5bbcdd0:      	ldp	x22, x21, [sp, #0x20]
+ 5bbcdd4:      	ldp	x29, x30, [sp], #0x40
+ 5bbcdd8:      	ret
+ 5bbcddc:      	mov	x19, x0
+ 5bbcde0:      	mov	x0, x21
+ 5bbcde4:      	bl	0x3636070 <.text+0x1f070>
+ 5bbcde8:      	mov	x0, x19
+ 5bbcdec:      	bl	0x3617d08 <.text+0xd08>
+
+STATIC RANGE 0x5bbcfc8 .. 0x5bbd018
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 5bbcfc8:      	stp	x29, x30, [sp, #-0x20]!
+ 5bbcfcc:      	str	x19, [sp, #0x10]
+ 5bbcfd0:      	mov	x29, sp
+ 5bbcfd4:      	mov	w0, #0x20               // =32
+ 5bbcfd8:      	mov	x19, x8
+ 5bbcfdc:      	bl	0x7d7e420
+ 5bbcfe0:      	adrp	x8, 0xf0c000
+ 5bbcfe4:      	add	x8, x8, #0x976
+ 5bbcfe8:      	adrp	x9, 0x1004000
+ 5bbcfec:      	ldr	q0, [x8]
+ 5bbcff0:      	ldur	q1, [x8, #0xa]
+ 5bbcff4:      	ldr	q2, [x9, #0xfa0]
+ 5bbcff8:      	str	x0, [x19, #0x10]
+ 5bbcffc:      	str	q0, [x0]
+ 5bbd000:      	stur	q1, [x0, #0xa]
+ 5bbd004:      	str	q2, [x19]
+ 5bbd008:      	strb	wzr, [x0, #0x1a]
+ 5bbd00c:      	ldr	x19, [sp, #0x10]
+ 5bbd010:      	ldp	x29, x30, [sp], #0x20
+ 5bbd014:      	ret
+
+STATIC RANGE 0x4f664c4 .. 0x4f664cc
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f664c4:      	add	x0, x0, #0xc0
+ 4f664c8:      	ret
+
+STATIC RANGE 0x4f663d4 .. 0x4f66470
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f663d4:      	sub	sp, sp, #0x40
+ 4f663d8:      	stp	x29, x30, [sp, #0x20]
+ 4f663dc:      	stp	x20, x19, [sp, #0x30]
+ 4f663e0:      	add	x29, sp, #0x20
+ 4f663e4:      	mov	x8, #-0x5555555555555556 // =-6148914691236517206
+ 4f663e8:      	add	x0, x0, #0xc0
+ 4f663ec:      	mov	x19, x1
+ 4f663f0:      	stp	x8, x8, [sp, #0x10]
+ 4f663f4:      	add	x20, sp, #0x8
+ 4f663f8:      	str	x8, [sp, #0x8]
+ 4f663fc:      	add	x8, sp, #0x8
+ 4f66400:      	strb	wzr, [x3]
+ 4f66404:      	bl	0x6b2528c <main+0x34e83f4>
+ 4f66408:      	ldrb	w8, [sp, #0x8]
+ 4f6640c:      	ldr	x9, [sp, #0x18]
+ 4f66410:      	orr	x12, x20, #0x1
+ 4f66414:      	ldr	w10, [sp, #0x10]
+ 4f66418:      	lsr	x11, x8, #1
+ 4f6641c:      	tst	w8, #0x1
+ 4f66420:      	csel	x1, x12, x9, eq
+ 4f66424:      	csel	w2, w11, w10, eq
+ 4f66428:      	mov	x0, x19
+ 4f6642c:      	bl	0x5b8c8b4 <main+0x254fa1c>
+ 4f66430:      	ldrb	w8, [sp, #0x8]
+ 4f66434:      	tbz	w8, #0x0, 0x4f66440 <main+0x19295a8>
+ 4f66438:      	ldr	x0, [sp, #0x18]
+ 4f6643c:      	bl	0x3636070 <.text+0x1f070>
+ 4f66440:      	mov	w0, #0x1                // =1
+ 4f66444:      	ldp	x20, x19, [sp, #0x30]
+ 4f66448:      	ldp	x29, x30, [sp, #0x20]
+ 4f6644c:      	add	sp, sp, #0x40
+ 4f66450:      	ret
+ 4f66454:      	ldrb	w8, [sp, #0x8]
+ 4f66458:      	mov	x19, x0
+ 4f6645c:      	tbz	w8, #0x0, 0x4f66468 <main+0x19295d0>
+ 4f66460:      	ldr	x0, [sp, #0x18]
+ 4f66464:      	bl	0x3636070 <.text+0x1f070>
+ 4f66468:      	mov	x0, x19
+ 4f6646c:      	bl	0x3617d08 <.text+0xd08>
+
+STATIC RANGE 0x4f66470 .. 0x4f664c4
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f66470:      	stp	x29, x30, [sp, #-0x30]!
+ 4f66474:      	str	x21, [sp, #0x10]
+ 4f66478:      	stp	x20, x19, [sp, #0x20]
+ 4f6647c:      	mov	x29, sp
+ 4f66480:      	mov	x19, x1
+ 4f66484:      	mov	x20, x0
+ 4f66488:      	mov	x0, x1
+ 4f6648c:      	mov	w1, wzr
+ 4f66490:      	bl	0x5b8c918 <main+0x254fa80>
+ 4f66494:      	mov	x21, x0
+ 4f66498:      	mov	x0, x19
+ 4f6649c:      	bl	0x5b8c958 <main+0x254fac0>
+ 4f664a0:      	mov	w2, w0
+ 4f664a4:      	add	x0, x20, #0xf0
+ 4f664a8:      	mov	x1, x21
+ 4f664ac:      	bl	0x6b24b94 <main+0x34e7cfc>
+ 4f664b0:      	mov	w0, #0x1                // =1
+ 4f664b4:      	ldp	x20, x19, [sp, #0x20]
+ 4f664b8:      	ldr	x21, [sp, #0x10]
+ 4f664bc:      	ldp	x29, x30, [sp], #0x30
+ 4f664c0:      	ret
+
+STATIC RANGE 0x5bbce64 .. 0x5bbcf14
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 5bbce64:      	stp	x29, x30, [sp, #-0x30]!
+ 5bbce68:      	stp	x22, x21, [sp, #0x10]
+ 5bbce6c:      	stp	x20, x19, [sp, #0x20]
+ 5bbce70:      	mov	x29, sp
+ 5bbce74:      	ldrb	w8, [x0, #0x28]
+ 5bbce78:      	mov	x19, x0
+ 5bbce7c:      	tbnz	w8, #0x0, 0x5bbce88 <main+0x257fff0>
+ 5bbce80:      	mov	w8, wzr
+ 5bbce84:      	b	0x5bbcea4 <main+0x258000c>
+ 5bbce88:      	ldr	w0, [x19, #0x20]
+ 5bbce8c:      	cmp	w0, #0x80
+ 5bbce90:      	b.hs	0x5bbce9c <main+0x2580004>
+ 5bbce94:      	mov	w8, #0x2                // =2
+ 5bbce98:      	b	0x5bbcea4 <main+0x258000c>
+ 5bbce9c:      	bl	0x6b26c4c <main+0x34e9db4>
+ 5bbcea0:      	add	w8, w0, #0x1
+ 5bbcea4:      	ldr	w9, [x19, #0x10]
+ 5bbcea8:      	cmp	w9, #0x1
+ 5bbceac:      	add	w20, w9, w8
+ 5bbceb0:      	b.lt	0x5bbcefc <main+0x2580064>
+ 5bbceb4:      	mov	x22, xzr
+ 5bbceb8:      	b	0x5bbced8 <main+0x2580040>
+ 5bbcebc:      	mov	w0, #0x1                // =1
+ 5bbcec0:      	ldrsw	x8, [x19, #0x10]
+ 5bbcec4:      	add	x22, x22, #0x1
+ 5bbcec8:      	add	w9, w21, w20
+ 5bbcecc:      	add	w20, w9, w0
+ 5bbced0:      	cmp	x22, x8
+ 5bbced4:      	b.ge	0x5bbcefc <main+0x2580064>
+ 5bbced8:      	ldr	x8, [x19, #0x8]
+ 5bbcedc:      	ldr	x0, [x8, x22, lsl #3]
+ 5bbcee0:      	bl	0x5bbc62c <main+0x257f794>
+ 5bbcee4:      	mov	w21, w0
+ 5bbcee8:      	cmp	w0, #0x80
+ 5bbceec:      	b.lo	0x5bbcebc <main+0x2580024>
+ 5bbcef0:      	mov	w0, w21
+ 5bbcef4:      	bl	0x6b26c4c <main+0x34e9db4>
+ 5bbcef8:      	b	0x5bbcec0 <main+0x2580028>
+ 5bbcefc:      	mov	w0, w20
+ 5bbcf00:      	str	w20, [x19, #0x24]
+ 5bbcf04:      	ldp	x20, x19, [sp, #0x20]
+ 5bbcf08:      	ldp	x22, x21, [sp, #0x10]
+ 5bbcf0c:      	ldp	x29, x30, [sp], #0x30
+ 5bbcf10:      	ret
+
+STATIC RANGE 0x5bbcdf0 .. 0x5bbce64
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 5bbcdf0:      	stp	x29, x30, [sp, #-0x30]!
+ 5bbcdf4:      	str	x21, [sp, #0x10]
+ 5bbcdf8:      	stp	x20, x19, [sp, #0x20]
+ 5bbcdfc:      	mov	x29, sp
+ 5bbce00:      	ldrb	w8, [x0, #0x28]
+ 5bbce04:      	mov	x19, x0
+ 5bbce08:      	mov	x20, x1
+ 5bbce0c:      	tbz	w8, #0x0, 0x5bbce20 <main+0x257ff88>
+ 5bbce10:      	ldr	w1, [x19, #0x20]
+ 5bbce14:      	mov	w0, #0x1                // =1
+ 5bbce18:      	mov	x2, x20
+ 5bbce1c:      	bl	0x6b27340 <main+0x34ea4a8>
+ 5bbce20:      	ldr	w8, [x19, #0x10]
+ 5bbce24:      	cmp	w8, #0x1
+ 5bbce28:      	b.lt	0x5bbce54 <main+0x257ffbc>
+ 5bbce2c:      	mov	x21, xzr
+ 5bbce30:      	ldr	x8, [x19, #0x8]
+ 5bbce34:      	mov	w0, #0x2                // =2
+ 5bbce38:      	mov	x2, x20
+ 5bbce3c:      	ldr	x1, [x8, x21, lsl #3]
+ 5bbce40:      	bl	0x6b276d0 <main+0x34ea838>
+ 5bbce44:      	ldrsw	x8, [x19, #0x10]
+ 5bbce48:      	add	x21, x21, #0x1
+ 5bbce4c:      	cmp	x21, x8
+ 5bbce50:      	b.lt	0x5bbce30 <main+0x257ff98>
+ 5bbce54:      	ldp	x20, x19, [sp, #0x20]
+ 5bbce58:      	ldr	x21, [sp, #0x10]
+ 5bbce5c:      	ldp	x29, x30, [sp], #0x30
+ 5bbce60:      	ret

@@ -1,0 +1,15 @@
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 5bbdba8:      	adrp	x8, 0x7fba000
+ 5bbdbac:      	add	x8, x8, #0xc18
+ 5bbdbb0:      	str	xzr, [x0, #0x28]
+ 5bbdbb4:      	str	wzr, [x0, #0x30]
+ 5bbdbb8:      	add	x8, x8, #0x10
+ 5bbdbbc:      	stp	xzr, xzr, [x0, #0x10]
+ 5bbdbc0:      	stp	x8, xzr, [x0]
+ 5bbdbc4:      	str	wzr, [x0, #0x20]
+ 5bbdbc8:      	ret

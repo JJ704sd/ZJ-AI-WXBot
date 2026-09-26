@@ -1,0 +1,51 @@
+[
+  {
+    "pc": "0x4f6583c",
+    "load_pc": "0x4f65848",
+    "target": "0x80f2b58",
+    "kind": "caller_closure_GOT",
+    "start": "0x4f65818"
+  },
+  {
+    "pc": "0x4f65918",
+    "load_pc": "0x4f65920",
+    "target": "0x80f2b58",
+    "kind": "caller_closure_GOT",
+    "start": "0x4f6590c"
+  },
+  {
+    "pc": "0x4f6596c",
+    "load_pc": "0x4f65974",
+    "target": "0x80f2b58",
+    "kind": "caller_closure_GOT",
+    "start": "0x4f65960"
+  },
+  {
+    "pc": "0x4f659c8",
+    "load_pc": "0x4f659d4",
+    "target": "0x80f2b58",
+    "kind": "caller_closure_GOT",
+    "start": "0x4f659b0"
+  },
+  {
+    "pc": "0x4f65aa0",
+    "load_pc": "0x4f65aac",
+    "target": "0x80f2b58",
+    "kind": "caller_closure_GOT",
+    "start": "0x4f65a94"
+  },
+  {
+    "pc": "0x5ba619c",
+    "load_pc": "0x5ba61a8",
+    "target": "0x80feae0",
+    "kind": "manager_vtable_GOT",
+    "start": "0x5ba6184"
+  },
+  {
+    "pc": "0x5ba6500",
+    "load_pc": "0x5ba6508",
+    "target": "0x80feae0",
+    "kind": "manager_vtable_GOT",
+    "start": "0x5ba6500"
+  }
+]

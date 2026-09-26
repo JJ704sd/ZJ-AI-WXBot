@@ -1,0 +1,236 @@
+[
+  {
+    "slot": 2,
+    "function": "0x4294718",
+    "length": 2492,
+    "first96_similarity": 0.177
+  },
+  {
+    "slot": 20,
+    "function": "0x4294670",
+    "length": 20,
+    "first96_similarity": 0.177
+  },
+  {
+    "slot": 21,
+    "function": "0x4294698",
+    "length": 48,
+    "first96_similarity": 0.177
+  },
+  {
+    "slot": 38,
+    "function": "0x42946f8",
+    "length": 16,
+    "first96_similarity": 0.177
+  },
+  {
+    "slot": 19,
+    "function": "0x4294660",
+    "length": 8,
+    "first96_similarity": 0.167
+  },
+  {
+    "slot": 13,
+    "function": "0x42931e8",
+    "length": 2848,
+    "first96_similarity": 0.156
+  },
+  {
+    "slot": 11,
+    "function": "0x42931c0",
+    "length": 4,
+    "first96_similarity": 0.146
+  },
+  {
+    "slot": 12,
+    "function": "0x42931c8",
+    "length": 16,
+    "first96_similarity": 0.146
+  },
+  {
+    "slot": 22,
+    "function": "0x428e650",
+    "length": 2556,
+    "first96_similarity": 0.135
+  },
+  {
+    "slot": 32,
+    "function": "0x4290b08",
+    "length": 1100,
+    "first96_similarity": 0.104
+  },
+  {
+    "slot": 34,
+    "function": "0x4291068",
+    "length": 36,
+    "first96_similarity": 0.104
+  },
+  {
+    "slot": 14,
+    "function": "0x4293ec0",
+    "length": 1128,
+    "first96_similarity": 0.094
+  },
+  {
+    "slot": 15,
+    "function": "0x4294330",
+    "length": 268,
+    "first96_similarity": 0.094
+  },
+  {
+    "slot": 8,
+    "function": "0x428db8c",
+    "length": 796,
+    "first96_similarity": 0.083
+  },
+  {
+    "slot": 33,
+    "function": "0x4290f58",
+    "length": 268,
+    "first96_similarity": 0.083
+  },
+  {
+    "slot": 7,
+    "function": "0x42911b0",
+    "length": 2636,
+    "first96_similarity": 0.073
+  },
+  {
+    "slot": 9,
+    "function": "0x4293094",
+    "length": 8,
+    "first96_similarity": 0.073
+  },
+  {
+    "slot": 10,
+    "function": "0x42930a4",
+    "length": 280,
+    "first96_similarity": 0.073
+  },
+  {
+    "slot": 16,
+    "function": "0x4294440",
+    "length": 260,
+    "first96_similarity": 0.073
+  },
+  {
+    "slot": 3,
+    "function": "0x42950d4",
+    "length": 24,
+    "first96_similarity": 0.062
+  },
+  {
+    "slot": 4,
+    "function": "0x42950ec",
+    "length": 24,
+    "first96_similarity": 0.062
+  },
+  {
+    "slot": 5,
+    "function": "0x4295104",
+    "length": 24,
+    "first96_similarity": 0.062
+  },
+  {
+    "slot": 6,
+    "function": "0x429511c",
+    "length": 24,
+    "first96_similarity": 0.062
+  },
+  {
+    "slot": 25,
+    "function": "0x428f950",
+    "length": 1184,
+    "first96_similarity": 0.062
+  },
+  {
+    "slot": 0,
+    "function": "0x428d930",
+    "length": 100,
+    "first96_similarity": 0.052
+  },
+  {
+    "slot": 1,
+    "function": "0x428da4c",
+    "length": 104,
+    "first96_similarity": 0.052
+  },
+  {
+    "slot": 17,
+    "function": "0x4294548",
+    "length": 4,
+    "first96_similarity": 0.052
+  },
+  {
+    "slot": 18,
+    "function": "0x4294550",
+    "length": 136,
+    "first96_similarity": 0.052
+  },
+  {
+    "slot": 26,
+    "function": "0x428fdf4",
+    "length": 8,
+    "first96_similarity": 0.052
+  },
+  {
+    "slot": 27,
+    "function": "0x428fe04",
+    "length": 1432,
+    "first96_similarity": 0.052
+  },
+  {
+    "slot": 28,
+    "function": "0x42903a4",
+    "length": 12,
+    "first96_similarity": 0.052
+  },
+  {
+    "slot": 29,
+    "function": "0x42903bc",
+    "length": 936,
+    "first96_similarity": 0.052
+  },
+  {
+    "slot": 31,
+    "function": "0x429080c",
+    "length": 760,
+    "first96_similarity": 0.052
+  },
+  {
+    "slot": 35,
+    "function": "0x4291bfc",
+    "length": 944,
+    "first96_similarity": 0.052
+  },
+  {
+    "slot": 37,
+    "function": "0x4292c60",
+    "length": 1068,
+    "first96_similarity": 0.052
+  },
+  {
+    "slot": 23,
+    "function": "0x428f7c0",
+    "length": 100,
+    "first96_similarity": 0.042
+  },
+  {
+    "slot": 24,
+    "function": "0x428f888",
+    "length": 100,
+    "first96_similarity": 0.042
+  },
+  {
+    "slot": 30,
+    "function": "0x429076c",
+    "length": 80,
+    "first96_similarity": 0.042
+  },
+  {
+    "slot": 36,
+    "function": "0x4291fb4",
+    "length": 3236,
+    "first96_similarity": 0.021
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "source_url": "https://dldir1v6.qq.com/weixin/Universal/Mac/xWeChatMac_universal_4.1.11.53_41748.dmg",
+  "downloaded_file": "downloads/mac/xWeChatMac_universal_4.1.11.53_41748.dmg",
+  "download_size": 494489257,
+  "download_sha256": "ea80413fca0ea09eb4241e333a8f09862d33c6c967e6ab66244fd474e6ab4115",
+  "hdiutil_verify": "CRC32 C0E2C78F VALID",
+  "read_only_mount": true,
+  "checks": {
+    "old_version_match": true,
+    "old_build_match": true,
+    "old_main_sha256_match": true,
+    "old_arm64_sha256_match": true,
+    "current_matches_old_build": false,
+    "current_matches_old_core": false
+  },
+  "notes": [
+    "Filename number 41748 differs from internal CFBundleVersion 269109.",
+    "Both current app and freshly downloaded mounted official app return the same codesign arm64 failure under the current environment; cause unresolved.",
+    "No app launched and no installed app file modified."
+  ],
+  "mount_state": "detached_after_req2buf_abi_static_analysis"
+}

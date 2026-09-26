@@ -1,0 +1,110 @@
+[
+  {
+    "start": "0x6b4e508",
+    "fde": "0x303ff70",
+    "fde_length": 48,
+    "fde_cie": "0x2ad7d40",
+    "decoded_initial_location": "0x6b4e508",
+    "decoded_range_length": 304,
+    "decoded_end": "0x6b4e638",
+    "matches_index": true,
+    "cie_fde_pointer_encoding": "0x1b",
+    "range_decoding": "pc-relative signed32 initial_location plus unsigned32 address_range; checked CIE encoding"
+  },
+  {
+    "start": "0x6b5c7fc",
+    "fde": "0x3042718",
+    "fde_length": 48,
+    "fde_cie": "0x2ad7d40",
+    "decoded_initial_location": "0x6b5c7fc",
+    "decoded_range_length": 136,
+    "decoded_end": "0x6b5c884",
+    "matches_index": true,
+    "cie_fde_pointer_encoding": "0x1b",
+    "range_decoding": "pc-relative signed32 initial_location plus unsigned32 address_range; checked CIE encoding"
+  },
+  {
+    "start": "0x6b5a978",
+    "fde": "0x30422e8",
+    "fde_length": 68,
+    "fde_cie": "0x2ad7d40",
+    "decoded_initial_location": "0x6b5a978",
+    "decoded_range_length": 4884,
+    "decoded_end": "0x6b5bc8c",
+    "matches_index": true,
+    "cie_fde_pointer_encoding": "0x1b",
+    "range_decoding": "pc-relative signed32 initial_location plus unsigned32 address_range; checked CIE encoding"
+  },
+  {
+    "start": "0x6c16e20",
+    "fde": "0x3054834",
+    "fde_length": 56,
+    "fde_cie": "0x2ad7d40",
+    "decoded_initial_location": "0x6c16e20",
+    "decoded_range_length": 744,
+    "decoded_end": "0x6c17108",
+    "matches_index": true,
+    "cie_fde_pointer_encoding": "0x1b",
+    "range_decoding": "pc-relative signed32 initial_location plus unsigned32 address_range; checked CIE encoding"
+  },
+  {
+    "start": "0x6c17238",
+    "fde": "0x30548a4",
+    "fde_length": 52,
+    "fde_cie": "0x2ad7d40",
+    "decoded_initial_location": "0x6c17238",
+    "decoded_range_length": 1376,
+    "decoded_end": "0x6c17798",
+    "matches_index": true,
+    "cie_fde_pointer_encoding": "0x1b",
+    "range_decoding": "pc-relative signed32 initial_location plus unsigned32 address_range; checked CIE encoding"
+  },
+  {
+    "start": "0x4f62668",
+    "fde": "0x3421354",
+    "fde_length": 84,
+    "fde_cie": "0x3257da8",
+    "decoded_initial_location": "0x4f62668",
+    "decoded_range_length": 1756,
+    "decoded_end": "0x4f62d44",
+    "matches_index": true,
+    "cie_fde_pointer_encoding": "0x1b",
+    "range_decoding": "pc-relative signed32 initial_location plus unsigned32 address_range; checked CIE encoding"
+  },
+  {
+    "start": "0x4f65f78",
+    "fde": "0x3421854",
+    "fde_length": 68,
+    "fde_cie": "0x3257da8",
+    "decoded_initial_location": "0x4f65f78",
+    "decoded_range_length": 476,
+    "decoded_end": "0x4f66154",
+    "matches_index": true,
+    "cie_fde_pointer_encoding": "0x1b",
+    "range_decoding": "pc-relative signed32 initial_location plus unsigned32 address_range; checked CIE encoding"
+  },
+  {
+    "start": "0x48522b8",
+    "fde": "0x33a20dc",
+    "fde_length": 56,
+    "fde_cie": "0x3257da8",
+    "decoded_initial_location": "0x48522b8",
+    "decoded_range_length": 3284,
+    "decoded_end": "0x4852f8c",
+    "matches_index": true,
+    "cie_fde_pointer_encoding": "0x1b",
+    "range_decoding": "pc-relative signed32 initial_location plus unsigned32 address_range; checked CIE encoding"
+  },
+  {
+    "start": "0x4852f8c",
+    "fde": "0x33a2118",
+    "fde_length": 68,
+    "fde_cie": "0x3257da8",
+    "decoded_initial_location": "0x4852f8c",
+    "decoded_range_length": 2520,
+    "decoded_end": "0x4853964",
+    "matches_index": true,
+    "cie_fde_pointer_encoding": "0x1b",
+    "range_decoding": "pc-relative signed32 initial_location plus unsigned32 address_range; checked CIE encoding"
+  }
+]

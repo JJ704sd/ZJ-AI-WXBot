@@ -1,0 +1,63 @@
+(lldb) target create --arch=arm64 "/Applications/WeChat.app/Contents/Resources/wechat.dylib"
+Current executable set to '/Applications/WeChat.app/Contents/Resources/wechat.dylib' (arm64).
+(lldb) disassemble --start-address 0x424fb88 --end-address 0x424fc08
+wechat.dylib`___lldb_unnamed_symbol_424fb88:
+wechat.dylib[0x424fb88] <+0>:   sub    sp, sp, #0xa0
+wechat.dylib[0x424fb8c] <+4>:   stp    x22, x21, [sp, #0x70]
+wechat.dylib[0x424fb90] <+8>:   stp    x20, x19, [sp, #0x80]
+wechat.dylib[0x424fb94] <+12>:  stp    x29, x30, [sp, #0x90]
+wechat.dylib[0x424fb98] <+16>:  add    x29, sp, #0x90
+wechat.dylib[0x424fb9c] <+20>:  mov    x19, x3
+wechat.dylib[0x424fba0] <+24>:  mov    x20, x2
+wechat.dylib[0x424fba4] <+28>:  mov    x21, #-0x5555555555555556 ; =-6148914691236517206 
+wechat.dylib[0x424fba8] <+32>:  stur   x21, [x29, #-0x28]
+wechat.dylib[0x424fbac] <+36>:  sub    x0, x29, #0x28
+wechat.dylib[0x424fbb0] <+40>:  bl     0x42b8eb4                 ; ___lldb_unnamed_symbol_42b8eb4
+wechat.dylib[0x424fbb4] <+44>:  ldrsb  w8, [x20, #0x17]
+wechat.dylib[0x424fbb8] <+48>:  ldr    x9, [x20]
+wechat.dylib[0x424fbbc] <+52>:  ldr    w10, [x20, #0x8]
+wechat.dylib[0x424fbc0] <+56>:  and    w11, w8, #0xff
+wechat.dylib[0x424fbc4] <+60>:  cmp    w8, #0x0
+wechat.dylib[0x424fbc8] <+64>:  csel   w2, w10, w11, lt
+wechat.dylib[0x424fbcc] <+68>:  csel   x1, x9, x20, lt
+wechat.dylib[0x424fbd0] <+72>:  bl     0x42b9070                 ; ___lldb_unnamed_symbol_42b9070
+wechat.dylib[0x424fbd4] <+76>:  stur   x21, [x29, #-0x30]
+wechat.dylib[0x424fbd8] <+80>:  sub    x0, x29, #0x30
+wechat.dylib[0x424fbdc] <+84>:  bl     0x42b8eb4                 ; ___lldb_unnamed_symbol_42b8eb4
+wechat.dylib[0x424fbe0] <+88>:  mov    w8, #-0x55555556          ; =-1431655766 
+wechat.dylib[0x424fbe4] <+92>:  stur   w8, [x29, #-0x38]
+wechat.dylib[0x424fbe8] <+96>:  movi   d0, #0x0000ff00000000
+wechat.dylib[0x424fbec] <+100>: stur   d0, [x29, #-0x40]
+wechat.dylib[0x424fbf0] <+104>: sturh  wzr, [x29, #-0x38]
+wechat.dylib[0x424fbf4] <+108>: mov    x8, #-0x5555555555555556  ; =-6148914691236517206 
+wechat.dylib[0x424fbf8] <+112>: stp    x8, x8, [sp, #0x40]
+wechat.dylib[0x424fbfc] <+116>: str    x8, [sp, #0x38]
+wechat.dylib[0x424fc00] <+120>: bl     0x42c8734                 ; ___lldb_unnamed_symbol_42c8734
+wechat.dylib[0x424fc04] <+124>: add    x8, sp, #0x38
+(lldb) disassemble --start-address 0x424fbf0 --end-address 0x424fc54
+wechat.dylib`___lldb_unnamed_symbol_424fb88:
+wechat.dylib[0x424fbf0] <+104>: sturh  wzr, [x29, #-0x38]
+wechat.dylib[0x424fbf4] <+108>: mov    x8, #-0x5555555555555556  ; =-6148914691236517206 
+wechat.dylib[0x424fbf8] <+112>: stp    x8, x8, [sp, #0x40]
+wechat.dylib[0x424fbfc] <+116>: str    x8, [sp, #0x38]
+wechat.dylib[0x424fc00] <+120>: bl     0x42c8734                 ; ___lldb_unnamed_symbol_42c8734
+wechat.dylib[0x424fc04] <+124>: add    x8, sp, #0x38
+wechat.dylib[0x424fc08] <+128>: bl     0x42cc448                 ; ___lldb_unnamed_symbol_42cc448
+wechat.dylib[0x424fc0c] <+132>: bl     0x42c8734                 ; ___lldb_unnamed_symbol_42c8734
+wechat.dylib[0x424fc10] <+136>: add    x8, sp, #0x20
+wechat.dylib[0x424fc14] <+140>: bl     0x42cf6b4                 ; ___lldb_unnamed_symbol_42cf6b4
+wechat.dylib[0x424fc18] <+144>: strb   wzr, [sp, #0x1f]
+wechat.dylib[0x424fc1c] <+148>: strb   wzr, [sp, #0x8]
+wechat.dylib[0x424fc20] <+152>: sub    x0, x29, #0x28
+wechat.dylib[0x424fc24] <+156>: sub    x1, x29, #0x30
+wechat.dylib[0x424fc28] <+160>: add    x2, sp, #0x20
+wechat.dylib[0x424fc2c] <+164>: add    x3, sp, #0x8
+wechat.dylib[0x424fc30] <+168>: add    x4, sp, #0x38
+wechat.dylib[0x424fc34] <+172>: sub    x7, x29, #0x40
+wechat.dylib[0x424fc38] <+176>: mov    x5, #0x0                  ; =0 
+wechat.dylib[0x424fc3c] <+180>: mov    x6, #0x0                  ; =0 
+wechat.dylib[0x424fc40] <+184>: bl     0x42b7774                 ; ___lldb_unnamed_symbol_42b7774
+wechat.dylib[0x424fc44] <+188>: mov    x20, x0
+wechat.dylib[0x424fc48] <+192>: ldrsb  w8, [sp, #0x1f]
+wechat.dylib[0x424fc4c] <+196>: tbnz   w8, #0x1f, 0x424fc60      ; <+216>
+wechat.dylib[0x424fc50] <+200>: ldrsb  w8, [sp, #0x37]

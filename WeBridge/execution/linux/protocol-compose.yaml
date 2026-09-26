@@ -1,0 +1,21 @@
+name: wechat-protocol-lab
+services:
+  protocol:
+    image: mirror.gcr.io/library/golang@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
+    platform: linux/arm64
+    container_name: wechat-protocol-session
+    entrypoint: ["/audit/wechatclient-linux-arm64"]
+    ports:
+      - "127.0.0.1:18081:8080"
+    volumes:
+      - ../../build/linux-protocol:/audit:ro
+    environment:
+      GIN_MODE: release
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    cpus: 1
+    restart: "no"
+    logging:
+      driver: none

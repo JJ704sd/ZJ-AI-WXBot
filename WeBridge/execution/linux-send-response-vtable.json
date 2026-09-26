@@ -1,0 +1,70 @@
+[
+  {
+    "slot": "0x0",
+    "target": "0x5bbdcf4"
+  },
+  {
+    "slot": "0x8",
+    "target": "0x5bbdd98"
+  },
+  {
+    "slot": "0x10",
+    "target": "0x5bbe480"
+  },
+  {
+    "slot": "0x18",
+    "target": "0x5bbddbc"
+  },
+  {
+    "slot": "0x20",
+    "target": "0x5bbddfc"
+  },
+  {
+    "slot": "0x28",
+    "target": "0x5bbe3d8"
+  },
+  {
+    "slot": "0x30",
+    "target": "0x6b24960"
+  },
+  {
+    "slot": "0x38",
+    "target": "0x5bbe394"
+  },
+  {
+    "slot": "0x40",
+    "target": "0x5bbde70"
+  },
+  {
+    "slot": "0x48",
+    "target": "0x5bbe288"
+  },
+  {
+    "slot": "0x50",
+    "target": "0x5bbe1e8"
+  },
+  {
+    "slot": "0x58",
+    "target": "0x6b24ca4"
+  },
+  {
+    "slot": "0x60",
+    "target": "0x5bbefb4"
+  },
+  {
+    "slot": "0x68",
+    "target": "0x0"
+  },
+  {
+    "slot": "0x70",
+    "target": "0x7fbad80"
+  },
+  {
+    "slot": "0x78",
+    "target": "0x5bbe6b4"
+  },
+  {
+    "slot": "0x80",
+    "target": "0x5bbe714"
+  }
+]

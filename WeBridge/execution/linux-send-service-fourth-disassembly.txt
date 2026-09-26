@@ -1,0 +1,70 @@
+
+STATIC RANGE 0x6b0cf20..0x6b0d018
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 6b0cf20:      	sub	sp, sp, #0xb0
+ 6b0cf24:      	stp	x29, x30, [sp, #0x90]
+ 6b0cf28:      	stp	x20, x19, [sp, #0xa0]
+ 6b0cf2c:      	add	x29, sp, #0x90
+ 6b0cf30:      	mov	w8, #0xe                // =14
+ 6b0cf34:      	mov	w9, #0x6564             // =25956
+ 6b0cf38:      	mov	x19, x0
+ 6b0cf3c:      	strb	w8, [sp]
+ 6b0cf40:      	mov	w8, #0x7561             // =30049
+ 6b0cf44:      	movk	w9, #0x6166, lsl #16
+ 6b0cf48:      	movk	w8, #0x746c, lsl #16
+ 6b0cf4c:      	mov	x0, sp
+ 6b0cf50:      	stur	w9, [sp, #0x1]
+ 6b0cf54:      	str	w8, [sp, #0x4]
+ 6b0cf58:      	strb	wzr, [sp, #0x8]
+ 6b0cf5c:      	bl	0x6a64ec0 <main+0x3428028>
+ 6b0cf60:      	bl	0x674c924 <main+0x310fa8c>
+ 6b0cf64:      	ldrb	w8, [sp]
+ 6b0cf68:      	tbz	w8, #0x0, 0x6b0cf80 <main+0x34d00e8>
+ 6b0cf6c:      	ldr	x8, [sp, #0x10]
+ 6b0cf70:      	mov	x20, x0
+ 6b0cf74:      	mov	x0, x8
+ 6b0cf78:      	bl	0x3636070 <.text+0x1f070>
+ 6b0cf7c:      	mov	x0, x20
+ 6b0cf80:      	cbz	x0, 0x6b0cfa0 <main+0x34d0108>
+ 6b0cf84:      	mov	x1, x19
+ 6b0cf88:      	bl	0x6a68530 <main+0x342b698>
+ 6b0cf8c:      	and	w0, w0, #0x1
+ 6b0cf90:      	ldp	x20, x19, [sp, #0xa0]
+ 6b0cf94:      	ldp	x29, x30, [sp, #0x90]
+ 6b0cf98:      	add	sp, sp, #0xb0
+ 6b0cf9c:      	ret
+ 6b0cfa0:      	mov	w0, #0x5                // =5
+ 6b0cfa4:      	bl	0x69f88d0 <main+0x33bba38>
+ 6b0cfa8:      	cbz	w0, 0x6b0cf8c <main+0x34d00f4>
+ 6b0cfac:      	adrp	x2, 0xefe000
+ 6b0cfb0:      	add	x2, x2, #0xdc4
+ 6b0cfb4:      	adrp	x3, 0xe0c000
+ 6b0cfb8:      	add	x3, x3, #0xf54
+ 6b0cfbc:      	adrp	x4, 0xf28000
+ 6b0cfc0:      	add	x4, x4, #0xb92
+ 6b0cfc4:      	mov	x0, sp
+ 6b0cfc8:      	mov	w1, #0x5                // =5
+ 6b0cfcc:      	mov	w5, #0xf7               // =247
+ 6b0cfd0:      	mov	w6, wzr
+ 6b0cfd4:      	mov	x7, xzr
+ 6b0cfd8:      	bl	0x69f40a4 <main+0x33b720c>
+ 6b0cfdc:      	adrp	x1, 0xfd5000
+ 6b0cfe0:      	add	x1, x1, #0xc94
+ 6b0cfe4:      	mov	x0, sp
+ 6b0cfe8:      	bl	0x69f4318 <main+0x33b7480>
+ 6b0cfec:      	adrp	x1, 0xe2f000
+ 6b0cff0:      	add	x1, x1, #0x77a
+ 6b0cff4:      	add	x0, x0, #0x58
+ 6b0cff8:      	bl	0x363a010 <.text+0x23010>
+ 6b0cffc:      	mov	x0, sp
+ 6b0d000:      	bl	0x69f40fc <main+0x33b7264>
+ 6b0d004:      	and	w0, wzr, #0x1
+ 6b0d008:      	ldp	x20, x19, [sp, #0xa0]
+ 6b0d00c:      	ldp	x29, x30, [sp, #0x90]
+ 6b0d010:      	add	sp, sp, #0xb0
+ 6b0d014:      	ret

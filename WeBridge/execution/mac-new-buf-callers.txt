@@ -1,0 +1,67 @@
+(lldb) target create --arch=arm64 "/Applications/WeChat.app/Contents/Resources/wechat.dylib"
+Current executable set to '/Applications/WeChat.app/Contents/Resources/wechat.dylib' (arm64).
+(lldb) disassemble --start-address 0x42b7774 --end-address 0x42b77d8
+wechat.dylib`___lldb_unnamed_symbol_42b7774:
+wechat.dylib[0x42b7774] <+0>:  sub    sp, sp, #0x90
+wechat.dylib[0x42b7778] <+4>:  stp    x26, x25, [sp, #0x40]
+wechat.dylib[0x42b777c] <+8>:  stp    x24, x23, [sp, #0x50]
+wechat.dylib[0x42b7780] <+12>: stp    x22, x21, [sp, #0x60]
+wechat.dylib[0x42b7784] <+16>: stp    x20, x19, [sp, #0x70]
+wechat.dylib[0x42b7788] <+20>: stp    x29, x30, [sp, #0x80]
+wechat.dylib[0x42b778c] <+24>: add    x29, sp, #0x80
+wechat.dylib[0x42b7790] <+28>: mov    x19, x7
+wechat.dylib[0x42b7794] <+32>: mov    x20, x6
+wechat.dylib[0x42b7798] <+36>: mov    x21, x5
+wechat.dylib[0x42b779c] <+40>: mov    x22, x4
+wechat.dylib[0x42b77a0] <+44>: mov    x25, x3
+wechat.dylib[0x42b77a4] <+48>: mov    x23, x1
+wechat.dylib[0x42b77a8] <+52>: mov    x24, x0
+wechat.dylib[0x42b77ac] <+56>: ldrsb  w8, [x2, #0x17]
+wechat.dylib[0x42b77b0] <+60>: tbnz   w8, #0x1f, 0x42b77e0      ; <+108>
+wechat.dylib[0x42b77b4] <+64>: ldr    q0, [x2]
+wechat.dylib[0x42b77b8] <+68>: str    q0, [sp, #0x20]
+wechat.dylib[0x42b77bc] <+72>: ldr    x8, [x2, #0x10]
+wechat.dylib[0x42b77c0] <+76>: str    x8, [sp, #0x30]
+wechat.dylib[0x42b77c4] <+80>: ldrsb  w8, [x25, #0x17]
+wechat.dylib[0x42b77c8] <+84>: tbnz   w8, #0x1f, 0x42b77f4      ; <+128>
+wechat.dylib[0x42b77cc] <+88>: ldr    q0, [x25]
+wechat.dylib[0x42b77d0] <+92>: str    q0, [sp]
+wechat.dylib[0x42b77d4] <+96>: ldr    x8, [x25, #0x10]
+(lldb) disassemble --start-address 0x42b77a8 --end-address 0x42b7838
+wechat.dylib`___lldb_unnamed_symbol_42b7774:
+wechat.dylib[0x42b77a8] <+52>:  mov    x24, x0
+wechat.dylib[0x42b77ac] <+56>:  ldrsb  w8, [x2, #0x17]
+wechat.dylib[0x42b77b0] <+60>:  tbnz   w8, #0x1f, 0x42b77e0      ; <+108>
+wechat.dylib[0x42b77b4] <+64>:  ldr    q0, [x2]
+wechat.dylib[0x42b77b8] <+68>:  str    q0, [sp, #0x20]
+wechat.dylib[0x42b77bc] <+72>:  ldr    x8, [x2, #0x10]
+wechat.dylib[0x42b77c0] <+76>:  str    x8, [sp, #0x30]
+wechat.dylib[0x42b77c4] <+80>:  ldrsb  w8, [x25, #0x17]
+wechat.dylib[0x42b77c8] <+84>:  tbnz   w8, #0x1f, 0x42b77f4      ; <+128>
+wechat.dylib[0x42b77cc] <+88>:  ldr    q0, [x25]
+wechat.dylib[0x42b77d0] <+92>:  str    q0, [sp]
+wechat.dylib[0x42b77d4] <+96>:  ldr    x8, [x25, #0x10]
+wechat.dylib[0x42b77d8] <+100>: str    x8, [sp, #0x10]
+wechat.dylib[0x42b77dc] <+104>: b      0x42b7800                 ; <+140>
+wechat.dylib[0x42b77e0] <+108>: ldp    x1, x2, [x2]
+wechat.dylib[0x42b77e4] <+112>: add    x0, sp, #0x20
+wechat.dylib[0x42b77e8] <+116>: bl     0x1adac                   ; ___lldb_unnamed_symbol_1adac
+wechat.dylib[0x42b77ec] <+120>: ldrsb  w8, [x25, #0x17]
+wechat.dylib[0x42b77f0] <+124>: tbz    w8, #0x1f, 0x42b77cc      ; <+88>
+wechat.dylib[0x42b77f4] <+128>: ldp    x1, x2, [x25]
+wechat.dylib[0x42b77f8] <+132>: mov    x0, sp
+wechat.dylib[0x42b77fc] <+136>: bl     0x1adac                   ; ___lldb_unnamed_symbol_1adac
+wechat.dylib[0x42b7800] <+140>: add    x2, sp, #0x20
+wechat.dylib[0x42b7804] <+144>: mov    x3, sp
+wechat.dylib[0x42b7808] <+148>: mov    x0, x24
+wechat.dylib[0x42b780c] <+152>: mov    x1, x23
+wechat.dylib[0x42b7810] <+156>: mov    x4, x22
+wechat.dylib[0x42b7814] <+160>: mov    x5, x21
+wechat.dylib[0x42b7818] <+164>: mov    x6, x20
+wechat.dylib[0x42b781c] <+168>: mov    x7, x19
+wechat.dylib[0x42b7820] <+172>: bl     0x42b78d0                 ; ___lldb_unnamed_symbol_42b78d0
+wechat.dylib[0x42b7824] <+176>: ldrsb  w8, [sp, #0x17]
+wechat.dylib[0x42b7828] <+180>: tbnz   w8, #0x1f, 0x42b7850      ; <+220>
+wechat.dylib[0x42b782c] <+184>: ldrsb  w8, [sp, #0x37]
+wechat.dylib[0x42b7830] <+188>: tbnz   w8, #0x1f, 0x42b7874      ; <+256>
+wechat.dylib[0x42b7834] <+192>: ldp    x29, x30, [sp, #0x80]

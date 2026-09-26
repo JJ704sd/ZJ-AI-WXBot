@@ -1,0 +1,258 @@
+
+STATIC RANGE 0x4f661f8 .. 0x4f662e8
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f661f8:      	stp	x29, x30, [sp, #-0x30]!
+ 4f661fc:      	str	x21, [sp, #0x10]
+ 4f66200:      	stp	x20, x19, [sp, #0x20]
+ 4f66204:      	mov	x29, sp
+ 4f66208:      	movi	v0.2d, #0000000000000000
+ 4f6620c:      	mov	w8, #0x1010000          // =16842752
+ 4f66210:      	mov	x21, x0
+ 4f66214:      	str	xzr, [x0, #0x8]
+ 4f66218:      	mov	x20, x1
+ 4f6621c:      	mov	x19, x0
+ 4f66220:      	str	wzr, [x0, #0x10]
+ 4f66224:      	str	xzr, [x21, #0x18]!
+ 4f66228:      	stp	xzr, xzr, [x0, #0x20]
+ 4f6622c:      	str	w8, [x0, #0x30]
+ 4f66230:      	adrp	x8, 0x80f2000
+ 4f66234:      	strb	wzr, [x0, #0x34]
+ 4f66238:      	str	xzr, [x0, #0xa0]
+ 4f6623c:      	stp	xzr, xzr, [x0, #0x38]
+ 4f66240:      	str	wzr, [x0, #0x48]
+ 4f66244:      	stp	q0, q0, [x0, #0x50]
+ 4f66248:      	str	q0, [x0, #0x70]
+ 4f6624c:      	ldr	x8, [x8, #0xb80]
+ 4f66250:      	stp	xzr, xzr, [x0, #0xb0]
+ 4f66254:      	add	x8, x8, #0x10
+ 4f66258:      	str	x8, [x0], #0xc0
+ 4f6625c:      	bl	0x5bbc884 <main+0x257f9ec>
+ 4f66260:      	add	x0, x19, #0xf0
+ 4f66264:      	bl	0x5bbdba8 <main+0x2580d10>
+ 4f66268:      	ldr	w8, [x20, #0x10]
+ 4f6626c:      	str	w8, [x19, #0xc]
+ 4f66270:      	add	x1, x20, #0x18
+ 4f66274:      	mov	x0, x21
+ 4f66278:      	bl	0x3639df8 <.text+0x22df8>
+ 4f6627c:      	ldr	w8, [x20, #0xc]
+ 4f66280:      	ldr	w9, [x20, #0x14]
+ 4f66284:      	ldrb	w10, [x20, #0x30]
+ 4f66288:      	cmp	w8, #0x0
+ 4f6628c:      	str	w9, [x19, #0x48]
+ 4f66290:      	mov	w9, #0x3                // =3
+ 4f66294:      	cset	w8, ne
+ 4f66298:      	strb	w10, [x19, #0x33]
+ 4f6629c:      	strb	w8, [x19, #0x31]
+ 4f662a0:      	str	w9, [x19, #0x10]
+ 4f662a4:      	ldp	x20, x19, [sp, #0x20]
+ 4f662a8:      	ldr	x21, [sp, #0x10]
+ 4f662ac:      	ldp	x29, x30, [sp], #0x30
+ 4f662b0:      	ret
+ 4f662b4:      	mov	x20, x0
+ 4f662b8:      	add	x0, x19, #0xf0
+ 4f662bc:      	bl	0x5bbdcf4 <main+0x2580e5c>
+ 4f662c0:      	b	0x4f662c8 <main+0x1929430>
+ 4f662c4:      	mov	x20, x0
+ 4f662c8:      	add	x0, x19, #0xc0
+ 4f662cc:      	bl	0x5bbca30 <main+0x257fb98>
+ 4f662d0:      	b	0x4f662d8 <main+0x1929440>
+ 4f662d4:      	mov	x20, x0
+ 4f662d8:      	mov	x0, x19
+ 4f662dc:      	bl	0x497b5a0 <main+0x133e708>
+ 4f662e0:      	mov	x0, x20
+ 4f662e4:      	bl	0x3617d08 <.text+0xd08>
+
+STATIC RANGE 0x5bbcf18 .. 0x5bbcf58
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 5bbcf18:      	cmp	x1, x0
+ 5bbcf1c:      	b.eq	0x5bbcf54 <main+0x25800bc>
+ 5bbcf20:      	stp	x29, x30, [sp, #-0x20]!
+ 5bbcf24:      	stp	x20, x19, [sp, #0x10]
+ 5bbcf28:      	mov	x29, sp
+ 5bbcf2c:      	ldr	x8, [x0]
+ 5bbcf30:      	mov	x19, x1
+ 5bbcf34:      	mov	x20, x0
+ 5bbcf38:      	ldr	x8, [x8, #0x20]
+ 5bbcf3c:      	blr	x8
+ 5bbcf40:      	mov	x0, x20
+ 5bbcf44:      	mov	x1, x19
+ 5bbcf48:      	ldp	x20, x19, [sp, #0x10]
+ 5bbcf4c:      	ldp	x29, x30, [sp], #0x20
+ 5bbcf50:      	b	0x5bbc984 <main+0x257faec>
+ 5bbcf54:      	ret
+
+STATIC RANGE 0x5bbca30 .. 0x5bbcaac
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 5bbca30:      	stp	x29, x30, [sp, #-0x20]!
+ 5bbca34:      	stp	x20, x19, [sp, #0x10]
+ 5bbca38:      	mov	x29, sp
+ 5bbca3c:      	adrp	x9, 0x80fe000
+ 5bbca40:      	mov	x19, x0
+ 5bbca44:      	ldr	x9, [x9, #0xe78]
+ 5bbca48:      	ldr	w8, [x0, #0x14]
+ 5bbca4c:      	add	x9, x9, #0x10
+ 5bbca50:      	cmp	w8, #0x1
+ 5bbca54:      	str	x9, [x0]
+ 5bbca58:      	b.lt	0x5bbca90 <main+0x257fbf8>
+ 5bbca5c:      	mov	x20, xzr
+ 5bbca60:      	b	0x5bbca70 <main+0x257fbd8>
+ 5bbca64:      	add	x20, x20, #0x1
+ 5bbca68:      	cmp	x20, w8, sxtw
+ 5bbca6c:      	b.ge	0x5bbca90 <main+0x257fbf8>
+ 5bbca70:      	ldr	x9, [x19, #0x8]
+ 5bbca74:      	ldr	x0, [x9, x20, lsl #3]
+ 5bbca78:      	cbz	x0, 0x5bbca64 <main+0x257fbcc>
+ 5bbca7c:      	ldr	x8, [x0]
+ 5bbca80:      	ldr	x8, [x8, #0x8]
+ 5bbca84:      	blr	x8
+ 5bbca88:      	ldr	w8, [x19, #0x14]
+ 5bbca8c:      	b	0x5bbca64 <main+0x257fbcc>
+ 5bbca90:      	ldr	x0, [x19, #0x8]
+ 5bbca94:      	cbz	x0, 0x5bbca9c <main+0x257fc04>
+ 5bbca98:      	bl	0x3636074 <.text+0x1f074>
+ 5bbca9c:      	mov	x0, x19
+ 5bbcaa0:      	ldp	x20, x19, [sp, #0x10]
+ 5bbcaa4:      	ldp	x29, x30, [sp], #0x20
+ 5bbcaa8:      	b	0x6b2495c <main+0x34e7ac4>
+
+STATIC RANGE 0x4f65f78 .. 0x4f66154
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f65f78:      	sub	sp, sp, #0x80
+ 4f65f7c:      	stp	x29, x30, [sp, #0x40]
+ 4f65f80:      	stp	x24, x23, [sp, #0x50]
+ 4f65f84:      	stp	x22, x21, [sp, #0x60]
+ 4f65f88:      	stp	x20, x19, [sp, #0x70]
+ 4f65f8c:      	add	x29, sp, #0x40
+ 4f65f90:      	adrp	x8, 0x1001000
+ 4f65f94:      	mov	x19, x0
+ 4f65f98:      	mov	x9, #-0x5555555555555556 // =-6148914691236517206
+ 4f65f9c:      	ldr	q0, [x8, #0x2e0]
+ 4f65fa0:      	adrp	x8, 0x1a6d000
+ 4f65fa4:      	mov	w0, #0x28               // =40
+ 4f65fa8:      	ldr	d1, [x8, #0xe08]
+ 4f65fac:      	mov	x21, x4
+ 4f65fb0:      	mov	x22, x3
+ 4f65fb4:      	mov	x20, x2
+ 4f65fb8:      	mov	x23, x1
+ 4f65fbc:      	str	x9, [sp, #0x30]
+ 4f65fc0:      	str	q0, [sp]
+ 4f65fc4:      	str	d1, [sp, #0x10]
+ 4f65fc8:      	bl	0x7d7e420
+ 4f65fcc:      	adrp	x8, 0x1003000
+ 4f65fd0:      	adrp	x9, 0xfde000
+ 4f65fd4:      	add	x9, x9, #0xec6
+ 4f65fd8:      	ldr	q0, [x8, #0x900]
+ 4f65fdc:      	ldrb	w8, [x22, #0x8]!
+ 4f65fe0:      	str	x0, [sp, #0x28]
+ 4f65fe4:      	stur	q0, [sp, #0x18]
+ 4f65fe8:      	ldp	q0, q1, [x9]
+ 4f65fec:      	ldr	x9, [x22, #0x8]
+ 4f65ff0:      	lsr	x10, x8, #1
+ 4f65ff4:      	tst	w8, #0x1
+ 4f65ff8:      	mov	w8, #0x1                // =1
+ 4f65ffc:      	strb	wzr, [x0, #0x20]
+ 4f66000:      	csel	x9, x10, x9, eq
+ 4f66004:      	stp	q0, q1, [x0]
+ 4f66008:      	strb	w8, [sp, #0x30]
+ 4f6600c:      	cbz	x9, 0x4f66020 <main+0x1929188>
+ 4f66010:      	mov	x8, sp
+ 4f66014:      	mov	x1, x22
+ 4f66018:      	add	x0, x8, #0x18
+ 4f6601c:      	bl	0x3639df8 <.text+0x22df8>
+ 4f66020:      	mov	w0, #0x130              // =304
+ 4f66024:      	bl	0x7d7e420
+ 4f66028:      	mov	x1, sp
+ 4f6602c:      	mov	x22, x0
+ 4f66030:      	bl	0x4f661f8 <main+0x1929360>
+ 4f66034:      	ldr	x8, [x22]
+ 4f66038:      	ldr	x8, [x8, #0x20]
+ 4f6603c:      	mov	x0, x22
+ 4f66040:      	blr	x8
+ 4f66044:      	mov	x1, x23
+ 4f66048:      	bl	0x5bbcf18 <main+0x2580080>
+ 4f6604c:      	mov	x24, x22
+ 4f66050:      	ldr	x0, [x24, #0xa0]!
+ 4f66054:      	sub	x23, x24, #0x20
+ 4f66058:      	str	xzr, [x24]
+ 4f6605c:      	cmp	x0, x23
+ 4f66060:      	b.eq	0x4f66074 <main+0x19291dc>
+ 4f66064:      	cbz	x0, 0x4f66084 <main+0x19291ec>
+ 4f66068:      	ldr	x8, [x0]
+ 4f6606c:      	ldr	x8, [x8, #0x28]
+ 4f66070:      	b	0x4f66080 <main+0x19291e8>
+ 4f66074:      	ldr	x8, [x23]
+ 4f66078:      	mov	x0, x23
+ 4f6607c:      	ldr	x8, [x8, #0x20]
+ 4f66080:      	blr	x8
+ 4f66084:      	mov	x8, x21
+ 4f66088:      	ldr	x9, [x8, #0x20]!
+ 4f6608c:      	cbz	x9, 0x4f660a0 <main+0x1929208>
+ 4f66090:      	cmp	x9, x21
+ 4f66094:      	b.eq	0x4f660a8 <main+0x1929210>
+ 4f66098:      	str	x9, [x24]
+ 4f6609c:      	mov	x24, x8
+ 4f660a0:      	str	xzr, [x24]
+ 4f660a4:      	b	0x4f660c0 <main+0x1929228>
+ 4f660a8:      	ldr	x8, [x21]
+ 4f660ac:      	str	x23, [x24]
+ 4f660b0:      	ldr	x8, [x8, #0x18]
+ 4f660b4:      	mov	x0, x21
+ 4f660b8:      	mov	x1, x23
+ 4f660bc:      	blr	x8
+ 4f660c0:      	add	x0, x22, #0x50
+ 4f660c4:      	mov	x1, x20
+ 4f660c8:      	bl	0x3639df8 <.text+0x22df8>
+ 4f660cc:      	ldr	x8, [x19]
+ 4f660d0:      	ldr	x8, [x8, #0x28]
+ 4f660d4:      	mov	x0, x19
+ 4f660d8:      	mov	x1, x22
+ 4f660dc:      	blr	x8
+ 4f660e0:      	bl	0x56d87f0 <main+0x209b958>
+ 4f660e4:      	add	x1, x22, #0x18
+ 4f660e8:      	bl	0x56d89bc <main+0x209bb24>
+ 4f660ec:      	ldrb	w8, [sp, #0x18]
+ 4f660f0:      	ldr	w19, [x22, #0x8]
+ 4f660f4:      	tbz	w8, #0x0, 0x4f66100 <main+0x1929268>
+ 4f660f8:      	ldr	x0, [sp, #0x28]
+ 4f660fc:      	bl	0x3636070 <.text+0x1f070>
+ 4f66100:      	mov	w0, w19
+ 4f66104:      	ldp	x20, x19, [sp, #0x70]
+ 4f66108:      	ldp	x22, x21, [sp, #0x60]
+ 4f6610c:      	ldp	x24, x23, [sp, #0x50]
+ 4f66110:      	ldp	x29, x30, [sp, #0x40]
+ 4f66114:      	add	sp, sp, #0x80
+ 4f66118:      	ret
+ 4f6611c:      	bl	0x3617640 <.text+0x640>
+ 4f66120:      	b	0x4f66138 <main+0x19292a0>
+ 4f66124:      	mov	x19, x0
+ 4f66128:      	mov	x0, x22
+ 4f6612c:      	bl	0x3636070 <.text+0x1f070>
+ 4f66130:      	b	0x4f6613c <main+0x19292a4>
+ 4f66134:      	b	0x4f66138 <main+0x19292a0>
+ 4f66138:      	mov	x19, x0
+ 4f6613c:      	ldrb	w8, [sp, #0x18]
+ 4f66140:      	tbz	w8, #0x0, 0x4f6614c <main+0x19292b4>
+ 4f66144:      	ldr	x0, [sp, #0x28]
+ 4f66148:      	bl	0x3636070 <.text+0x1f070>
+ 4f6614c:      	mov	x0, x19
+ 4f66150:      	bl	0x3617d08 <.text+0xd08>

@@ -1,0 +1,21 @@
+{
+  "old": [
+    {
+      "rva": "0x3e167f0",
+      "caller": "0x3e16738",
+      "end": "0x3e1691c"
+    },
+    {
+      "rva": "0x3e5adbc",
+      "caller": "0x3e5a910",
+      "end": "0x3e5bc5c"
+    }
+  ],
+  "new": [
+    {
+      "rva": "0x424fc40",
+      "caller": "0x424fb88",
+      "end": "0x424fd6c"
+    }
+  ]
+}

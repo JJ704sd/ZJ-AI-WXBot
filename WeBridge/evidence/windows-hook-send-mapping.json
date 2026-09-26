@@ -1,0 +1,284 @@
+{
+  "schema": "windows-hook-send-mapping.v1",
+  "reference_sha256": "f487e4f56930456a25fb0d7b058c77e2dcd364e268d49bdfff4dc0e3be26ba36",
+  "target_sha256": "10f8e995453e2da46d4f2b5080cd6da1f13cc5147746adc119ceae38cb039de5",
+  "live_process_accessed": false,
+  "code_invoked": false,
+  "abi_verified": false,
+  "functions": {
+    "options_constructor": {
+      "reference": {
+        "rva": "0xdf40",
+        "size": 545,
+        "instructions": 153,
+        "prefix16": "554157415641545657534883ec40488d"
+      },
+      "target": {
+        "rva": "0xf910",
+        "size": 528,
+        "instructions": 151,
+        "prefix16": "554157415641545657534883ec40488d"
+      },
+      "normalized_similarity": 0.993421052631579,
+      "differences": [
+        {
+          "kind": "delete",
+          "reference": [
+            "mov    QWORD PTR [r12+0x38],0x0"
+          ],
+          "target": []
+        },
+        {
+          "kind": "delete",
+          "reference": [
+            "mov    QWORD PTR [r15+0x38],0x0"
+          ],
+          "target": []
+        }
+      ],
+      "abi_verified": false
+    },
+    "text_constructor": {
+      "reference": {
+        "rva": "0x6b2c30",
+        "size": 195,
+        "instructions": 48,
+        "prefix16": "5556574883ec50488d6c245048c745f8"
+      },
+      "target": {
+        "rva": "0x766680",
+        "size": 195,
+        "instructions": 48,
+        "prefix16": "5556574883ec50488d6c245048c745f8"
+      },
+      "normalized_similarity": 0.875,
+      "differences": [
+        {
+          "kind": "replace",
+          "reference": [
+            "movups XMMWORD PTR [rsi+0x708],xmm0",
+            "mov    QWORD PTR [rsi+0x718],0x0",
+            "mov    QWORD PTR [rsi+0x720],0xf",
+            "movups XMMWORD PTR [rsi+0x728],xmm0",
+            "mov    QWORD PTR [rsi+0x738],0x0",
+            "mov    QWORD PTR [rsi+0x740],0xf"
+          ],
+          "target": [
+            "movups XMMWORD PTR [rsi+0x758],xmm0",
+            "mov    QWORD PTR [rsi+0x768],0x0",
+            "mov    QWORD PTR [rsi+0x770],0xf",
+            "movups XMMWORD PTR [rsi+0x778],xmm0",
+            "mov    QWORD PTR [rsi+0x788],0x0",
+            "mov    QWORD PTR [rsi+0x790],0xf"
+          ]
+        }
+      ],
+      "abi_verified": false
+    },
+    "send_message": {
+      "reference": {
+        "rva": "0x1677a30",
+        "size": 777,
+        "instructions": 203,
+        "prefix16": "5541565657534881ece0010000488dac"
+      },
+      "target": {
+        "rva": "0x19d0bc0",
+        "size": 777,
+        "instructions": 203,
+        "prefix16": "5541565657534881ece0010000488dac"
+      },
+      "normalized_similarity": 0.9704433497536946,
+      "differences": [
+        {
+          "kind": "replace",
+          "reference": [
+            "mov    QWORD PTR [rbp+0x120],0x0"
+          ],
+          "target": [
+            "mov    QWORD PTR [rbp+0x110],0x0"
+          ]
+        },
+        {
+          "kind": "replace",
+          "reference": [
+            "mov    QWORD PTR [rbp+0x120],rax"
+          ],
+          "target": [
+            "mov    QWORD PTR [rbp+0x110],rax"
+          ]
+        },
+        {
+          "kind": "replace",
+          "reference": [
+            "mov    r9d,0x207"
+          ],
+          "target": [
+            "mov    r9d,0x227"
+          ]
+        },
+        {
+          "kind": "replace",
+          "reference": [
+            "lea    rdx,[rbp+0xd8]"
+          ],
+          "target": [
+            "lea    rdx,[rbp+0x118]"
+          ]
+        },
+        {
+          "kind": "replace",
+          "reference": [
+            "lea    r9,[rbp+0xe8]"
+          ],
+          "target": [
+            "lea    r9,[rbp+0xd8]"
+          ]
+        },
+        {
+          "kind": "replace",
+          "reference": [
+            "mov    rsi,QWORD PTR [rbp+0xe0]"
+          ],
+          "target": [
+            "mov    rsi,QWORD PTR [rbp+0x120]"
+          ]
+        }
+      ],
+      "abi_verified": false
+    },
+    "protocol_element_copy": {
+      "reference": {
+        "rva": "0x2c6c060",
+        "size": 658,
+        "instructions": 184,
+        "prefix16": "55415741565657534883ec78488d6c24"
+      },
+      "target": {
+        "rva": "0x2e82c00",
+        "size": 658,
+        "instructions": 184,
+        "prefix16": "55415741565657534883ec78488d6c24"
+      },
+      "normalized_similarity": 1.0,
+      "differences": [],
+      "abi_verified": false
+    },
+    "protocol_outer_copy": {
+      "reference": {
+        "rva": "0x2c6d230",
+        "size": 47,
+        "instructions": 19,
+        "prefix16": "56574883ec284839ca741d4889d6488b"
+      },
+      "target": {
+        "rva": "0x2e83dd0",
+        "size": 47,
+        "instructions": 19,
+        "prefix16": "56574883ec284839ca741d4889d6488b"
+      },
+      "normalized_similarity": 1.0,
+      "differences": [],
+      "abi_verified": false
+    },
+    "protocol_repeated_copy": {
+      "reference": {
+        "rva": "0x2c72de0",
+        "size": 218,
+        "instructions": 66,
+        "prefix16": "415741565657534883ec300f29742420"
+      },
+      "target": {
+        "rva": "0x2e89940",
+        "size": 218,
+        "instructions": 66,
+        "prefix16": "415741565657534883ec300f29742420"
+      },
+      "normalized_similarity": 1.0,
+      "differences": [],
+      "abi_verified": false
+    }
+  },
+  "vtables": {
+    "text_shared_control": {
+      "reference_vtable": "0x8279358",
+      "reference_type_descriptor": "0xa130b40",
+      "opaque_type_bytes": 59,
+      "opaque_type_sha256": "c63b4ab72a16aa87b72a5504ac15f1e137c986f48991469696d72fcda43b983f",
+      "candidates": [
+        {
+          "vtable": "0x8e534f8",
+          "col": "0x8e53520",
+          "type_descriptor": "0xb123610"
+        }
+      ],
+      "unique": true
+    },
+    "text_inner": {
+      "reference_vtable": "0x82793e8",
+      "reference_type_descriptor": "0xa130b90",
+      "opaque_type_bytes": 34,
+      "opaque_type_sha256": "e8315995750324d9976c9f6b304468acbcb5597bd80d1c40c7e9933d203ad092",
+      "candidates": [
+        {
+          "vtable": "0x8e53588",
+          "col": "0x8e535c0",
+          "type_descriptor": "0xb123660"
+        }
+      ],
+      "unique": true
+    },
+    "param1": {
+      "reference_vtable": "0x84ec9c8",
+      "reference_type_descriptor": "0xa252f20",
+      "opaque_type_bytes": 339,
+      "opaque_type_sha256": "054bfc797c0fc822d63a04fe1db351d2f217d5bc675f5ae2589a6f64a86921c8",
+      "candidates": [
+        {
+          "vtable": "0x9112308",
+          "col": "0x9112340",
+          "type_descriptor": "0xb281e80"
+        }
+      ],
+      "unique": true
+    },
+    "send_queued_task": {
+      "reference_vtable": "0x84ecaa8",
+      "reference_type_descriptor": "0xa2530f0",
+      "opaque_type_bytes": 377,
+      "opaque_type_sha256": "d5fbe9d96685370236cfb525e6989c06a90d5b0762dcc977d952c48903109106",
+      "candidates": [
+        {
+          "vtable": "0x91123e8",
+          "col": "0x9112420",
+          "type_descriptor": "0xb282050"
+        }
+      ],
+      "unique": true
+    },
+    "legacy_callback1": {
+      "reference_vtable": "0x8595f58",
+      "reference_type_descriptor": "0xa2db5d0",
+      "opaque_type_bytes": 186,
+      "opaque_type_sha256": "7b09af9a6ee5289e6ef878436cc2f6eb692f665056d1b2e5ffe37cc615a3410d",
+      "candidates": [],
+      "unique": false
+    },
+    "legacy_callback2": {
+      "reference_vtable": "0x8595e98",
+      "reference_type_descriptor": "0xa2db460",
+      "opaque_type_bytes": 189,
+      "opaque_type_sha256": "40bab54455da85cd377525142eb0e4a1e12c1e0a6ece906739dfb2d2014dc71c",
+      "candidates": [],
+      "unique": false
+    },
+    "legacy_callback3": {
+      "reference_vtable": "0x8595dd8",
+      "reference_type_descriptor": "0xa2db300",
+      "opaque_type_bytes": 169,
+      "opaque_type_sha256": "1ef41650eaef93be5f5d63aa7d01cbf2b5c4691ad4fc552f33d9ca10069ffc1b",
+      "candidates": [],
+      "unique": false
+    }
+  }
+}

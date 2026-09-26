@@ -1,0 +1,307 @@
+
+CALLBACK VTABLE SLOT 0x0 STATIC RANGE 0x4f664d4 .. 0x4f66588
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f664d4:      	stp	x29, x30, [sp, #-0x20]!
+ 4f664d8:      	stp	x20, x19, [sp, #0x10]
+ 4f664dc:      	mov	x29, sp
+ 4f664e0:      	adrp	x8, 0x7f3e000
+ 4f664e4:      	add	x8, x8, #0x5e0
+ 4f664e8:      	ldr	x19, [x0, #0x28]
+ 4f664ec:      	add	x8, x8, #0x10
+ 4f664f0:      	str	x8, [x0]
+ 4f664f4:      	cbz	x19, 0x4f66510 <main+0x1929678>
+ 4f664f8:      	add	x8, x19, #0x8
+ 4f664fc:      	ldaxr	x9, [x8]
+ 4f66500:      	sub	x10, x9, #0x1
+ 4f66504:      	stlxr	w11, x10, [x8]
+ 4f66508:      	cbnz	w11, 0x4f664fc <main+0x1929664>
+ 4f6650c:      	cbz	x9, 0x4f6653c <main+0x19296a4>
+ 4f66510:      	ldr	x19, [x0, #0x10]
+ 4f66514:      	cbz	x19, 0x4f66530 <main+0x1929698>
+ 4f66518:      	add	x8, x19, #0x8
+ 4f6651c:      	ldaxr	x9, [x8]
+ 4f66520:      	sub	x10, x9, #0x1
+ 4f66524:      	stlxr	w11, x10, [x8]
+ 4f66528:      	cbnz	w11, 0x4f6651c <main+0x1929684>
+ 4f6652c:      	cbz	x9, 0x4f66568 <main+0x19296d0>
+ 4f66530:      	ldp	x20, x19, [sp, #0x10]
+ 4f66534:      	ldp	x29, x30, [sp], #0x20
+ 4f66538:      	ret
+ 4f6653c:      	ldr	x8, [x19]
+ 4f66540:      	mov	x20, x0
+ 4f66544:      	mov	x0, x19
+ 4f66548:      	ldr	x8, [x8, #0x10]
+ 4f6654c:      	blr	x8
+ 4f66550:      	mov	x0, x19
+ 4f66554:      	bl	0x36637ec <main+0x26954>
+ 4f66558:      	mov	x0, x20
+ 4f6655c:      	ldr	x19, [x0, #0x10]
+ 4f66560:      	cbnz	x19, 0x4f66518 <main+0x1929680>
+ 4f66564:      	b	0x4f66530 <main+0x1929698>
+ 4f66568:      	ldr	x8, [x19]
+ 4f6656c:      	mov	x0, x19
+ 4f66570:      	ldr	x8, [x8, #0x10]
+ 4f66574:      	blr	x8
+ 4f66578:      	mov	x0, x19
+ 4f6657c:      	ldp	x20, x19, [sp, #0x10]
+ 4f66580:      	ldp	x29, x30, [sp], #0x20
+ 4f66584:      	b	0x36637ec <main+0x26954>
+
+CALLBACK VTABLE SLOT 0x8 STATIC RANGE 0x4f66588 .. 0x4f66630
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f66588:      	stp	x29, x30, [sp, #-0x20]!
+ 4f6658c:      	stp	x20, x19, [sp, #0x10]
+ 4f66590:      	mov	x29, sp
+ 4f66594:      	adrp	x8, 0x7f3e000
+ 4f66598:      	add	x8, x8, #0x5e0
+ 4f6659c:      	ldr	x19, [x0, #0x28]
+ 4f665a0:      	add	x8, x8, #0x10
+ 4f665a4:      	str	x8, [x0]
+ 4f665a8:      	cbz	x19, 0x4f665e4 <main+0x192974c>
+ 4f665ac:      	add	x8, x19, #0x8
+ 4f665b0:      	ldaxr	x9, [x8]
+ 4f665b4:      	sub	x10, x9, #0x1
+ 4f665b8:      	stlxr	w11, x10, [x8]
+ 4f665bc:      	cbnz	w11, 0x4f665b0 <main+0x1929718>
+ 4f665c0:      	cbnz	x9, 0x4f665e4 <main+0x192974c>
+ 4f665c4:      	ldr	x8, [x19]
+ 4f665c8:      	mov	x20, x0
+ 4f665cc:      	mov	x0, x19
+ 4f665d0:      	ldr	x8, [x8, #0x10]
+ 4f665d4:      	blr	x8
+ 4f665d8:      	mov	x0, x19
+ 4f665dc:      	bl	0x36637ec <main+0x26954>
+ 4f665e0:      	mov	x0, x20
+ 4f665e4:      	ldr	x19, [x0, #0x10]
+ 4f665e8:      	cbz	x19, 0x4f66624 <main+0x192978c>
+ 4f665ec:      	add	x8, x19, #0x8
+ 4f665f0:      	ldaxr	x9, [x8]
+ 4f665f4:      	sub	x10, x9, #0x1
+ 4f665f8:      	stlxr	w11, x10, [x8]
+ 4f665fc:      	cbnz	w11, 0x4f665f0 <main+0x1929758>
+ 4f66600:      	cbnz	x9, 0x4f66624 <main+0x192978c>
+ 4f66604:      	ldr	x8, [x19]
+ 4f66608:      	mov	x20, x0
+ 4f6660c:      	mov	x0, x19
+ 4f66610:      	ldr	x8, [x8, #0x10]
+ 4f66614:      	blr	x8
+ 4f66618:      	mov	x0, x19
+ 4f6661c:      	bl	0x36637ec <main+0x26954>
+ 4f66620:      	mov	x0, x20
+ 4f66624:      	ldp	x20, x19, [sp, #0x10]
+ 4f66628:      	ldp	x29, x30, [sp], #0x20
+ 4f6662c:      	b	0x3636070 <.text+0x1f070>
+
+CALLBACK VTABLE SLOT 0x10 STATIC RANGE 0x4f66630 .. 0x4f666ac
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f66630:      	stp	x29, x30, [sp, #-0x20]!
+ 4f66634:      	str	x19, [sp, #0x10]
+ 4f66638:      	mov	x29, sp
+ 4f6663c:      	mov	x19, x0
+ 4f66640:      	mov	w0, #0x30               // =48
+ 4f66644:      	bl	0x7d7e420
+ 4f66648:      	adrp	x8, 0x7f3e000
+ 4f6664c:      	add	x8, x8, #0x5e0
+ 4f66650:      	add	x9, x8, #0x10
+ 4f66654:      	ldp	x10, x8, [x19, #0x8]
+ 4f66658:      	stp	x9, x10, [x0]
+ 4f6665c:      	str	x8, [x0, #0x10]
+ 4f66660:      	cbz	x8, 0x4f66678 <main+0x19297e0>
+ 4f66664:      	add	x8, x8, #0x8
+ 4f66668:      	ldxr	x9, [x8]
+ 4f6666c:      	add	x9, x9, #0x1
+ 4f66670:      	stxr	w10, x9, [x8]
+ 4f66674:      	cbnz	w10, 0x4f66668 <main+0x19297d0>
+ 4f66678:      	ldp	x9, x10, [x19, #0x18]
+ 4f6667c:      	ldr	x8, [x19, #0x28]
+ 4f66680:      	str	x8, [x0, #0x28]
+ 4f66684:      	stp	x9, x10, [x0, #0x18]
+ 4f66688:      	cbz	x8, 0x4f666a0 <main+0x1929808>
+ 4f6668c:      	add	x8, x8, #0x8
+ 4f66690:      	ldxr	x9, [x8]
+ 4f66694:      	add	x9, x9, #0x1
+ 4f66698:      	stxr	w10, x9, [x8]
+ 4f6669c:      	cbnz	w10, 0x4f66690 <main+0x19297f8>
+ 4f666a0:      	ldr	x19, [sp, #0x10]
+ 4f666a4:      	ldp	x29, x30, [sp], #0x20
+ 4f666a8:      	ret
+
+CALLBACK VTABLE SLOT 0x18 STATIC RANGE 0x4f666ac .. 0x4f66708
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f666ac:      	adrp	x8, 0x7f3e000
+ 4f666b0:      	add	x8, x8, #0x5e0
+ 4f666b4:      	add	x9, x8, #0x10
+ 4f666b8:      	ldp	x10, x8, [x0, #0x8]
+ 4f666bc:      	stp	x9, x10, [x1]
+ 4f666c0:      	str	x8, [x1, #0x10]
+ 4f666c4:      	cbz	x8, 0x4f666dc <main+0x1929844>
+ 4f666c8:      	add	x8, x8, #0x8
+ 4f666cc:      	ldxr	x9, [x8]
+ 4f666d0:      	add	x9, x9, #0x1
+ 4f666d4:      	stxr	w10, x9, [x8]
+ 4f666d8:      	cbnz	w10, 0x4f666cc <main+0x1929834>
+ 4f666dc:      	ldp	x9, x10, [x0, #0x18]
+ 4f666e0:      	ldr	x8, [x0, #0x28]
+ 4f666e4:      	str	x8, [x1, #0x28]
+ 4f666e8:      	stp	x9, x10, [x1, #0x18]
+ 4f666ec:      	cbz	x8, 0x4f66704 <main+0x192986c>
+ 4f666f0:      	add	x8, x8, #0x8
+ 4f666f4:      	ldxr	x9, [x8]
+ 4f666f8:      	add	x9, x9, #0x1
+ 4f666fc:      	stxr	w10, x9, [x8]
+ 4f66700:      	cbnz	w10, 0x4f666f4 <main+0x192985c>
+ 4f66704:      	ret
+
+CALLBACK VTABLE SLOT 0x20 STATIC RANGE 0x4f66708 .. 0x4f667ac
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f66708:      	stp	x29, x30, [sp, #-0x20]!
+ 4f6670c:      	stp	x20, x19, [sp, #0x10]
+ 4f66710:      	mov	x29, sp
+ 4f66714:      	ldr	x19, [x0, #0x28]
+ 4f66718:      	cbz	x19, 0x4f66734 <main+0x192989c>
+ 4f6671c:      	add	x8, x19, #0x8
+ 4f66720:      	ldaxr	x9, [x8]
+ 4f66724:      	sub	x10, x9, #0x1
+ 4f66728:      	stlxr	w11, x10, [x8]
+ 4f6672c:      	cbnz	w11, 0x4f66720 <main+0x1929888>
+ 4f66730:      	cbz	x9, 0x4f66760 <main+0x19298c8>
+ 4f66734:      	ldr	x19, [x0, #0x10]
+ 4f66738:      	cbz	x19, 0x4f66754 <main+0x19298bc>
+ 4f6673c:      	add	x8, x19, #0x8
+ 4f66740:      	ldaxr	x9, [x8]
+ 4f66744:      	sub	x10, x9, #0x1
+ 4f66748:      	stlxr	w11, x10, [x8]
+ 4f6674c:      	cbnz	w11, 0x4f66740 <main+0x19298a8>
+ 4f66750:      	cbz	x9, 0x4f6678c <main+0x19298f4>
+ 4f66754:      	ldp	x20, x19, [sp, #0x10]
+ 4f66758:      	ldp	x29, x30, [sp], #0x20
+ 4f6675c:      	ret
+ 4f66760:      	ldr	x8, [x19]
+ 4f66764:      	mov	x20, x0
+ 4f66768:      	mov	x0, x19
+ 4f6676c:      	ldr	x8, [x8, #0x10]
+ 4f66770:      	blr	x8
+ 4f66774:      	mov	x0, x19
+ 4f66778:      	bl	0x36637ec <main+0x26954>
+ 4f6677c:      	mov	x0, x20
+ 4f66780:      	ldr	x19, [x0, #0x10]
+ 4f66784:      	cbnz	x19, 0x4f6673c <main+0x19298a4>
+ 4f66788:      	b	0x4f66754 <main+0x19298bc>
+ 4f6678c:      	ldr	x8, [x19]
+ 4f66790:      	mov	x0, x19
+ 4f66794:      	ldr	x8, [x8, #0x10]
+ 4f66798:      	blr	x8
+ 4f6679c:      	mov	x0, x19
+ 4f667a0:      	ldp	x20, x19, [sp, #0x10]
+ 4f667a4:      	ldp	x29, x30, [sp], #0x20
+ 4f667a8:      	b	0x36637ec <main+0x26954>
+
+CALLBACK VTABLE SLOT 0x28 STATIC RANGE 0x4f667ac .. 0x4f66844
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f667ac:      	stp	x29, x30, [sp, #-0x20]!
+ 4f667b0:      	stp	x20, x19, [sp, #0x10]
+ 4f667b4:      	mov	x29, sp
+ 4f667b8:      	ldr	x19, [x0, #0x28]
+ 4f667bc:      	cbz	x19, 0x4f667f8 <main+0x1929960>
+ 4f667c0:      	add	x8, x19, #0x8
+ 4f667c4:      	ldaxr	x9, [x8]
+ 4f667c8:      	sub	x10, x9, #0x1
+ 4f667cc:      	stlxr	w11, x10, [x8]
+ 4f667d0:      	cbnz	w11, 0x4f667c4 <main+0x192992c>
+ 4f667d4:      	cbnz	x9, 0x4f667f8 <main+0x1929960>
+ 4f667d8:      	ldr	x8, [x19]
+ 4f667dc:      	mov	x20, x0
+ 4f667e0:      	mov	x0, x19
+ 4f667e4:      	ldr	x8, [x8, #0x10]
+ 4f667e8:      	blr	x8
+ 4f667ec:      	mov	x0, x19
+ 4f667f0:      	bl	0x36637ec <main+0x26954>
+ 4f667f4:      	mov	x0, x20
+ 4f667f8:      	ldr	x19, [x0, #0x10]
+ 4f667fc:      	cbz	x19, 0x4f66838 <main+0x19299a0>
+ 4f66800:      	add	x8, x19, #0x8
+ 4f66804:      	ldaxr	x9, [x8]
+ 4f66808:      	sub	x10, x9, #0x1
+ 4f6680c:      	stlxr	w11, x10, [x8]
+ 4f66810:      	cbnz	w11, 0x4f66804 <main+0x192996c>
+ 4f66814:      	cbnz	x9, 0x4f66838 <main+0x19299a0>
+ 4f66818:      	ldr	x8, [x19]
+ 4f6681c:      	mov	x20, x0
+ 4f66820:      	mov	x0, x19
+ 4f66824:      	ldr	x8, [x8, #0x10]
+ 4f66828:      	blr	x8
+ 4f6682c:      	mov	x0, x19
+ 4f66830:      	bl	0x36637ec <main+0x26954>
+ 4f66834:      	mov	x0, x20
+ 4f66838:      	ldp	x20, x19, [sp, #0x10]
+ 4f6683c:      	ldp	x29, x30, [sp], #0x20
+ 4f66840:      	b	0x3636070 <.text+0x1f070>
+
+CALLBACK VTABLE SLOT 0x30 STATIC RANGE 0x4f66844 .. 0x4f66858
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f66844:      	ldr	x1, [x1]
+ 4f66848:      	ldr	w2, [x2]
+ 4f6684c:      	add	x0, x0, #0x8
+ 4f66850:      	ldr	w3, [x3]
+ 4f66854:      	b	0x4f66880 <main+0x19299e8>
+
+CALLBACK VTABLE SLOT 0x38 STATIC RANGE 0x4f66858 .. 0x4f66874
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f66858:      	adrp	x9, 0x80f2000
+ 4f6685c:      	ldr	x8, [x1, #0x8]
+ 4f66860:      	add	x10, x0, #0x8
+ 4f66864:      	ldr	x9, [x9, #0xb88]
+ 4f66868:      	cmp	x8, x9
+ 4f6686c:      	csel	x0, x10, xzr, eq
+ 4f66870:      	ret
+
+CALLBACK VTABLE SLOT 0x40 STATIC RANGE 0x4f66874 .. 0x4f66880
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 4f66874:      	adrp	x0, 0x7f3e000
+ 4f66878:      	add	x0, x0, #0x6b0
+ 4f6687c:      	ret

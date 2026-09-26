@@ -1,0 +1,14 @@
+[
+  {
+    "adrp_va": "0x5ba8c38",
+    "add_va": "0x5ba8c3c",
+    "target_va": "0x81f79b8",
+    "anchors": [
+      "MMStartTask_function_slot"
+    ],
+    "unwind_start_candidate": "0x5ba8b54",
+    "fde_va": "0x3513548",
+    "next_index_start": "0x5ba8ef4",
+    "status": "requires_disassembly_and_dataflow_review"
+  }
+]

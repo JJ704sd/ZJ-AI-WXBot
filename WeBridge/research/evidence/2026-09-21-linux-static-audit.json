@@ -1,0 +1,88 @@
+{
+  "checked_at": "2026-09-21",
+  "method": "Public GitHub API metadata and source reads; file headers only for previously downloaded native libraries. No builds, binary execution, container start, login or message tests.",
+  "wechatpadpro": {
+    "commit": "5cf4fc76c5457691798079bd921e09f60cf5afd7",
+    "commit_date": "2026-08-20T16:55:33Z",
+    "release_tag": "v2.01",
+    "release_published_at": "2025-08-22T11:51:50Z",
+    "linux_assets": [
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-amd64.zip",
+        "size": 23976531,
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-amd64.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-arm64.zip",
+        "size": 22830500,
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-arm64.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-mips64.zip",
+        "size": 22689374,
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-mips64.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-mips64le.zip",
+        "size": 22130079,
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-mips64le.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-ppc64.zip",
+        "size": 23374176,
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-ppc64.zip"
+      },
+      {
+        "name": "wechatpadpro_vios18.61-861_20250822_linux-ppc64le.zip",
+        "size": 22961098,
+        "url": "https://github.com/WeChatPadPro/WeChatPadPro/releases/download/v2.01/wechatpadpro_vios18.61-861_20250822_linux-ppc64le.zip"
+      }
+    ]
+  },
+  "ipad860": {
+    "commit": "4d567bd6ee3206b5f112768225d7498abfc442b1",
+    "commit_date": "2025-08-20T08:42:33Z",
+    "source_files": {
+      "clientsdk/dynlib/linux.go": {
+        "blob_sha": "b6353e18231418ebb8be7c9feed39d957c03db21",
+        "source": "https://github.com/meteor-nb/Ipad860/blob/4d567bd6ee3206b5f112768225d7498abfc442b1/clientsdk/dynlib/linux.go"
+      },
+      "clientsdk/v08/v08.go": {
+        "blob_sha": "b01e4d103864e949731ea020407e77a63ca11c03",
+        "source": "https://github.com/meteor-nb/Ipad860/blob/4d567bd6ee3206b5f112768225d7498abfc442b1/clientsdk/v08/v08.go"
+      },
+      "go.mod": {
+        "blob_sha": "8fbfa1a2c34a1f5cd6b881dd5b9a15c41e3902c1",
+        "source": "https://github.com/meteor-nb/Ipad860/blob/4d567bd6ee3206b5f112768225d7498abfc442b1/go.mod"
+      },
+      "models/Msg/SendNewMsg.go": {
+        "blob_sha": "a3ed5f275d1fe52eb9ea43ec32c0817b04d49610",
+        "source": "https://github.com/meteor-nb/Ipad860/blob/4d567bd6ee3206b5f112768225d7498abfc442b1/models/Msg/SendNewMsg.go"
+      },
+      "models/Msg/sync.go": {
+        "blob_sha": "a19a3e53b23e1e9736d3fc600b777369b72fd491",
+        "source": "https://github.com/meteor-nb/Ipad860/blob/4d567bd6ee3206b5f112768225d7498abfc442b1/models/Msg/sync.go"
+      },
+      "srv/sync/syncmsg.go": {
+        "blob_sha": "af09fc21267188fcb0ddea9309a853c4d9784774",
+        "source": "https://github.com/meteor-nb/Ipad860/blob/4d567bd6ee3206b5f112768225d7498abfc442b1/srv/sync/syncmsg.go"
+      },
+      "conf/app.conf": {
+        "blob_sha": "ad3f5a98c30808de26d985a91b68c3140d9668ff",
+        "source": "https://github.com/meteor-nb/Ipad860/blob/4d567bd6ee3206b5f112768225d7498abfc442b1/conf/app.conf"
+      }
+    },
+    "libv08_so": {
+      "format": "ELF64 x86-64, dynamically linked, not stripped",
+      "sha256": "c89374360a439abb24bf551eda04c3001fda4b58a2bf33d9e610222382796ddf"
+    },
+    "static_build_findings": [
+      "Dockerfile uses golang:1.15.4 while go.mod requires Go 1.24",
+      "Dockerfile contains RUN ADD instead of ADD/COPY",
+      "Dockerfile.http/tcp reference protocol:1.0.1 and missing conf/app-http.conf/conf/app-tcp.conf",
+      "v08 init loads Linux libv08.so with dlopen; deployment must arrange dynamic library lookup path",
+      "No checked-in Darwin/ARM v08 library in audited tree"
+    ],
+    "scope_limit": "Existing atuserlist generation and enterprise-contact endpoints do not establish external mixed-group delivery."
+  }
+}

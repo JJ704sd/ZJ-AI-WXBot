@@ -1,0 +1,9 @@
+{
+  "upstream": "https://github.com/thisnick/agent-wechat",
+  "commit": "da066f501adb8454514051520007117776081332",
+  "purpose": "local feasibility prototype; not distributed",
+  "license_status": "No project LICENSE observed; source readability is not a redistribution grant",
+  "local_changes": [],
+  "image_manifest": "sha256:94eb44693e6f9768ccff0b926615b6520d6f4ecc05b02aaa7dfd45331b7c372d",
+  "image_arm64": "sha256:b47d26150955a4e079a9771383282babc14fc8fbc0647a84921abf826631de29"
+}

@@ -1,0 +1,13 @@
+{
+  "getter_hits": [
+    "0x4830994"
+  ],
+  "relative_relocations": [
+    {
+      "slot": "0x7f01f60",
+      "function": "0x4830994",
+      "possible_vptr": "0x7f01f48",
+      "vptr_first": "0x482ea34"
+    }
+  ]
+}

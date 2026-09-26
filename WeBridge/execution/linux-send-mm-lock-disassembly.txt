@@ -1,0 +1,50 @@
+
+STATIC RANGE 0x36fb0e4..0x36fb108
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 36fb0e4:      	stp	x29, x30, [sp, #-0x10]!
+ 36fb0e8:      	mov	x29, sp
+ 36fb0ec:      	bl	0x7d7e820 <pthread_mutex_lock@plt>
+ 36fb0f0:      	cbnz	w0, 0x36fb0fc <main+0xbe264>
+ 36fb0f4:      	ldp	x29, x30, [sp], #0x10
+ 36fb0f8:      	ret
+ 36fb0fc:      	adrp	x1, 0xe22000
+ 36fb100:      	add	x1, x1, #0x53a
+ 36fb104:      	bl	0x3642c74 <main+0x5ddc>
+
+
+STATIC RANGE 0x6a65478..0x6a654d8
+
+build/linux/wechat-4.1.1.8-arm64:	file format elf64-littleaarch64
+
+Disassembly of section .text:
+
+000000000363ce98 <main>:
+ 6a65478:      	stp	x29, x30, [sp, #-0x20]!
+ 6a6547c:      	stp	x20, x19, [sp, #0x10]
+ 6a65480:      	mov	x29, sp
+ 6a65484:      	mov	x20, x0
+ 6a65488:      	adrp	x0, 0x810c000
+ 6a6548c:      	mov	x19, x1
+ 6a65490:      	ldr	x0, [x0, #0xc98]
+ 6a65494:      	bl	0x36fb0e4 <main+0xbe24c>
+ 6a65498:      	add	x0, x20, #0x20
+ 6a6549c:      	mov	x1, x19
+ 6a654a0:      	bl	0x6a65a84 <main+0x3428bec>
+ 6a654a4:      	add	x8, x20, #0x28
+ 6a654a8:      	cmp	x8, x0
+ 6a654ac:      	b.eq	0x6a654b8 <main+0x3428620>
+ 6a654b0:      	ldr	x19, [x0, #0x38]
+ 6a654b4:      	b	0x6a654bc <main+0x3428624>
+ 6a654b8:      	mov	x19, xzr
+ 6a654bc:      	adrp	x0, 0x82e9000 <__bss_start+0x48fc0>
+ 6a654c0:      	add	x0, x0, #0x6b8
+ 6a654c4:      	bl	0x36fb108 <main+0xbe270>
+ 6a654c8:      	mov	x0, x19
+ 6a654cc:      	ldp	x20, x19, [sp, #0x10]
+ 6a654d0:      	ldp	x29, x30, [sp], #0x20
+ 6a654d4:      	ret

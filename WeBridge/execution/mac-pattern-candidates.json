@@ -1,0 +1,164 @@
+{
+  "method": "Exact 20-byte disk patterns at -32..+32 bytes around old config locations; unique matches only. These are NOT approved Hook addresses.",
+  "items": {
+    "sendFuncAddr": {
+      "old_rva": "0x5120fd8",
+      "old_enclosing_function": "0x5120fd8",
+      "old_offset_in_function": 0,
+      "matches": []
+    },
+    "req2bufEnterAddr": {
+      "old_rva": "0x3e58e8c",
+      "old_enclosing_function": "0x3e58e44",
+      "old_offset_in_function": 72,
+      "matches": []
+    },
+    "req2bufExitAddr": {
+      "old_rva": "0x3e59de0",
+      "old_enclosing_function": "0x3e58e44",
+      "old_offset_in_function": 3996,
+      "matches": []
+    },
+    "buf2RespAddr": {
+      "old_rva": "0x3e7e670",
+      "old_enclosing_function": "0x3e7e2ec",
+      "old_offset_in_function": 900,
+      "matches": [
+        {
+          "delta": -16,
+          "pattern": "e20300aae00313aae10314aa080500943c008052",
+          "candidate_rva": "0x42b7c54",
+          "candidate_enclosing_function": "0x42b78d0"
+        },
+        {
+          "delta": -12,
+          "pattern": "e00313aae10314aa080500943c008052e0c30091",
+          "candidate_rva": "0x42b7c54",
+          "candidate_enclosing_function": "0x42b78d0"
+        },
+        {
+          "delta": -8,
+          "pattern": "e10314aa080500943c008052e0c30091bf030094",
+          "candidate_rva": "0x42b7c54",
+          "candidate_enclosing_function": "0x42b78d0"
+        },
+        {
+          "delta": -4,
+          "pattern": "080500943c008052e0c30091bf030094e0230191",
+          "candidate_rva": "0x42b7c54",
+          "candidate_enclosing_function": "0x42b78d0"
+        },
+        {
+          "delta": 0,
+          "pattern": "3c008052e0c30091bf030094e0230191bd030094",
+          "candidate_rva": "0x42b7c54",
+          "candidate_enclosing_function": "0x42b78d0"
+        },
+        {
+          "delta": 4,
+          "pattern": "e0c30091bf030094e0230191bd030094e8dfc139",
+          "candidate_rva": "0x42b7c54",
+          "candidate_enclosing_function": "0x42b78d0"
+        },
+        {
+          "delta": 8,
+          "pattern": "bf030094e0230191bd030094e8dfc13928e6ff36",
+          "candidate_rva": "0x42b7c54",
+          "candidate_enclosing_function": "0x42b78d0"
+        },
+        {
+          "delta": 12,
+          "pattern": "e0230191bd030094e8dfc13928e6ff36e03340f9",
+          "candidate_rva": "0x42b7c54",
+          "candidate_enclosing_function": "0x42b78d0"
+        },
+        {
+          "delta": 16,
+          "pattern": "bd030094e8dfc13928e6ff36e03340f9e83b40f9",
+          "candidate_rva": "0x42b7c54",
+          "candidate_enclosing_function": "0x42b78d0"
+        },
+        {
+          "delta": 20,
+          "pattern": "e8dfc13928e6ff36e03340f9e83b40f901f94092",
+          "candidate_rva": "0x42b7c54",
+          "candidate_enclosing_function": "0x42b78d0"
+        }
+      ]
+    },
+    "blrX8Addr": {
+      "old_rva": "0x3e58f0c",
+      "old_enclosing_function": "0x3e58e44",
+      "old_offset_in_function": 200,
+      "matches": [
+        {
+          "delta": 12,
+          "pattern": "40e5054fe00306ade00307ade00308ade04b803d",
+          "candidate_rva": "0xec7850",
+          "candidate_enclosing_function": "0xec748c"
+        },
+        {
+          "delta": 16,
+          "pattern": "e00306ade00307ade00308ade04b803de9f301b2",
+          "candidate_rva": "0xec7850",
+          "candidate_enclosing_function": "0xec748c"
+        }
+      ]
+    },
+    "autoBufferWriteFunc": {
+      "old_rva": "0x3e7fa8c",
+      "old_enclosing_function": "0x3e7fa8c",
+      "old_offset_in_function": 0,
+      "matches": [
+        {
+          "delta": -32,
+          "pattern": "171140b9000080527fca3738fd7b43a9f44f42a9",
+          "candidate_rva": "0x42b9070",
+          "candidate_enclosing_function": "0x42b9070"
+        },
+        {
+          "delta": -28,
+          "pattern": "000080527fca3738fd7b43a9f44f42a9f65741a9",
+          "candidate_rva": "0x42b9070",
+          "candidate_enclosing_function": "0x42b9070"
+        },
+        {
+          "delta": -24,
+          "pattern": "7fca3738fd7b43a9f44f42a9f65741a9f85fc4a8",
+          "candidate_rva": "0x42b9070",
+          "candidate_enclosing_function": "0x42b9070"
+        },
+        {
+          "delta": 16,
+          "pattern": "f30302aaf40301aaf50300aae10302aac2ffff97",
+          "candidate_rva": "0x42b9070",
+          "candidate_enclosing_function": "0x42b9070"
+        },
+        {
+          "delta": 20,
+          "pattern": "f40301aaf50300aae10302aac2ffff97a80240f9",
+          "candidate_rva": "0x42b9070",
+          "candidate_enclosing_function": "0x42b9070"
+        },
+        {
+          "delta": 24,
+          "pattern": "f50300aae10302aac2ffff97a80240f9090140f9",
+          "candidate_rva": "0x42b9070",
+          "candidate_enclosing_function": "0x42b9070"
+        },
+        {
+          "delta": 28,
+          "pattern": "e10302aac2ffff97a80240f9090140f9080d80b9",
+          "candidate_rva": "0x42b9070",
+          "candidate_enclosing_function": "0x42b9070"
+        },
+        {
+          "delta": 32,
+          "pattern": "c2ffff97a80240f9090140f9080d80b9627e4093",
+          "candidate_rva": "0x42b9070",
+          "candidate_enclosing_function": "0x42b9070"
+        }
+      ]
+    }
+  }
+}

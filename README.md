@@ -18,6 +18,12 @@
 - [业务需求与采购验收](./specs/mixed-group-business-requirements-2026-09-21.md)：首期范围与维护要求。
 - [离线 PoC](./poc/README.md)：各入口的实现范围与验证边界。
 
+## Windows 工作台
+
+- [WeBridge 工作台](./WeBridge/README.md)：基于 WeBridge 的 Windows 界面、启动入口、会话与消息检索、草稿和连接诊断。
+- [Windows 启动与接入说明](./WeBridge/WINDOWS.md)：双击 `WeBridge/start-workbench.cmd`；默认从本机微信数据库副本读取，支持按变化更新、演示及窗口诊断。
+- [本轮检查与验证](./WeBridge/execution/windows-workbench-review-2026-09-26.md) · [上游来源与仓库归属](./WeBridge/UPSTREAM.md)。已验证当前账号数据库副本读取；真实发送与新消息验证按交付记录单独列明，演示结果不构成真实接入成绩。
+
 ## 修订依据与历史版本
 
 - [项目文档审查](./specs/个微收发_v1.20_项目文档审查与修订建议_2026-09-26.md)：8 类修改建议；落实位置见 v1.21 附录 B。

@@ -1,0 +1,366 @@
+{
+  "fixture": "hidden disposable Python child only",
+  "records": [
+    {
+      "repeat": 1,
+      "mode": "no_attach",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": false,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.215
+    },
+    {
+      "repeat": 1,
+      "mode": "plain_detach",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "metadataBefore": {
+        "pid": 6856,
+        "runtime": "QJS"
+      },
+      "detached": true,
+      "aliveAfterHostExit": false,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 3221225477,
+      "durationSeconds": 2.455
+    },
+    {
+      "repeat": 1,
+      "mode": "native_detach",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "metadataBefore": {
+        "pid": 21128,
+        "runtime": "QJS"
+      },
+      "nativePingCorrect": true,
+      "detached": true,
+      "aliveAfterHostExit": false,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 3221225477,
+      "durationSeconds": 2.44
+    },
+    {
+      "repeat": 1,
+      "mode": "main_eternalize",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "metadataBefore": {
+        "pid": 51524,
+        "runtime": "QJS"
+      },
+      "mainEternalized": true,
+      "rpcAfterEternalize": "InvalidOperationError",
+      "detached": true,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.435
+    },
+    {
+      "repeat": 1,
+      "mode": "keeper_eternalize",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "keeperEternalized": true,
+      "metadataBefore": {
+        "pid": 47192,
+        "runtime": "QJS"
+      },
+      "nativePingCorrect": true,
+      "detached": true,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.425
+    },
+    {
+      "repeat": 1,
+      "mode": "keeper_main_eternalize",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "keeperEternalized": true,
+      "metadataBefore": {
+        "pid": 45944,
+        "runtime": "QJS"
+      },
+      "nativePingCorrect": true,
+      "mainEternalizedAtClose": true,
+      "detached": true,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.469
+    },
+    {
+      "repeat": 2,
+      "mode": "no_attach",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": false,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.227
+    },
+    {
+      "repeat": 2,
+      "mode": "plain_detach",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "metadataBefore": {
+        "pid": 21740,
+        "runtime": "QJS"
+      },
+      "detached": true,
+      "aliveAfterHostExit": false,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 3221225477,
+      "durationSeconds": 2.428
+    },
+    {
+      "repeat": 2,
+      "mode": "native_detach",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "metadataBefore": {
+        "pid": 54700,
+        "runtime": "QJS"
+      },
+      "nativePingCorrect": true,
+      "detached": true,
+      "aliveAfterHostExit": false,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 3221225477,
+      "durationSeconds": 2.436
+    },
+    {
+      "repeat": 2,
+      "mode": "main_eternalize",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "metadataBefore": {
+        "pid": 56028,
+        "runtime": "QJS"
+      },
+      "mainEternalized": true,
+      "rpcAfterEternalize": "InvalidOperationError",
+      "detached": true,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.429
+    },
+    {
+      "repeat": 2,
+      "mode": "keeper_eternalize",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "keeperEternalized": true,
+      "metadataBefore": {
+        "pid": 40568,
+        "runtime": "QJS"
+      },
+      "nativePingCorrect": true,
+      "detached": true,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.437
+    },
+    {
+      "repeat": 2,
+      "mode": "keeper_main_eternalize",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "keeperEternalized": true,
+      "metadataBefore": {
+        "pid": 47000,
+        "runtime": "QJS"
+      },
+      "nativePingCorrect": true,
+      "mainEternalizedAtClose": true,
+      "detached": true,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.431
+    },
+    {
+      "repeat": 3,
+      "mode": "no_attach",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": false,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.205
+    },
+    {
+      "repeat": 3,
+      "mode": "plain_detach",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "metadataBefore": {
+        "pid": 48472,
+        "runtime": "QJS"
+      },
+      "detached": true,
+      "aliveAfterHostExit": false,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 3221225477,
+      "durationSeconds": 2.422
+    },
+    {
+      "repeat": 3,
+      "mode": "native_detach",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "metadataBefore": {
+        "pid": 57460,
+        "runtime": "QJS"
+      },
+      "nativePingCorrect": true,
+      "detached": true,
+      "aliveAfterHostExit": false,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 3221225477,
+      "durationSeconds": 2.419
+    },
+    {
+      "repeat": 3,
+      "mode": "main_eternalize",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "metadataBefore": {
+        "pid": 51768,
+        "runtime": "QJS"
+      },
+      "mainEternalized": true,
+      "rpcAfterEternalize": "InvalidOperationError",
+      "detached": true,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.465
+    },
+    {
+      "repeat": 3,
+      "mode": "keeper_eternalize",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "keeperEternalized": true,
+      "metadataBefore": {
+        "pid": 53712,
+        "runtime": "QJS"
+      },
+      "nativePingCorrect": true,
+      "detached": true,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.477
+    },
+    {
+      "repeat": 3,
+      "mode": "keeper_main_eternalize",
+      "controllerExit": 0,
+      "fridaVersion": "17.19.0",
+      "attached": true,
+      "keeperEternalized": true,
+      "metadataBefore": {
+        "pid": 49416,
+        "runtime": "QJS"
+      },
+      "nativePingCorrect": true,
+      "mainEternalizedAtClose": true,
+      "detached": true,
+      "aliveAfterHostExit": true,
+      "observedSecondsAfterHostExit": 2.0,
+      "normalFixtureExitCode": 0,
+      "durationSeconds": 2.462
+    }
+  ],
+  "environment": {
+    "date": "2026-09-26",
+    "os": "Windows-11-10.0.26100-SP0",
+    "python": "3.13.9",
+    "frida": "17.19.0",
+    "runtime": "QJS",
+    "fixture": "hidden disposable Python process; no WeChat/library/objects"
+  },
+  "summary": {
+    "keeper_eternalize": {
+      "runs": 3,
+      "aliveAfterHostExit": 3,
+      "exitCodes": [
+        0,
+        0,
+        0
+      ]
+    },
+    "keeper_main_eternalize": {
+      "runs": 3,
+      "aliveAfterHostExit": 3,
+      "exitCodes": [
+        0,
+        0,
+        0
+      ]
+    },
+    "main_eternalize": {
+      "runs": 3,
+      "aliveAfterHostExit": 3,
+      "exitCodes": [
+        0,
+        0,
+        0
+      ]
+    },
+    "native_detach": {
+      "runs": 3,
+      "aliveAfterHostExit": 0,
+      "exitCodes": [
+        3221225477,
+        3221225477,
+        3221225477
+      ]
+    },
+    "no_attach": {
+      "runs": 3,
+      "aliveAfterHostExit": 3,
+      "exitCodes": [
+        0,
+        0,
+        0
+      ]
+    },
+    "plain_detach": {
+      "runs": 3,
+      "aliveAfterHostExit": 0,
+      "exitCodes": [
+        3221225477,
+        3221225477,
+        3221225477
+      ]
+    }
+  }
+}

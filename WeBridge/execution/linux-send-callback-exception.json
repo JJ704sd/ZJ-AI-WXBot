@@ -1,0 +1,34 @@
+{
+  "0x80d7b08": {
+    "storage": "0x80d7b08",
+    "type": 1027,
+    "symbol": "",
+    "addend": "0x7d9d178"
+  },
+  "0x80d7b10": {
+    "storage": "0x80d7b10",
+    "type": 1027,
+    "symbol": "",
+    "addend": "0x7d9d160",
+    "type_name_pointer": {
+      "storage": "0x7d9d168",
+      "type": 1027,
+      "symbol": "",
+      "addend": "0x1a74330"
+    },
+    "type_name": "c48e6d344b7ba947db5726748b22496c"
+  },
+  "0x80d7ef0": {
+    "storage": "0x80d7ef0",
+    "type": 1027,
+    "symbol": "",
+    "addend": "0x3636078"
+  },
+  "what": {
+    "virtual_slot_storage": "0x7d9d198",
+    "function": "0x36360a0",
+    "string_va": "0xdec46c",
+    "value": "std::exception"
+  },
+  "exception_specific_type": "RTTI is obfuscated; exact public type name not proven"
+}

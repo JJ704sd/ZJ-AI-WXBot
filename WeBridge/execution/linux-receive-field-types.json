@@ -1,0 +1,14 @@
+{
+  "string_wrapper_vptr": "0x7fbb4e0",
+  "string_wrapper_typename_function": "0x5bc3870",
+  "ranges": [
+    {
+      "start": "0x5bc3870",
+      "end": "0x5bc38c0"
+    },
+    {
+      "start": "0x5485bd8",
+      "end": "0x5486384"
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "status": "static_evidence_only_not_runtime_configuration",
+  "old": {
+    "rtti_name_rva": "0x7e59d68",
+    "rtti_name": "_af1f970f",
+    "typeinfo_rva": "0x923b768",
+    "first_vtable_entry_rva": "0x923b4c8",
+    "entries": [
+      {
+        "slot": 0,
+        "pointer_storage_rva": "0x923b4c8",
+        "encoded_word": "0x10000003e53904",
+        "low32_target_rva": "0x3e53904",
+        "is_function_start": true,
+        "next_function_start": "0x3e53968"
+      },
+      {
+        "slot": 1,
+        "pointer_storage_rva": "0x923b4d0",
+        "encoded_word": "0x10000003e53a20",
+        "low32_target_rva": "0x3e53a20",
+        "is_function_start": true,
+        "next_function_start": "0x3e53a88"
+      },
+      {
+        "slot": 2,
+        "pointer_storage_rva": "0x923b4d8",
+        "encoded_word": "0x10000003e58e44",
+        "low32_target_rva": "0x3e58e44",
+        "is_function_start": true,
+        "next_function_start": "0x3e5a3e4"
+      },
+      {
+        "slot": 3,
+        "pointer_storage_rva": "0x923b4e0",
+        "encoded_word": "0x10000003e5a404",
+        "low32_target_rva": "0x3e5a404",
+        "is_function_start": true,
+        "next_function_start": "0x3e5a40c"
+      },
+      {
+        "slot": 13,
+        "pointer_storage_rva": "0x923b530",
+        "encoded_word": "0x10000003e57f34",
+        "low32_target_rva": "0x3e57f34",
+        "is_function_start": true,
+        "next_function_start": "0x3e57f38"
+      }
+    ]
+  },
+  "current": {
+    "rtti_name_rva": "0x84ad5a8",
+    "rtti_name": "_af1f970f",
+    "typeinfo_rva": "0x98e7e50",
+    "first_vtable_entry_rva": "0x98e7bb0",
+    "entries": [
+      {
+        "slot": 0,
+        "pointer_storage_rva": "0x98e7bb0",
+        "encoded_word": "0x1000000428d930",
+        "low32_target_rva": "0x428d930",
+        "is_function_start": true,
+        "next_function_start": "0x428d994"
+      },
+      {
+        "slot": 1,
+        "pointer_storage_rva": "0x98e7bb8",
+        "encoded_word": "0x1000000428da4c",
+        "low32_target_rva": "0x428da4c",
+        "is_function_start": true,
+        "next_function_start": "0x428dab4"
+      },
+      {
+        "slot": 2,
+        "pointer_storage_rva": "0x98e7bc0",
+        "encoded_word": "0x10000004294718",
+        "low32_target_rva": "0x4294718",
+        "is_function_start": true,
+        "next_function_start": "0x42950d4"
+      },
+      {
+        "slot": 3,
+        "pointer_storage_rva": "0x98e7bc8",
+        "encoded_word": "0x100000042950d4",
+        "low32_target_rva": "0x42950d4",
+        "is_function_start": true,
+        "next_function_start": "0x42950ec"
+      },
+      {
+        "slot": 13,
+        "pointer_storage_rva": "0x98e7c18",
+        "encoded_word": "0x100000042931e8",
+        "low32_target_rva": "0x42931e8",
+        "is_function_start": true,
+        "next_function_start": "0x4293d08"
+      }
+    ]
+  }
+}

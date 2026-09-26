@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-21",
+  "clientBuildId": "9a3558be209dfcf1b85d6ec18bf029c7f97ccb61",
+  "clientSha256": "e40116597803a5e0d9fc4a2b727df4b8f7a3dd6de1c336140ea373be2b6626e9",
+  "callbackSourceSha256": "05fe632fcc3c628313f84823eff29ca7863a5ef8c4057f4f34eac07551e91514",
+  "callbackLibrarySha256": "edbafd4f8db02f88b68ba666b4b6411e29e0cd776d89c5450459516384879280",
+  "callbackBuildFlags": [
+    "-std=c11",
+    "-O2",
+    "-fPIC",
+    "-shared",
+    "-pthread",
+    "-Wall",
+    "-Wextra",
+    "-Werror"
+  ],
+  "nativeObjectRoundtrip": {
+    "bytes": 188,
+    "deepCopyAfterSourceDelete": true,
+    "byteExact": true,
+    "truncatedRejected": true,
+    "sent": false
+  },
+  "callbackIndependentTest": {
+    "mask": 31,
+    "passed": true
+  },
+  "nativeSend": {
+    "marker": "NATIVE-005",
+    "serverAccepted": true,
+    "recipientConfirmedRealMention": true,
+    "elapsedMs": 406,
+    "uiOperations": 0,
+    "liveCallbacksAfterCompletion": 0
+  },
+  "receive": {
+    "ordinary": true,
+    "selfMention": true,
+    "uiOperations": 0,
+    "forcedWalMerge": false,
+    "latencyMeasured": false
+  },
+  "longRunningValidated": false,
+  "windowsValidated": false
+}

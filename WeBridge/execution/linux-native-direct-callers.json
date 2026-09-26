@@ -1,0 +1,122 @@
+{
+  "MMStartTask_outer": [],
+  "MMStartTask_method": [
+    {
+      "branch": "BL",
+      "va": "0x6b4e5a4",
+      "target": "0x6b5c7fc",
+      "caller": "0x6b4e508",
+      "next_index_start": "0x6b4e638"
+    },
+    {
+      "branch": "BL",
+      "va": "0x6c164d8",
+      "target": "0x6b5c7fc",
+      "caller": "0x6c160a0",
+      "next_index_start": "0x6c16cf0"
+    },
+    {
+      "branch": "BL",
+      "va": "0x6c16bc0",
+      "target": "0x6b5c7fc",
+      "caller": "0x6c160a0",
+      "next_index_start": "0x6c16cf0"
+    }
+  ],
+  "StartTask_manager": [
+    {
+      "branch": "BL",
+      "va": "0x6b5c858",
+      "target": "0x6b67bf4",
+      "caller": "0x6b5c7fc",
+      "next_index_start": "0x6b5c884"
+    }
+  ],
+  "MMBuf2Resp": [
+    {
+      "branch": "BL",
+      "va": "0x6c34abc",
+      "target": "0x6b5a978",
+      "caller": "0x6c349c4",
+      "next_index_start": "0x6c34b1c"
+    }
+  ],
+  "newsendmsg_large": [
+    {
+      "branch": "BL",
+      "va": "0x4f61a04",
+      "target": "0x4f62668",
+      "caller": "0x4f6177c",
+      "next_index_start": "0x4f62668"
+    },
+    {
+      "branch": "BL",
+      "va": "0x4fc672c",
+      "target": "0x4f62668",
+      "caller": "0x4fc64a4",
+      "next_index_start": "0x4fc75a0"
+    },
+    {
+      "branch": "BL",
+      "va": "0x4fcbef4",
+      "target": "0x4f62668",
+      "caller": "0x4fcbc0c",
+      "next_index_start": "0x4fcd3bc"
+    }
+  ],
+  "newsendmsg_builder": [
+    {
+      "branch": "BL",
+      "va": "0x4f65da8",
+      "target": "0x4f65f78",
+      "caller": "0x4f65c8c",
+      "next_index_start": "0x4f65f78"
+    }
+  ],
+  "atuserlist_parser": [
+    {
+      "branch": "BL",
+      "va": "0x484aa28",
+      "target": "0x48522b8",
+      "caller": "0x484a9b8",
+      "next_index_start": "0x484aae4"
+    },
+    {
+      "branch": "B",
+      "va": "0x484d6e4",
+      "target": "0x48522b8",
+      "caller": "0x484d6ac",
+      "next_index_start": "0x484d7a0"
+    }
+  ],
+  "atuserlist_writer": [
+    {
+      "branch": "BL",
+      "va": "0x484d868",
+      "target": "0x4852f8c",
+      "caller": "0x484d7a0",
+      "next_index_start": "0x484d8b4"
+    },
+    {
+      "branch": "BL",
+      "va": "0x4bbf708",
+      "target": "0x4852f8c",
+      "caller": "0x4bbef24",
+      "next_index_start": "0x4bc0cec"
+    },
+    {
+      "branch": "BL",
+      "va": "0x5486130",
+      "target": "0x4852f8c",
+      "caller": "0x5485bd8",
+      "next_index_start": "0x5486384"
+    },
+    {
+      "branch": "BL",
+      "va": "0x643f6d8",
+      "target": "0x4852f8c",
+      "caller": "0x643eba0",
+      "next_index_start": "0x643ff44"
+    }
+  ]
+}

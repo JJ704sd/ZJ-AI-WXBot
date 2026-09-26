@@ -1,0 +1,51 @@
+[
+  {
+    "requested": "0x4f64324",
+    "start": "0x4f64324",
+    "end": "0x4f64970",
+    "size": 1612,
+    "fde": "0x3421520"
+  },
+  {
+    "requested": "0x4f641ec",
+    "start": "0x4f641ec",
+    "end": "0x4f64324",
+    "size": 312,
+    "fde": "0x34214d4"
+  },
+  {
+    "requested": "0x5ba6500",
+    "start": "0x5ba6500",
+    "end": "0x5ba6528",
+    "size": 40,
+    "fde": "0x2e8ede0"
+  },
+  {
+    "requested": "0x5baa9a0",
+    "start": "0x5baa9a0",
+    "end": "0x5baa9b8",
+    "size": 24,
+    "fde": "0x2e8f254"
+  },
+  {
+    "requested": "0x5baa9b8",
+    "start": "0x5baa9b8",
+    "end": "0x5baa9d0",
+    "size": 24,
+    "fde": "0x2e8f268"
+  },
+  {
+    "requested": "0x5baa9d0",
+    "start": "0x5baa9d0",
+    "end": "0x5baa9e8",
+    "size": 24,
+    "fde": "0x2e8f27c"
+  },
+  {
+    "requested": "0x6c160a0",
+    "start": "0x6c160a0",
+    "end": "0x6c16cf0",
+    "size": 3152,
+    "fde": "0x30547b8"
+  }
+]
