@@ -70,6 +70,9 @@ class HookHttpTests(unittest.TestCase):
         self.assertNotEqual(actual['targetName'],'wrong')
         self.assertEqual(self.engine.store.outbox(self.account),[])
         self.assertTrue(self.engine.read_only)
+        code,_=self.request('POST','/api/windows/hook/confirm',{**body,'baselineMessageIds':['browser-invented']})
+        self.assertEqual(code,200)
+        self.assertEqual(self.sender.confirm.call_args.kwargs['baseline_messages'][0]['serverId'],'9001')
 
     def test_csrf_account_and_target_changes_never_submit(self):
         for route in ('prepare','confirm'):
@@ -79,10 +82,7 @@ class HookHttpTests(unittest.TestCase):
                 self.assertEqual(self.request('POST',path,{**self.payload(),**bad})[0],400)
         self.sender.prepare.assert_not_called();self.sender.confirm.assert_not_called()
 
-    def test_unselected_or_unwatched_target_and_busy_snapshot_block_send(self):
-        self.engine.selected=None
-        self.assertEqual(self.request('POST','/api/windows/hook/prepare',self.payload())[0],400)
-        self.engine.selected=self.target
+    def test_unwatched_target_and_busy_snapshot_block_send(self):
         self.engine.set_watched(self.account,[])
         self.assertEqual(self.request('POST','/api/windows/hook/prepare',self.payload())[0],400)
         self.engine.set_watched(self.account,[self.target])
@@ -90,12 +90,20 @@ class HookHttpTests(unittest.TestCase):
         self.assertEqual(self.request('POST','/api/windows/hook/confirm',self.payload())[0],400)
         self.sender.prepare.assert_not_called();self.sender.confirm.assert_not_called()
 
+    def test_other_tab_selection_cannot_block_or_redirect_frozen_target(self):
+        self.engine.selected='another-tab@chatroom'
+        self.assertEqual(self.request('POST','/api/windows/hook/prepare',self.payload())[0],200)
+        self.assertEqual(self.sender.prepare.call_args.args[0]['targetId'],self.target)
+        self.engine.selected=None
+        self.assertEqual(self.request('POST','/api/windows/hook/confirm',self.payload())[0],200)
+        self.assertEqual(self.sender.confirm.call_args.args[0]['targetId'],self.target)
+
     def test_draft_from_other_target_cannot_confirm(self):
         self.sender.get.return_value={'targetId':'other@chatroom'}
         self.assertEqual(self.request('POST','/api/windows/hook/confirm',self.payload())[0],400)
         self.sender.confirm.assert_not_called()
 
-    def test_result_read_scoped_to_source_and_reconciles_only_server_ack(self):
+    def test_result_read_scoped_to_source_and_reconciles_submitted_or_ack(self):
         path='/api/windows/hook/attempt?draftId=test-draft&account='+self.account
         self.assertEqual(self.request('GET',path.replace(self.account,'old-account'))[0],400)
         self.sender.get.assert_not_called()
@@ -109,6 +117,22 @@ class HookHttpTests(unittest.TestCase):
         self.assertEqual(args.kwargs['target_id'],self.target)
         self.assertEqual(args.args[1][0]['serverId'],'9001')
         self.assertEqual(args.args[2]['account'],self.account)
+        self.sender.get.return_value={'targetId':self.target,'status':'submitted_unconfirmed','serverAccepted':False}
+        self.sender.reconcile.return_value={'targetId':self.target,'status':'local_record_observed','serverAccepted':False}
+        code,result=self.request('GET',path)
+        self.assertEqual(code,200);self.assertEqual(result['status'],'local_record_observed')
+        self.assertFalse(result['serverAccepted'])
+
+    def test_bridge_start_is_explicit_and_scoped_to_current_account(self):
+        manager=Mock()
+        manager.status.return_value={'state':'starting','issueCode':'','issue':'starting'}
+        self.server.RequestHandlerClass=make_handler(self.engine,LoginFlow(self.engine),'csrf',self.port,
+            database_service=self.database,hook_sender=self.sender,hook_manager=manager)
+        self.assertEqual(self.request('POST','/api/windows/hook/start',{'account':'old'})[0],400)
+        manager.start.assert_not_called()
+        code,result=self.request('POST','/api/windows/hook/start',{'account':self.account})
+        self.assertEqual(code,200);self.assertEqual(result['bridgeState'],'starting')
+        self.assertFalse(result['available']);manager.start.assert_called_once_with()
 
     def test_status_host_boundary_and_source_binding(self):
         self.assertEqual(self.request('GET','/api/windows/hook/status',Host='external.invalid')[0],403)
@@ -116,6 +140,17 @@ class HookHttpTests(unittest.TestCase):
         code,result=self.request('GET','/api/windows/hook/status')
         self.assertEqual(code,200);self.assertFalse(result['available'])
         self.assertEqual(self.sender.status.call_args.args[0]['selfId'],'fixture-self')
+
+    def test_status_targets_intersect_bridge_scope_and_watched_conversations(self):
+        self.sender.status.return_value={'available':True}
+        self.sender.supports_target.return_value=True
+        code,result=self.request('GET','/api/windows/hook/status')
+        self.assertEqual(code,200);self.assertEqual(result['targetIds'],[self.target])
+        self.sender.supports_target.return_value=False
+        self.assertEqual(self.request('GET','/api/windows/hook/status')[1]['targetIds'],[])
+        self.sender.supports_target.return_value=True
+        self.engine.set_watched(self.account,[])
+        self.assertEqual(self.request('GET','/api/windows/hook/status')[1]['targetIds'],[])
 
 
 if __name__=='__main__':unittest.main()

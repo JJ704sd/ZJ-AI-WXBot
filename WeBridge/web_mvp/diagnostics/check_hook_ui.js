@@ -1,54 +1,49 @@
-// All APIs use synthetic fixtures. No real Hook service, native window or account is accessed.
+// Synthetic API exercise for the workspace composer. No real account or Hook is contacted.
 async page=>{
- const checks=[],calls=[],errors=[];const check=(ok,name)=>{if(!ok)throw Error(name);checks.push(name);};const onError=e=>errors.push(e.message);
- const groups=[{id:'fixture-a',name:'合成会话甲'},{id:'fixture-b',name:'合成会话乙'},{id:'fixture-hidden',name:'未勾选会话'}];
- const source={id:'fixture-source',revision:'r1',status:'snapshot_ready',createdAt:'2026-09-26T06:00:00Z',updatePolicy:'manual'};
- const runtime={mode:'database',platform:'Windows',connected:true,source,databaseState:{busy:false,error:''},capabilities:{read:true,canSend:false,media:false,mentions:false}};
- const state={runtime,account:'fixture-account',csrfToken:'fixture',connection:{status:'snapshot_ready'},selected:'fixture-a',groups,watchedGroups:['fixture-a','fixture-b'],jobs:[],outbox:[]};
- let available=false,badTarget=false,confirmStatus='server_accepted',attemptStatus='local_record_confirmed',attemptCount=0,draftNumber=0,currentDraft=null;
- const handler=route=>{
-  const req=route.request(),path=req.url().split('?')[0].split('/api/')[1],body=req.method()==='POST'?req.postDataJSON():null;calls.push({path,body,url:req.url()});
+ const checks=[],calls=[],errors=[];const check=(ok,name)=>{if(!ok)throw Error(name);checks.push(name);};const onError=error=>errors.push(error.message);
+ const groups=[{id:'filehelper',name:'文件传输助手'},{id:'fixture-group@chatroom',name:'合成项目群'},{id:'fixture-readonly',name:'未读取好友'},{id:'fixture-scopedout',name:'桥未开放会话'}],source={id:'fixture-source',revision:'r1',status:'snapshot_ready',createdAt:'2026-09-26T06:00:00Z',updatePolicy:'on_change'};
+ const runtime={mode:'database',platform:'Windows',connected:true,source,databaseState:{busy:false,error:''},capabilities:{read:true,canSend:false,hookSendInterface:true,media:false,mentions:false}};
+ const state={runtime,account:'fixture-account',csrfToken:'fixture',connection:{status:'snapshot_ready'},selected:'filehelper',groups,watchedGroups:['filehelper','fixture-group@chatroom','fixture-scopedout'],jobs:[],outbox:[]};
+ let bridgeState='stopped',draftNumber=0,currentDraft=null;const status=()=>({supported:true,available:bridgeState==='ready',bridgeConfigured:bridgeState==='ready',bridgeState,targetIds:bridgeState==='ready'?['filehelper','fixture-group@chatroom']:[],clientVersion:'4.1.fixture',arch:'x64',moduleName:'Synthetic.dll',moduleSha256:'1234567890abcdef'.repeat(4),processId:123,issue:bridgeState==='stopped'?'点击连接发送':''});
+ const handler=route=>{const req=route.request(),path=req.url().split('?')[0].split('/api/')[1],body=req.method()==='POST'?req.postDataJSON():null;calls.push({path,body});
   if(path==='state')return route.fulfill({json:state});
   if(path==='environment')return route.fulfill({json:{...runtime,checks:[],limitations:[]}});
-  if(path==='database')return route.fulfill({json:{mode:'database',configured:true,config:{sourceRoot:'D:\\Synthetic',autoRefresh:false},source,busy:false}});
+  if(path==='database')return route.fulfill({json:{mode:'database',configured:true,config:{sourceRoot:'D:\\Synthetic',autoRefresh:true},source,busy:false}});
   if(path==='select'){state.selected=body.groupId;return route.fulfill({json:{ok:true}});}
   if(path==='group'||path==='messages')return route.fulfill({json:{watching:true,members:[],messages:[],outbox:[],reply:{enabled:false}}});
-  if(path==='windows/hook/status')return route.fulfill({json:{supported:true,available,bridgeConfigured:true,clientVersion:'4.1.fixture',arch:'x64',moduleName:'Synthetic.dll',moduleSha256:'1234567890abcdef'.repeat(4),processId:123,selfId:'fixture-self',issue:available?'':'合成模块版本未适配',issueCode:available?'':'unsupported_version'}});
-  if(path==='windows/hook/prepare'){currentDraft={status:'prepared',draftId:'fixture-draft-'+(++draftNumber),textHash:'fixture-hash',text:body.text,targetId:badTarget?'unexpected-target':body.targetId,targetName:'服务端绑定·会话乙',expiresAt:new Date(Date.now()+300000).toISOString()};return route.fulfill({json:currentDraft});}
-  if(path==='windows/hook/confirm')return route.fulfill({json:{...currentDraft,status:confirmStatus,serverAccepted:confirmStatus==='server_accepted',retryAllowed:false,delivered:false}});
-  if(path==='windows/hook/attempt'){attemptCount++;return route.fulfill({json:{...currentDraft,status:attemptStatus,issue:'合成查询 '+attemptCount,localRecordConfirmed:attemptStatus==='local_record_confirmed',retryAllowed:false,delivered:false}});}
-  return route.fulfill({status:409,json:{error:'Synthetic test blocks this API.'}});
+  if(path==='windows/hook/status'){const data=status();if(bridgeState==='starting')bridgeState='ready';return route.fulfill({json:data});}
+  if(path==='windows/hook/start'){bridgeState='starting';return route.fulfill({json:status()});}
+  if(path==='windows/hook/stop'){bridgeState='stopped';return route.fulfill({json:status()});}
+  if(path==='windows/hook/prepare'){currentDraft={status:'prepared',draftId:'fixture-'+(++draftNumber),textHash:'fixture-hash',text:body.text,targetId:body.targetId,targetName:groups.find(group=>group.id===body.targetId)?.name,expiresAt:Date.now()+120000};return route.fulfill({json:currentDraft});}
+  if(path==='windows/hook/confirm')return route.fulfill({json:{...currentDraft,status:'submitted_unconfirmed',serverAccepted:false,localRecordConfirmed:false}});
+  if(path==='windows/hook/attempt')return route.fulfill({json:{...currentDraft,status:'local_record_observed',serverAccepted:false,localRecordObserved:true,localRecordConfirmed:false}});
+  return route.fulfill({status:409,json:{error:'Synthetic fixture does not implement this API.'}});
  };
- const prepare=async text=>{await page.locator('#hook-send-text').fill(text);await page.locator('#hook-prepare').click();await page.waitForFunction(()=>!document.getElementById('hook-prepared').hidden);};
- await page.route('**/api/**',handler);page.on('pageerror',onError);await page.clock.install();await page.clock.pauseAt(new Date(Date.now()+1000));
+ await page.route('**/api/**',handler);page.on('pageerror',onError);
  try{
-  await page.setViewportSize({width:1440,height:1000});await page.reload();await page.waitForFunction(()=>!document.getElementById('hook-sender-entry').hidden&&document.getElementById('selected-name').textContent==='合成会话甲');
-  await page.locator('#hook-sender-entry').click();await page.locator('#hook-send-text').fill('合成文本');
-  check(await page.locator('#hook-prepare').isDisabled()&&!calls.some(c=>c.path.startsWith('windows/')),'hook_is_not_probed_or_enabled_implicitly');
-  await page.locator('#hook-check').click();await page.waitForFunction(()=>document.getElementById('hook-status-text').textContent.includes('未适配'));
-  check(await page.locator('#hook-prepare').isDisabled()&&(await page.locator('#hook-module-facts').innerText()).includes('1234567890abcdef')&&(await page.locator('#hook-module-facts').innerText()).includes('4.1.fixture'),'unapproved_version_stays_blocked_with_real_metadata_and_hash_summary');
-  const values=await page.locator('#hook-target-select option').evaluateAll(options=>options.map(o=>o.value));
-  check(values.includes('fixture-a')&&values.includes('fixture-b')&&!values.includes('fixture-hidden')&&!values.includes('filehelper'),'targets_only_include_current_account_watched_conversations');
-  available=true;await page.locator('#hook-check').click();await page.waitForFunction(()=>document.getElementById('hook-status-badge').textContent==='就绪');await page.locator('#hook-target-select').selectOption('fixture-b');await page.waitForFunction(()=>document.getElementById('selected-name').textContent==='合成会话乙'&&!document.getElementById('hook-prepare').disabled);
-  badTarget=true;await page.locator('#hook-prepare').click();await page.waitForFunction(()=>document.getElementById('hook-result-title').textContent==='预检未通过');
-  check(await page.locator('#hook-prepared').isHidden()&&await page.locator('#hook-confirm').isDisabled(),'mismatched_server_target_cannot_create_confirmation');
-  badTarget=false;await prepare('本次合成 Hook 消息');const request=calls.filter(c=>c.path==='windows/hook/prepare').pop().body;
-  check(request.account==='fixture-account'&&request.groupId==='fixture-b'&&request.targetId==='fixture-b'&&!('sourceRoot'in request)&&!('endpoint'in request)&&!('token'in request),'prepare_uses_frozen_current_account_and_target_without_bridge_secrets');
-  check((await page.locator('#hook-bound-target').innerText()).includes('服务端绑定·会话乙')&&await page.locator('#hook-confirm').isDisabled()&&await page.locator('#hook-target-select').isDisabled(),'prepared_text_and_server_target_require_explicit_confirmation');
-  await page.locator('#hook-sender-panel').screenshot({path:'output/playwright/hook-sender-fixture.png'});
-  await page.locator('#hook-confirmed').check();await page.evaluate(()=>{const b=document.getElementById('hook-confirm');b.click();b.click();});await page.waitForFunction(()=>document.getElementById('hook-result-title').textContent.includes('服务器已接受'));
-  check(calls.filter(c=>c.path==='windows/hook/confirm').length===1&&!(await page.locator('#hook-result-title').innerText()).includes('本机发送记录'),'confirmation_is_single_use_and_server_ack_is_not_local_record_proof');
-  await page.clock.runFor(3100);await page.waitForFunction(()=>document.getElementById('hook-result-title').textContent==='本机发送记录已核对');
-  check(attemptCount===1&&(await page.locator('#hook-result-evidence').innerText()).includes('不表示收件端'),'only_attempt_readback_shows_local_record_confirmation_without_delivery_claim');
-  await page.locator('#hook-next').click();confirmStatus='unknown';attemptStatus='unknown';attemptCount=0;await prepare('第二条合成消息');await page.locator('#hook-confirmed').check();await page.locator('#hook-confirm').click();await page.waitForFunction(()=>document.getElementById('hook-result-title').textContent.includes('结果未知'));
-  for(let i=1;i<=10;i++){await page.clock.runFor(3100);await page.waitForFunction(n=>document.getElementById('hook-result-detail').textContent.includes('合成查询 '+n),i);}
-  await page.clock.runFor(12000);
-  check(attemptCount===10&&(await page.locator('#hook-result-title').innerText()).includes('上限')&&calls.filter(c=>c.path==='windows/hook/confirm').length===2,'unknown_result_stops_after_ten_read_only_queries_without_resend');
-  await page.locator('#hook-next').click();await prepare('待失效的合成消息');state.watchedGroups=['fixture-a'];await page.clock.runFor(2500);await page.waitForFunction(()=>document.getElementById('hook-prepared').hidden);
-  check(await page.locator('#hook-confirm').isDisabled(),'removing_target_from_watch_scope_invalidates_prepared_confirmation');
-  await page.setViewportSize({width:390,height:844});
-  check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)&&errors.length===0,'hook_form_fits_390px_and_has_no_javascript_errors');
-  check(!calls.some(c=>c.path.startsWith('windows/send/')||c.path==='send'||c.path.startsWith('windows/preview')),'hook_ui_never_calls_visual_or_legacy_send_endpoints');
+  await page.setViewportSize({width:1440,height:1000});await page.goto('http://127.0.0.1:8787/');await page.waitForFunction(()=>document.getElementById('selected-name').textContent==='文件传输助手'&&!document.getElementById('hook-start').disabled);
+  check(await page.locator('#composer-controls').isVisible()&&await page.locator('#send-button').isDisabled()&&!calls.some(c=>c.path==='windows/hook/start'),'ordinary_composer_starts_disconnected_without_implicit_attach');
+  await page.locator('#hook-start').click();await page.waitForFunction(()=>document.getElementById('hook-start').textContent==='正在连接…');await page.waitForFunction(()=>document.getElementById('hook-composer-status').textContent==='微信已连接');
+  for(const [targetId,targetName,text] of [['filehelper','文件传输助手','中文收发验证😀\n第一条'],['fixture-group@chatroom','合成项目群','项目群合成发送内容']]){
+   await page.locator('.group-item').filter({hasText:targetName}).click();await page.waitForFunction(name=>document.getElementById('selected-name').textContent===name,targetName);
+   await page.locator('#message-text').fill(text);await page.locator('#send-button').click();await page.waitForFunction(()=>!document.getElementById('hook-prepared').hidden);
+   check(await page.locator('#hook-bound-text').innerText()===text&&(await page.locator('#hook-bound-target').innerText()).includes(targetName)&&calls.filter(call=>call.path==='windows/hook/prepare').at(-1).body.targetId===targetId,'preview_binds_selected_target_and_text_'+draftNumber);
+   if(draftNumber===1){
+    const selectsBefore=calls.filter(call=>call.path==='select').length;source.revision='r2';state.selected='fixture-scopedout';
+    await page.evaluate(()=>poll());await page.waitForFunction(()=>state.runtime.source.revision==='r2'&&!pollBusy);
+    check(await page.locator('#hook-prepared').isVisible()&&await page.locator('#message-text').inputValue()===text&&await page.locator('#selected-name').innerText()===targetName&&!await page.locator('#hook-confirm').isDisabled()&&calls.filter(call=>call.path==='select').length===selectsBefore,'same_source_snapshot_preserves_target_draft_confirmation_without_selection_post');
+   }
+   await page.locator('#hook-confirm').click();await page.waitForFunction(()=>document.getElementById('hook-result-title').textContent==='已提交 · 正在核对数据库');await page.waitForFunction(()=>document.getElementById('hook-result-title').textContent==='已发现新的本人消息');
+   check((await page.locator('#hook-result-evidence').innerText()).includes('未取得服务器回执'),'database_observation_does_not_claim_ack_'+draftNumber);
+   await page.locator('#hook-next').click();check(await page.locator('#message-text').inputValue()==='','next_message_editor_is_cleared_'+draftNumber);
+  }
+  check(calls.filter(c=>c.path==='windows/hook/confirm').length===2&&!calls.some(c=>c.path==='send'||c.path.startsWith('windows/send/')),'two_user_confirmations_make_exactly_two_hook_requests');
+  await page.locator('#message-text').fill('切换会话后取消的草稿');await page.locator('#send-button').click();await page.waitForFunction(()=>!document.getElementById('hook-prepared').hidden);
+  await page.locator('.group-item').filter({hasText:'未读取好友'}).click();await page.waitForFunction(()=>document.getElementById('selected-name').textContent==='未读取好友');check(await page.locator('#hook-prepared').isHidden()&&await page.locator('#hook-confirm').isDisabled(),'switching_conversation_cancels_previous_confirmation');check(await page.locator('#message-text').isDisabled()&&await page.locator('#send-button').isDisabled()&&(await page.locator('#send-reason').innerText()).includes('勾选当前会话'),'unwatched_conversation_requires_read_scope');
+  await page.locator('.group-item').filter({hasText:'桥未开放会话'}).click();await page.waitForFunction(()=>document.getElementById('selected-name').textContent==='桥未开放会话');check(await page.locator('#message-text').isDisabled()&&await page.locator('#send-button').isDisabled()&&(await page.locator('#hook-composer-target').innerText()).includes('未开放此会话'),'bridge_target_scope_is_not_assumed_from_connection');
+  await page.locator('.group-item').filter({hasText:'文件传输助手'}).click();await page.locator('#hook-stop').click();await page.waitForFunction(()=>!document.getElementById('hook-start').hidden);check(calls.filter(c=>c.path==='windows/hook/stop').length===1,'bridge_can_be_disconnected_from_workspace');
+  await page.setViewportSize({width:390,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)&&errors.length===0,'390px_layout_has_no_overflow_or_javascript_errors');
+  await page.locator('#composer-controls').screenshot({path:'output/playwright/hook-composer-fixture.png'});
   return {checks,allApis:'synthetic',realHookProbeOrSend:false};
- }finally{page.off('pageerror',onError);await page.clock.resume();await page.unroute('**/api/**',handler);await page.setViewportSize({width:1440,height:1000});await page.reload();}
+ }catch(error){throw Error(error.message+'; completed='+checks.join(',')+'; browserErrors='+errors.join(','));}finally{await page.goto('about:blank');page.off('pageerror',onError);await page.unroute('**/api/**',handler);}
 }

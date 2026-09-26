@@ -31,6 +31,7 @@ __pycache__/
 
 # Test caches
 .pytest_cache/
+.playwright-cli/
 
 # Private evidence and source documents (keep local, never publish)
 poc/evidence/r0-group-ui.png

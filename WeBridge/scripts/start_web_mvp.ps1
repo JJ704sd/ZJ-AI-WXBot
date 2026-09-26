@@ -138,7 +138,7 @@ try {
         }
         Write-Host 'Live mode uses the existing Linux ARM64 test client. Native Windows read-only preview is a separate entry.'
     } elseif ($Mode -eq 'Database') {
-        Write-Host 'Database mode receives from validated private copies. Windows Hook sending needs a separately configured and verified local module; unknown versions remain blocked. Startup never injects, sends, or extracts keys.'
+        Write-Host 'Database mode receives from validated private copies. Select a conversation included for reading and choose Connect Send to start the Windows Hook bridge. Real send acceptance currently covers File Transfer Assistant only. Unknown versions remain blocked. Startup never attaches, sends, or extracts keys.'
     } else {
         Write-Host 'Demo uses synthetic local data. No Docker, WeChat login, network install, or real messages.'
     }

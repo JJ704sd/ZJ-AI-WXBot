@@ -44,6 +44,10 @@ try {
         $ownership.mode -ne $Mode.ToLowerInvariant()) {
         throw 'The PID, process start time, or project ownership does not match. No process was stopped.'
     }
+    if ($Mode -eq 'Database' -and (Test-Path -LiteralPath (Join-Path $rootDir 'web_mvp\windows_hook_bridge.py'))) {
+        & $ownership.executable -c 'import sys; sys.path.insert(0, sys.argv[1]); from windows_hook_bridge import WindowsHookBridgeManager; WindowsHookBridgeManager(sys.argv[2]).stop()' (Join-Path $rootDir 'web_mvp') $RuntimeDir
+        if ($LASTEXITCODE -ne 0) { throw 'Could not request a graceful Hook bridge stop. The workbench was not stopped.' }
+    }
     $ownership | Add-Member -NotePropertyName stopRequested -NotePropertyValue $true -Force
     $ownership | ConvertTo-Json | Set-Content -LiteralPath $ownershipPath -Encoding UTF8
     Stop-Process -Id $serverPid -ErrorAction Stop

@@ -94,7 +94,7 @@ def environment_report(engine):
         return {**summary, 'pythonVersion': platform.python_version(), 'timezone': 'Asia/Shanghai',
                 'runtimeDirectory': str(directory), 'prerequisitesReady': True, 'ready': summary['connected'],
                 'checks': checks, 'limitations': ['可读状态表示上一次副本校验成功；源消息写入和后续更新可能延迟或失败。',
-                                                'Windows Hook 尚需当前客户端版本适配和真实发送验证；不启用定时发送、自动回复或附件发送。']}
+                                                'Windows Hook 支持已适配版本下当前读取会话的纯文本；实测验收仅覆盖文件传输助手，好友和群聊实际发送尚未验收；不启用定时发送、自动回复或附件发送。']}
     docker = shutil.which('docker') is not None
     token = (ROOT / '.secrets/linux-token').is_file()
     websockets = importlib.util.find_spec('websockets') is not None

@@ -14,10 +14,10 @@ let databaseData=null,databaseBusy=false,databaseLoading=false,databaseOperation
 function isDatabase(){return state.runtime?.mode==='database';}
 function databaseAuto(){return state.runtime?.source?.updatePolicy==='on_change'||(!state.runtime?.source?.id&&databaseData?.config?.autoRefresh===true);}
 function databasePolicy(){return databaseAuto()?'自动检查源文件变化，完成副本复制与校验后更新消息。':'查看新增消息需手动更新副本。';}
-function supportsComposer(){return !isDatabase()||state.runtime?.capabilities?.groupSend===true;}
+function supportsComposer(){return !isDatabase()||state.runtime?.capabilities?.hookSendInterface===true||state.runtime?.capabilities?.groupSend===true;}
 function supportsSchedules(){return !isDatabase()||state.runtime?.capabilities?.scheduledSend===true;}
 function supportsReplies(){return !isDatabase()||state.runtime?.capabilities?.automaticReplies===true;}
-function sourceSignature(value){return JSON.stringify([value.runtime?.mode,value.runtime?.source?.id,value.runtime?.source?.revision]);}
+function sourceSignature(value){return JSON.stringify([value.runtime?.mode,value.runtime?.source?.id]);}
 function sourceTime(value){const date=typeof value==='number'?value*1000:Date.parse(value||'');return Number.isFinite(date)?stamp(date/1000,{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'尚无记录';}
 
 function isDemo(){return state.runtime?.mode==='demo';}
@@ -33,23 +33,24 @@ function restoreDraft(){
  if(!data){try{data=JSON.parse(sessionStorage.getItem(key)||'null');}catch{}}
  $('message-text').value=data?.text||'';mentionIds=new Set(data?.mentions||[]);
  $('text-count').textContent=$('message-text').value.length+' / 2000';
- $('draft-status').textContent=data?.text?'已恢复当前群草稿':'';
+ $('draft-status').textContent=data?.text?'已恢复当前会话草稿':'';
 }
 function emptyCard(title,detail,iconName='chat'){
  const empty=el('div','empty'),art=el('span');art.append(icon(iconName));empty.append(art,el('h3','',title),el('p','',detail));return empty;
 }
 
-const labels={queued:'等待发送',sending:'发送中…',sent:'已送达微信服务器',failed:'发送失败',unknown:'结果未知，请查看群聊',cancelled:'已取消'};
+const labels={queued:'等待发送',sending:'发送中…',sent:'已送达微信服务器',failed:'发送失败',unknown:'结果未知，请查看会话',cancelled:'已取消'};
 const originLabels={manual:'手动',reply:'自动回复',schedule:'定时任务'};
 function toast(text,error=false){$('toast').textContent=text;$('toast').classList.toggle('error',error);$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,error?6500:3500);}
 async function api(path,body){
- const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),path==='/api/media'?90000:path==='/api/windows/ocr-preview'||path.startsWith('/api/windows/send/')?60000:20000);
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),path==='/api/media'?90000:path==='/api/windows/ocr-preview'||path.startsWith('/api/windows/send/')||path==='/api/windows/hook/start'?60000:20000);
  const options={signal:controller.signal,cache:'no-store',...(body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify(body)})};
  try{
   const response=await fetch(path,options);let result;
   try{result=await response.json();}catch{throw Error('服务返回了无法识别的响应，请在环境诊断中检查服务。');}
   if(!response.ok)throw Error(result.error||'操作失败（HTTP '+response.status+'），请重试。');return result;
  }catch(error){
+  if(error.name==='AbortError'&&path.startsWith('/api/windows/hook/'))throw Error('发送连接请求超时，请先查询发送状态。');
   if(error.name==='AbortError'&&path.startsWith('/api/windows/send/'))throw Error('本机操作请求超时，请核对微信中的当前状态。');
   if(error.name==='AbortError'&&path.startsWith('/api/windows/'))throw Error('本机窗口检测或读取超时，请调整微信窗口后重新检测。');
   if(error.name==='AbortError')throw Error(body===undefined?'读取超时，请检查服务连接。':'请求超时，操作结果尚不确定，请先刷新核对结果，避免重复操作。');
@@ -57,19 +58,19 @@ async function api(path,body){
  }finally{clearTimeout(timeout);}
 }
 function groupQuery(path,group=selected){return path+'?'+new URLSearchParams({account:state.account||'',groupId:group||''});}
-function groupName(id){return (state.groups||[]).find(x=>x.id===id)?.name||'未知群聊';}
+function groupName(id){return (state.groups||[]).find(x=>x.id===id)?.name||'未知会话';}
 function nameFor(id,list=people){return list.find(x=>x.id===id)?.name||id;}
 function stamp(seconds,options={hour:'2-digit',minute:'2-digit'}){return new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',...options}).format(new Date(seconds*1000));}
 function dateKey(seconds){return stamp(seconds,{year:'numeric',month:'2-digit',day:'2-digit'});}
 function controls(){
  const database=isDatabase();
- $('composer-controls').hidden=!supportsComposer();$('database-source-controls').hidden=!database||supportsComposer();$('database-panel').hidden=!database;document.querySelector('[data-view="schedules"]').hidden=!supportsSchedules();$('reply-tab').hidden=!supportsReplies();$('schedule-from-message').hidden=!supportsSchedules();
+ $('composer-controls').hidden=!supportsComposer();$('mention-picker-label').hidden=database;$('mention-picker').hidden=database;$('mention-chips').hidden=database;$('hook-composer-feedback').hidden=!database;$('hook-composer-connection').hidden=!database;$('database-source-controls').hidden=!database||supportsComposer();$('database-panel').hidden=!database;document.querySelector('[data-view="schedules"]').hidden=!supportsSchedules();$('reply-tab').hidden=!supportsReplies();$('schedule-from-message').hidden=!supportsSchedules();
  $('hook-sender-panel').hidden=!database;
  if(!supportsReplies()&&!$('reply-form').hidden){$('reply-form').hidden=true;$('send-form').hidden=false;$('send-tab').classList.add('active');$('reply-tab').classList.remove('active');}
  $('connection-guide').hidden=database;
  if(database&&$('login-dialog').open)$('login-dialog').close();
  $('windows-section-label').textContent=database?'可选辅助工具 · Windows 窗口':'WINDOWS · 本机微信';
- $('reading-description').textContent=database?'选择要在工作台查看的群聊。这里只读取校验后的副本；'+databasePolicy():'勾选的群会持续同步消息。取消读取会关闭该群自动回复；手动发送与定时任务独立配置。';
+ $('reading-description').textContent=database?'选择要在工作台查看的会话。这里只读取校验后的副本；'+databasePolicy():'勾选的群会持续同步消息。取消读取会关闭该群自动回复；手动发送与定时任务独立配置。';
  document.querySelector('.groups-panel .panel-foot').lastChild.textContent=database?(databaseAuto()?' 源文件变化后自动更新副本':' 固定副本 · 新消息需手动更新'):' 仅持续读取已勾选的群';
  const mentionsAvailable=!database||state.runtime?.capabilities?.mentions===true;
  $('filter-mentions').disabled=!mentionsAvailable;$('filter-mentions').title=mentionsAvailable?'只显示直接 @ 当前账号的消息':'未绑定本人账号 ID，暂不能识别 @ 我的消息';
@@ -77,7 +78,7 @@ function controls(){
  if(!mentionsAvailable&&filter==='mentions'){filter='all';$('filter-all').classList.add('active');$('filter-mentions').classList.remove('active');renderMessages(true);}
  const available=serviceAvailable&&online&&!state.loggingOut,canSend=state.runtime?.capabilities?.canSend!==false;
  const usable=available&&!!selected&&canSend&&groupLoadState==='ready';
- const reason=!serviceAvailable?'本机服务未连接，请检查服务。':database&&!supportsComposer()?'数据库访问只读，当前尚未接入独立发送能力。':!online?(database?'请先创建可读的数据库副本。':'请先在“账号 / 登录”中连接微信。'):!selected?'请先选择左侧群聊。':state.loggingOut?'正在退出账号，请稍候。':groupLoadState==='loading'?'正在读取当前群资料，请稍候。':groupLoadState!=='ready'?'当前群资料读取失败，请点击刷新重试。':!canSend?'当前连接不具备发送能力，请查看环境诊断。':'';
+ const reason=!serviceAvailable?'本机服务未连接，请检查服务。':database&&!supportsComposer()?'数据库访问只读，当前尚未接入独立发送能力。':!online?(database?'请先创建可读的数据库副本。':'请先在“账号 / 登录”中连接微信。'):!selected?'请先选择左侧会话。':state.loggingOut?'正在退出账号，请稍候。':groupLoadState==='loading'?'正在读取当前会话资料，请稍候。':groupLoadState!=='ready'?'当前会话资料读取失败，请点击刷新重试。':!canSend?'当前连接不具备发送能力，请查看环境诊断。':'';
  $('send-button').disabled=!usable||sendBusy||!$('message-text').value.trim();
  $('send-label').textContent=sendBusy?'正在提交…':isDemo()?'模拟发送':'立即发送';
  $('send-reason').textContent=reason||(!$('message-text').value.trim()?'输入消息后即可'+(isDemo()?'模拟发送。':'发送。'):'');
@@ -85,17 +86,19 @@ function controls(){
  $('message-text').disabled=!selected;
  $('schedule-from-message').disabled=!usable||scheduleBusy||!$('message-text').value.trim();
  $('save-reply').disabled=!supportsReplies()||!usable||replyBusy||!(state.watchedGroups||[]).includes(selected);
- $('reply-reason').textContent=reason||(!(state.watchedGroups||[]).includes(selected)?'先在“选择读取群聊”中启用当前群，再保存规则。':'');
+ $('reply-reason').textContent=reason||(!(state.watchedGroups||[]).includes(selected)?'先在“选择读取会话”中启用当前群，再保存规则。':'');
  $('reply-enabled').disabled=!usable; $('reply-text').disabled=!selected;
  $('new-schedule').disabled=!available||!canSend||!(state.groups||[]).length;
  $('group-info-button').disabled=!available||!selected;
  $('reading-button').disabled=!serviceAvailable||!online;
- $('send-target').textContent=selected?'发送到：'+groupName(selected):'选择群聊后编辑消息；草稿在本次浏览器会话中保留。';
- $('send-mode-badge').textContent=isDemo()?'本机模拟':'手动发送';
+ $('send-target').textContent=selected?'发送到：'+groupName(selected):'选择会话后编辑消息；草稿在本次浏览器会话中保留。';
+ $('send-mode-badge').textContent=database?'Windows 微信':isDemo()?'本机模拟':'手动发送';
+ $('send-shortcut').textContent=database?'Ctrl + Enter 核对消息':'Ctrl + Enter 发送';
+ $('composer-note-title').textContent=database?'收发进度可见':'范围由你决定';$('composer-note').textContent=database?'接收读取本地数据库副本；发送后自动核对新增的本人消息记录。':'会话、提及成员与回复规则都独立配置。发送结果可在消息流中查看。';
  $('reply-description').textContent=isDemo()?'演示规则仅在本机运行，用于体验配置流程，不会回复真实微信。':'收到直接 @ 你的新消息时，@ 发送者并回复固定话术。';
  $('schedule-mode-note').textContent=isDemo()?'仅本机模拟执行':'每天按时执行';
  $('schedule-sent-label').textContent=isDemo()?'最近记录中的今日模拟成功':'最近记录中的今日成功';
- $('footer-mode').textContent=database?'本地数据库副本 · 只读 · '+(databaseAuto()?'自动检查变化':'手动更新'):isDemo()?'演示数据 · 所有操作仅在本机模拟':'上海时间 UTC+8 · 服务和桥接需保持在线';
+ $('footer-mode').textContent=database?'真实微信 · 数据库副本接收 / Windows Hook 发送 · '+(databaseAuto()?'自动检查变化':'手动更新'):isDemo()?'演示数据 · 所有操作仅在本机模拟':'上海时间 UTC+8 · 服务和桥接需保持在线';
  if(database){renderDatabaseSource();updateDatabaseControls();}else{$('refresh-button').title='刷新账号与当前群消息';$('refresh-button').querySelector('span:last-child').textContent='刷新';}
  updateViewTitle();
  updateDesktopSender();
@@ -107,15 +110,15 @@ function setConnection(){
  const connectionLabel=!serviceAvailable?'本机服务未连接':database?(online?'数据库副本可读':databaseBusy?'正在创建副本':source.sourceRoot?'数据库副本不可读':'等待配置数据库'):isDemo()?'演示会话':online?'微信已连接':state.connection?.status==='loading'?'正在连接微信':'微信未连接';
  $('connection-pill').classList.toggle('online',online&&!isDemo()&&!database);$('connection-pill').classList.toggle('demo',serviceAvailable&&isDemo());$('connection-pill').classList.toggle('database',serviceAvailable&&database);
  $('connection-pill').querySelector('span').textContent=connectionLabel;
- $('account-name').textContent=database?'本地数据库':online?(state.name||'当前账号'):!serviceAvailable?'服务未连接':'未登录';
- $('account-avatar').textContent=database?'库':online?(state.name||'微').slice(0,1):'微';
- $('account-status').textContent=database?(online?'副本可读 · 只读':'点击设置数据源'):isDemo()?'本机演示 · 无真实发送':online?'个人微信 · 已连接':!serviceAvailable?'请检查启动窗口':'点击连接个人微信';
+ $('account-name').textContent=database?(state.name||'当前微信账号'):online?(state.name||'当前账号'):!serviceAvailable?'服务未连接':'未登录';
+ $('account-avatar').textContent=database?(state.name||'微').slice(0,1):online?(state.name||'微').slice(0,1):'微';
+ $('account-status').textContent=database?(online?'当前账号 · 消息已接入':'点击设置数据源'):isDemo()?'本机演示 · 无真实发送':online?'个人微信 · 已连接':!serviceAvailable?'请检查启动窗口':'点击连接个人微信';
  $('account-entry').textContent=database?'数据源设置':isDemo()?'演示账号':'账号 / 登录';
  const error=serviceError||(database?(state.runtime?.databaseState?.error||databaseData?.error):'')||state.syncError||state.connection?.error||'';
  $('global-error').hidden=!error;$('global-error').textContent=error;
  $('runtime-banner').hidden=!state.runtime;$('runtime-banner').classList.toggle('live',!isDemo()&&!database);$('runtime-banner').classList.toggle('database',database);
- $('runtime-title').textContent=database?'数据库副本 · 只读模式':isDemo()?'演示模式 · 可放心体验本机操作':'真实接入模式';
- $('runtime-detail').textContent=database?(databaseBusy?'正在创建或更新只读副本；已有成功副本仍可查看。':databaseData?.error&&online?'更新未成功，当前显示上次成功副本。请到数据源设置查看原因。':online?'群聊与消息来自本地数据库副本。'+databasePolicy():'配置源数据库目录后创建只读副本，开始查看群聊和消息。'):isDemo()?'当前群聊和消息均为演示数据；发送、定时与自动回复只在本机模拟，不连接真实微信。':online?'当前操作将发送到真实微信，请确认目标群聊与内容。':'请先完成环境配置并连接微信，再读取群聊与发送消息。';
+ $('runtime-title').textContent=database?'真实微信 · 数据库副本接收 / Windows Hook 发送':isDemo()?'演示模式 · 可放心体验本机操作':'真实接入模式';
+ $('runtime-detail').textContent=database?(databaseBusy?'正在创建或更新只读副本；已有成功副本仍可查看。':databaseData?.error&&online?'更新未成功，当前显示上次成功副本。请到数据源设置查看原因。':online?'接收：'+databasePolicy()+'发送：在右侧连接 Windows 微信，向已选择读取的会话发送文本。':'配置源数据库目录后创建只读副本，开始查看会话和消息。'):isDemo()?'当前会话和消息均为演示数据；发送、定时与自动回复只在本机模拟，不连接真实微信。':online?'当前操作将发送到真实微信，请确认目标会话与内容。':'请先完成环境配置并连接微信，再读取会话与发送消息。';
  $('runtime-details').textContent=database?'设置数据源':'查看环境';
  $('platform-label').textContent=(state.runtime?.platform||'本机').toUpperCase()+' · WORKSPACE';
  $('stream-dot').classList.toggle('active',online&&(state.watchedGroups||[]).includes(selected));
@@ -128,19 +131,19 @@ function renderGroups(){
  const groups=(state.groups||[]).filter(x=>x.name.toLowerCase().includes(term)&&(groupFilter==='all'||watched.has(x.id)));
  $('group-count').textContent=(state.groups||[]).length;$('reading-count').textContent=watched.size;
  const key=JSON.stringify([state.account,groups,[...watched],selected,online,term,groupFilter]);if(key===groupRenderKey)return;groupRenderKey=key;list.replaceChildren();
- if(!groups.length){list.append(el('div','empty compact',term?'没有匹配的群聊，试试其他关键词。':groupFilter==='watched'?'尚未勾选群聊。点击“选择读取群聊”开始。':online?(isDatabase()?'当前副本没有可显示的群聊。':'暂未读取到群聊，请点击刷新。'):(isDatabase()?'先设置数据源并创建只读副本。':'连接微信后，群聊会显示在这里。')));return;}
+ if(!groups.length){list.append(el('div','empty compact',term?'没有匹配的会话，试试其他关键词。':groupFilter==='watched'?'尚未勾选会话。点击“选择读取会话”开始。':online?(isDatabase()?'当前副本没有可显示的会话。':'暂未读取到会话，请点击刷新。'):(isDatabase()?'先设置数据源并创建只读副本。':'连接微信后，会话会显示在这里。')));return;}
  for(const group of groups){
   const button=el('button','group-item'+(group.id===selected?' active':''));button.append(el('span','avatar',group.name.slice(0,2)));
   const info=el('span','group-info');info.append(el('strong','',group.name),el('small','',watched.has(group.id)?(isDatabase()?'已选入读取范围':online?'已启用读取':'读取暂停')+(group.id===selected?' · 当前查看':''):'未读取 · 可勾选启用'));button.append(info);button.title=group.name;button.setAttribute('aria-pressed',String(group.id===selected));button.onclick=()=>selectGroup(group.id);list.append(button);
  }
 }
-async function selectGroup(id){
+async function selectGroup(id,{persistSelection=true}={}){
  saveDraft();const version=++groupVersion,account=state.account;selected=id;groupLoadState='loading';people=[];messageData=[];outboxData=[];renderKey='';restoreDraft();
  $('reply-enabled').checked=false;$('reply-text').value='';$('reply-saved-status').textContent='正在读取规则…';
  $('selected-name').textContent=groupName(id);$('selected-avatar').textContent=groupName(id).slice(0,2);$('member-search').value='';$('selected-meta').textContent='正在读取群成员…';$('sync-status').textContent='同步中';
  renderGroups();renderMembers();$('message-list').replaceChildren(emptyCard('正在读取群消息','请稍候…'));controls();
  try{
-  await api('/api/select',{account,groupId:id});if(version!==groupVersion||account!==state.account)return;
+  if(persistSelection)await api('/api/select',{account,groupId:id});if(version!==groupVersion||account!==state.account)return;
   const data=await api(groupQuery('/api/group',id));if(version!==groupVersion||account!==state.account)return;
   people=data.members||[];memberCache.set(state.account+'|'+id,people);messageData=data.messages||[];outboxData=supportsComposer()?data.outbox||[]:[];
   mentionIds=new Set([...mentionIds].filter(member=>people.some(person=>person.id===member&&member!==state.selfId)));
@@ -153,11 +156,11 @@ function applyRule(rule){$('reply-enabled').checked=!!rule.enabled;$('reply-text
 function renderMembers(){const container=$('mention-options');container.replaceChildren();const search=$('member-search').value.trim();for(const member of people.filter(x=>x.id!==state.selfId&&x.name.includes(search))){const label=el('label','member-option');const input=document.createElement('input');input.type='checkbox';input.checked=mentionIds.has(member.id);input.onchange=()=>{input.checked?mentionIds.add(member.id):mentionIds.delete(member.id);renderChips();saveDraft();};label.append(input,el('span','',member.name),el('small','',member.kind));container.append(label);}if(!container.children.length)container.append(el('div','empty compact','暂无可选成员'));renderChips();}
 function renderChips(){$('mention-chips').replaceChildren();for(const id of mentionIds){const chip=el('span','chip','@'+nameFor(id));const remove=el('button','','×');remove.type='button';remove.setAttribute('aria-label','移除'+nameFor(id));remove.onclick=()=>{mentionIds.delete(id);renderMembers();saveDraft();};chip.append(remove);$('mention-chips').append(chip);}$('mention-label').textContent=mentionIds.size?'已选择 '+mentionIds.size+' 位成员':'选择要 @ 的成员';}
 function emptyMessages(){
- if(isDatabase()&&!online){const empty=emptyCard('从本地数据库副本开始','设置源目录并创建只读副本，即可在这里查看群聊消息。');const button=el('button','button primary','设置数据源');button.onclick=openDatabaseSettings;empty.append(button);return empty;}
+ if(isDatabase()&&!online){const empty=emptyCard('从本地数据库副本开始','设置源目录并创建只读副本，即可在这里查看会话消息。');const button=el('button','button primary','设置数据源');button.onclick=openDatabaseSettings;empty.append(button);return empty;}
  const query=$('message-search').value.trim();
  if(query)return emptyCard('没有找到匹配的消息','搜索范围为当前已加载的消息，可更换关键词或清除搜索。','search');
  if(filter==='mentions'&&selected)return emptyCard('暂时没有 @ 我的消息',isDatabase()?'当前副本中没有已识别的 @ 我的消息；'+databasePolicy():'收到直接 @ 当前账号的消息后，会显示在这里。','at');
- const empty=emptyCard(selected?'还没有可显示的消息':'从左侧选择一个群聊',selected?((state.watchedGroups||[]).includes(selected)?(isDatabase()?'当前副本没有可显示的消息。'+databasePolicy():'收到群消息后，这里会自动更新。'):'点击“选择读取群聊”勾选这个群。'):(isDatabase()?'选择群聊后查看校验后的副本消息。':'查看消息、保留草稿，并为每天的沟通安排计划。'));
+ const empty=emptyCard(selected?'还没有可显示的消息':'从左侧选择一个会话',selected?((state.watchedGroups||[]).includes(selected)?(isDatabase()?'当前副本没有可显示的消息。'+databasePolicy():'收到群消息后，这里会自动更新。'):'点击“选择读取会话”勾选当前会话。'):(isDatabase()?'选择会话后查看校验后的副本消息。':'查看消息、保留草稿，并为每天的沟通安排计划。'));
  if(!online){const action=el('button','button secondary',isDemo()?'查看环境诊断':'连接微信');action.onclick=()=>{if(isDemo())setView('environment');else $('account-entry').click();};empty.append(action);}return empty;
 }
 
@@ -202,22 +205,23 @@ function setView(view){
  if(view==='schedules')renderSchedules();if(view==='environment'){loadEnvironment();if(isDatabase())loadDatabase();}
 }
 function updateViewTitle(){
- const titles={workspace:['群聊工作台',isDatabase()?'阅读本地数据库副本中的群聊消息。'+databasePolicy():'查看群消息，管理发送计划与自动回复。'],schedules:['定时任务','管理每天的发送计划，查看每次执行结果。'],environment:[isDatabase()?'数据源与环境':'环境诊断',isDatabase()?'创建本地只读副本，检查来源与更新结果。':'从运行环境到桥接连接，逐项了解当前状态。']};
+ const titles={workspace:['会话工作台',isDatabase()?'查看本机微信消息，向已选择读取的会话发送文本。'+databasePolicy():'查看群消息，管理发送计划与自动回复。'],schedules:['定时任务','管理每天的发送计划，查看每次执行结果。'],environment:[isDatabase()?'数据源与环境':'环境诊断',isDatabase()?'创建本地只读副本，检查来源与更新结果。':'从运行环境到桥接连接，逐项了解当前状态。']};
  $('page-title').textContent=titles[currentView][0];$('page-subtitle').textContent=titles[currentView][1];
 }
 
-function renderSchedules(){const jobs=state.jobs||[],out=state.outbox||[];const active=jobs.filter(x=>x.enabled).length;$('job-count').textContent=active;$('active-jobs').textContent=active;$('today-sent').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='sent'&&dateKey(x.created_at)===dateKey(Date.now()/1000)).length;$('unknown-count').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='unknown').length;const key=JSON.stringify([state.account,isDemo(),online,serviceAvailable,!!state.loggingOut,state.runtime?.capabilities,state.groups,jobs,jobs.map(job=>memberCache.get(state.account+'|'+job.group_id)||[])]);if(key===scheduleRenderKey)return;scheduleRenderKey=key;const list=$('schedule-list');list.replaceChildren();if(!jobs.length){const empty=el('div','empty');const art=el('span');art.append(icon('clock'));empty.append(art,el('h3','','给每天的消息安排一个时间'),el('p','','创建任务，选择群聊、成员与每日发送内容。'));list.append(empty);return;}
+function renderSchedules(){const jobs=state.jobs||[],out=state.outbox||[];const active=jobs.filter(x=>x.enabled).length;$('job-count').textContent=active;$('active-jobs').textContent=active;$('today-sent').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='sent'&&dateKey(x.created_at)===dateKey(Date.now()/1000)).length;$('unknown-count').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='unknown').length;const key=JSON.stringify([state.account,isDemo(),online,serviceAvailable,!!state.loggingOut,state.runtime?.capabilities,state.groups,jobs,jobs.map(job=>memberCache.get(state.account+'|'+job.group_id)||[])]);if(key===scheduleRenderKey)return;scheduleRenderKey=key;const list=$('schedule-list');list.replaceChildren();if(!jobs.length){const empty=el('div','empty');const art=el('span');art.append(icon('clock'));empty.append(art,el('h3','','给每天的消息安排一个时间'),el('p','','创建任务，选择会话、成员与每日发送内容。'));list.append(empty);return;}
  for(const job of jobs){const row=el('article','schedule-row');const clock=el('div','schedule-time',job.clock);clock.append(el('small','','每天 · 上海时间'));const content=el('div','schedule-content');content.append(el('strong','',groupName(job.group_id)),el('p','',job.text));if(job.mentions.length){const members=memberCache.get(state.account+'|'+job.group_id)||[];content.append(el('p','',job.mentions.map(id=>'@'+nameFor(id,members)).join(' ')));}const info=el('div','schedule-info');info.append(el('span','status-chip'+(job.enabled?'':' off'),job.enabled?(isDemo()?'模拟已启用':'已启用'):'已停用'));if(job.enabled&&job.nextRun)info.append(el('div','','下次 '+stamp(job.nextRun,{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})));if(job.last_result)info.append(el('div','',job.last_result));row.append(clock,content,info);if(job.enabled){const cancel=el('button','schedule-stop','停用');cancel.disabled=!serviceAvailable||!!state.loggingOut;cancel.title=!serviceAvailable?'本机服务未连接':state.loggingOut?'正在退出账号':'停用此每日任务';cancel.onclick=async()=>{try{await api('/api/jobs/cancel',{account:state.account,id:job.id});toast('任务已停用');await poll();}catch(error){toast(error.message,true);}};row.append(cancel);}list.append(row);}}
 function renderLogin(){
  if(isDatabase()){openDatabaseSettings();return;}
  $('login-title').textContent=isDemo()?'本机演示账号':'连接你的微信';
- $('login-footnote').textContent=isDemo()?'演示群聊与真实微信隔离。连接本机微信请查看环境诊断中的 Windows 微信检查。':'扫码后在手机授权。退出会关闭自动回复并取消等待发送的消息，保留本机配置。';
- const content=$('login-content');content.replaceChildren();const login=state.login||{};$('logout-button').hidden=true;if(isDemo()){content.append(el('div','login-symbol','演'),el('h3','','当前为本机演示会话'),el('p','','可体验消息、定时任务与回复规则，所有发送都只在本机模拟。真实 Windows 微信检测在环境诊断中进行。'));$('login-action').textContent='查看环境诊断';$('login-action').disabled=false;return;}if(!serviceAvailable){content.append(emptyCard('本机服务未连接','请检查启动窗口，恢复服务后自动重连。','info'));$('login-action').disabled=true;return;}if(online){content.append(el('div','login-symbol',state.name.slice(0,1)),el('h3','',state.name+' 已连接'),el('p','','可以选择群聊，发送消息或配置自动回复。'));$('login-action').textContent='选择读取群聊';$('login-action').disabled=!!state.loggingOut;$('logout-button').hidden=false;$('logout-button').disabled=!!state.loggingOut;return;}if(login.type==='qr'&&login.qrDataUrl?.startsWith('data:image/')){const image=el('img');image.src=login.qrDataUrl;image.alt='个人微信登录二维码';content.append(image,el('p','','请使用手机微信扫一扫，并确认登录。'));}else{content.append(el('div','login-symbol',login.type==='phone_confirm'?'↗':'微'),el('h3','',login.type==='phone_confirm'?'等待手机确认':'连接个人微信'),el('p','',login.type==='error'?login.message:login.type==='login_timeout'?'二维码已超时，请重新获取。':login.message||'在这里完成扫码，连接后即可管理你的群聊。'));}$('login-action').textContent=login.running?'正在连接…':'扫码登录 / 刷新二维码';$('login-action').disabled=!!login.running;}
+ $('login-footnote').textContent=isDemo()?'演示会话与真实微信隔离。连接本机微信请查看环境诊断中的 Windows 微信检查。':'扫码后在手机授权。退出会关闭自动回复并取消等待发送的消息，保留本机配置。';
+ const content=$('login-content');content.replaceChildren();const login=state.login||{};$('logout-button').hidden=true;if(isDemo()){content.append(el('div','login-symbol','演'),el('h3','','当前为本机演示会话'),el('p','','可体验消息、定时任务与回复规则，所有发送都只在本机模拟。真实 Windows 微信检测在环境诊断中进行。'));$('login-action').textContent='查看环境诊断';$('login-action').disabled=false;return;}if(!serviceAvailable){content.append(emptyCard('本机服务未连接','请检查启动窗口，恢复服务后自动重连。','info'));$('login-action').disabled=true;return;}if(online){content.append(el('div','login-symbol',state.name.slice(0,1)),el('h3','',state.name+' 已连接'),el('p','','可以选择会话，发送消息或配置自动回复。'));$('login-action').textContent='选择读取会话';$('login-action').disabled=!!state.loggingOut;$('logout-button').hidden=false;$('logout-button').disabled=!!state.loggingOut;return;}if(login.type==='qr'&&login.qrDataUrl?.startsWith('data:image/')){const image=el('img');image.src=login.qrDataUrl;image.alt='个人微信登录二维码';content.append(image,el('p','','请使用手机微信扫一扫，并确认登录。'));}else{content.append(el('div','login-symbol',login.type==='phone_confirm'?'↗':'微'),el('h3','',login.type==='phone_confirm'?'等待手机确认':'连接个人微信'),el('p','',login.type==='error'?login.message:login.type==='login_timeout'?'二维码已超时，请重新获取。':login.message||'在这里完成扫码，连接后即可管理你的会话。'));}$('login-action').textContent=login.running?'正在连接…':'扫码登录 / 刷新二维码';$('login-action').disabled=!!login.running;}
 async function poll(){
  if(pollBusy)return;pollBusy=true;
  try{
-  const previous=state.account,previousSelected=selected,previousMode=state.runtime?.mode,previousSource=sourceSignature(state),next=await api('/api/state');
+  const previous=state.account,previousSelected=selected,previousMode=state.runtime?.mode,previousSource=sourceSignature(state),previousRevision=state.runtime?.source?.revision,next=await api('/api/state');
   const sourceChanged=next.runtime?.mode==='database'&&(previousMode!=='database'||previousSource!==sourceSignature(next));
+  const snapshotChanged=next.runtime?.mode==='database'&&!sourceChanged&&previous===next.account&&previousRevision!==next.runtime?.source?.revision;
   const senderSourceChanged=previousMode!==next.runtime?.mode||previous!==next.account||state.runtime?.source?.id!==next.runtime?.source?.id;
   if(previous&&previous!==next.account)saveDraft(previous,selected);
   state=next;csrf=state.csrfToken;serviceAvailable=true;serviceError='';if(senderSourceChanged){resetDesktopSender(true);resetHookSender();}
@@ -225,21 +229,23 @@ async function poll(){
    resetWindowsPanel();
    ++groupVersion;selected=null;groupLoadState='idle';people=[];messageData=[];outboxData=[];mentionIds.clear();memberCache.clear();messageNodes.clear();mediaStates.clear();
    for(const id of ['media-dialog','record-dialog','group-info-dialog','reading-dialog','schedule-dialog'])$(id).close();
-   $('record-content').replaceChildren();$('group-info-content').replaceChildren();$('message-text').value='';$('reply-text').value='';$('reply-enabled').checked=false;$('draft-status').textContent='';$('text-count').textContent='0 / 2000';$('selected-name').textContent='选择一个群聊';$('selected-meta').textContent='登录后选择读取范围';renderMessages(true);
+   $('record-content').replaceChildren();$('group-info-content').replaceChildren();$('message-text').value='';$('reply-text').value='';$('reply-enabled').checked=false;$('draft-status').textContent='';$('text-count').textContent='0 / 2000';$('selected-name').textContent='选择一个会话';$('selected-meta').textContent='登录后选择读取范围';renderMessages(true);
   }
+  if(snapshotChanged){memberCache.clear();messageNodes.clear();mediaStates.clear();renderKey='';}
   syncDatabaseRuntime();setConnection();renderGroups();renderSchedules();
   if(isDatabase()&&!databaseData&&!databaseLoading)loadDatabase();
   if(!initialModeSeen){initialModeSeen=true;if(isDatabase()&&!online)setView('environment');}
   if(!supportsSchedules()&&currentView==='schedules')setView('workspace');
   const groupToSelect=sourceChanged&&(state.groups||[]).some(group=>group.id===previousSelected)?previousSelected:state.selected;
-  if(online&&!selected&&groupToSelect){await selectGroup(groupToSelect);}else if(!selected&&isDatabase())renderMessages(true);
+  if(online&&!selected&&groupToSelect){await selectGroup(groupToSelect,{persistSelection:false});}else if(!selected&&isDatabase())renderMessages(true);
   else if(online&&selected){
    const version=groupVersion;
    try{
-    const data=await api(groupQuery('/api/messages'));if(version===groupVersion){
+    const data=await api(groupQuery(snapshotChanged?'/api/group':'/api/messages'));if(version===groupVersion){
+     if(snapshotChanged){people=data.members||[];memberCache.set(state.account+'|'+selected,people);renderMembers();$('selected-name').textContent=groupName(selected);$('selected-avatar').textContent=groupName(selected).slice(0,2);}
      messageData=data.messages||[];outboxData=supportsComposer()?data.outbox||[]:[];renderMessages();
      $('sync-status').textContent=isDatabase()?(databaseAuto()?'自动检查源变化':'读取固定副本'):state.syncError?'同步重试中':data.watching?'持续同步':'未启用读取';
-     $('stream-hint').textContent=data.watching?(isDatabase()?(databaseAuto()?'变化后更新 · 当前为已校验副本':'读取固定副本 · 手动更新'):isDemo()?'本机演示消息':'已勾选群持续同步'):'请先勾选读取这个群聊';
+     $('stream-hint').textContent=data.watching?(isDatabase()?(databaseAuto()?'变化后更新 · 当前为已校验副本':'读取固定副本 · 手动更新'):isDemo()?'本机演示消息':'已勾选群持续同步'):'请先勾选读取这个会话';
      $('last-sync').textContent=isDatabase()?'副本创建于 '+sourceTime(state.runtime?.source?.createdAt):state.lastSync?'更新于 '+stamp(state.lastSync):'';
     }
    }catch(error){$('global-error').hidden=false;$('global-error').textContent=error.message;$('stream-hint').textContent=isDatabase()?'副本读取失败，自动重试读取中':'当前群同步失败，自动重试中';$('stream-dot').classList.remove('active');}
@@ -255,7 +261,7 @@ $('group-search').oninput=renderGroups;$('member-search').oninput=renderMembers;
 $('message-text').oninput=()=>{$('text-count').textContent=$('message-text').value.length+' / 2000';saveDraft();controls();};
 $('message-text').onkeydown=event=>{if(!event.isComposing&&event.key==='Enter'&&(event.metaKey||event.ctrlKey)){event.preventDefault();if(!$('send-button').disabled)$('send-form').requestSubmit();}};
 $('send-form').onsubmit=async event=>{
- event.preventDefault();if(sendBusy||!online||!selected||groupLoadState!=='ready'||state.loggingOut||state.runtime?.capabilities?.canSend===false)return;
+ event.preventDefault();if(isDatabase()){await prepareHookMessage();return;}if(sendBusy||!online||!selected||groupLoadState!=='ready'||state.loggingOut||state.runtime?.capabilities?.canSend===false)return;
  const account=state.account,group=selected,text=$('message-text').value.trim(),original=$('message-text').value,mentions=[...mentionIds];if(!text)return;
  sendBusy=true;controls();
  try{
@@ -286,7 +292,7 @@ document.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>setV
 function openAccount(){if(isDatabase()){openDatabaseSettings();return;}renderLogin();$('login-dialog').showModal();}
 $('account-button').onclick=openAccount;
 $('login-action').onclick=async()=>{try{if(isDemo()){$('login-dialog').close();setView('environment');return;}if(online){$('login-dialog').close();openReading();return;}await api('/api/login',{});await poll();renderLogin();}catch(error){toast(error.message,true);}};
-$('refresh-button').onclick=async()=>{if(isDatabase()){if(databaseData?.configured)await refreshDatabase();else openDatabaseSettings();return;}$('refresh-button').disabled=true;try{await poll();if(!serviceAvailable)throw Error(serviceError);await api('/api/refresh',{});await poll();if(selected)await selectGroup(selected);if(currentView==='environment')await loadEnvironment();toast(isDemo()?'已刷新本机演示数据':'已刷新账号和群聊');}catch(error){toast(error.message,true);}finally{$('refresh-button').disabled=false;}};
+$('refresh-button').onclick=async()=>{if(isDatabase()){if(databaseData?.configured)await refreshDatabase();else openDatabaseSettings();return;}$('refresh-button').disabled=true;try{await poll();if(!serviceAvailable)throw Error(serviceError);await api('/api/refresh',{});await poll();if(selected)await selectGroup(selected);if(currentView==='environment')await loadEnvironment();toast(isDemo()?'已刷新本机演示数据':'已刷新账号和会话');}catch(error){toast(error.message,true);}finally{$('refresh-button').disabled=false;}};
 async function cycle(){await poll();setTimeout(cycle,document.hidden?6000:2200);}window.addEventListener('DOMContentLoaded',cycle);
 
 
@@ -306,7 +312,7 @@ function renderEnvironment(){
  const overview=$('environment-overview'),checks=$('environment-checks'),limits=$('environment-limitations');overview.replaceChildren();checks.replaceChildren();limits.replaceChildren();
  if(environmentError){overview.append(emptyCard('暂时无法获取环境诊断',environmentError,'info'));return;}
  if(!environmentData)return;
- const data=environmentData,items=[['运行模式',data.mode==='database'?'数据库副本 · 只读':data.mode==='demo'?'本机演示':'真实桥接'],['操作系统',data.platform||'未知'],['Python',data.pythonVersion||'未知'],['时区',data.timezone||'Asia/Shanghai']];
+ const data=environmentData,items=[['运行模式',data.mode==='database'?'真实微信 · 本地接收与发送':data.mode==='demo'?'本机演示':'真实桥接'],['操作系统',data.platform||'未知'],['Python',data.pythonVersion||'未知'],['时区',data.timezone||'Asia/Shanghai']];
  for(const [label,value] of items){const card=el('div','environment-stat');card.append(el('small','',label),el('strong','',value));overview.append(card);}
  const statusLabels={ok:'正常',warning:'需留意',error:'待处理'},rows=data.checks||[];
  for(const item of rows){const row=el('article','environment-check '+item.status),mark=el('span','check-symbol',item.status==='ok'?'✓':item.status==='warning'?'!':'×'),body=el('div');body.append(el('strong','',item.label||item.id),el('p','',item.detail||''));row.append(mark,body,el('span','check-status',statusLabels[item.status]||item.status));checks.append(row);}
@@ -441,7 +447,7 @@ function renderDatabase(data){
  const source=data.source||{},ready=['ready','snapshot_ready'].includes(source.status),error=data.error||source.error||'';
  $('database-error').hidden=!error;$('database-error').textContent=error;
  $('database-status-badge').textContent=databaseBusy?'创建中':error?'需处理':ready?'副本已就绪':data.configured?'待创建':'待配置';
- $('database-progress').textContent=databaseBusy?'正在后台复制并校验数据库及 WAL，完成后自动加载结果；已有成功副本仍可查看。':error&&ready?'更新未成功，当前保留上次成功副本。请检查错误原因后重试。':ready?'副本已就绪。'+databasePolicy():data.configured?'尚无可用副本，请检查配置并创建。':'填写源数据库目录，创建只读副本后即可查看群聊。';
+ $('database-progress').textContent=databaseBusy?'正在后台复制并校验数据库及 WAL，完成后自动加载结果；已有成功副本仍可查看。':error&&ready?'更新未成功，当前保留上次成功副本。请检查错误原因后重试。':ready?'副本已就绪。'+databasePolicy():data.configured?'尚无可用副本，请检查配置并创建。':'填写源数据库目录，创建只读副本后即可查看会话。';
  const detail=$('database-source-detail');detail.replaceChildren();if(source.sourceRoot)appendSourceFacts(detail,source);
  setConnection();updateDatabaseControls();
 }

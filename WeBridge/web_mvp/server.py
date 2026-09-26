@@ -57,11 +57,39 @@ class LoginFlow:
             with self.lock:self.running=False
 
 
-def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,desktop_sender=None,hook_sender=None):
+def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,desktop_sender=None,hook_sender=None,hook_manager=None):
     allowed={f'127.0.0.1:{port}',f'localhost:{port}'}
     origins={'http://'+x for x in allowed}
     static=Path(__file__).parent/'static'
     media=media_cache or MediaCache(engine)
+    hook_config_stamp=None
+
+    def reload_hook_sender():
+        nonlocal hook_sender,hook_config_stamp
+        if hook_manager is None:return
+        path=engine.store.path.parent/'hook-config.json'
+        try:
+            stat=path.stat();stamp=(stat.st_mtime_ns,stat.st_size)
+        except FileNotFoundError:stamp='missing'
+        if stamp!=hook_config_stamp:
+            from windows_hook_sender import WindowsHookSender
+            hook_sender=WindowsHookSender.from_config(engine.store.path.parent/'hook-send',path)
+            engine.hook_sender=hook_sender;hook_config_stamp=stamp
+
+    def hook_status():
+        reload_hook_sender()
+        binding=hook_binding() if database_service.config and engine.account else None
+        result=hook_sender.status(binding)
+        if hook_manager is not None:
+            managed=hook_manager.status()
+            result['bridgeState']='ready' if result.get('available') else managed['state']
+            if managed['state'] in ('starting','stopping','failed'):
+                result.update(available=False,bridgeState=managed['state'],
+                              issueCode=managed.get('issueCode',''),issue=managed.get('issue',''))
+        watched=engine.store.watched(engine.account) or []
+        result['targetIds']=[row['id'] for row in engine.group_list
+                             if result.get('available') and row['id'] in watched and hook_sender.supports_target(row['id'])]
+        return result
 
     def hook_binding():
         # Callers hold the source lock through validation and the send operation.
@@ -76,8 +104,11 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
     def hook_target(data):
         account=data.get('account');group=data.get('groupId')
         engine.validate(account,group)
-        if group!=engine.selected or group not in (engine.store.watched(account) or []):
-            raise ValueError('请先选择并勾选当前要发送的会话。')
+        # engine.selected is shared browsing state, so another tab may change it.
+        # The caller's known/watched target is frozen in the draft and rechecked
+        # at confirmation; a different tab cannot redirect that draft.
+        if group not in (engine.store.watched(account) or []):
+            raise ValueError('请先勾选当前要发送的会话。')
         if data.get('targetId',group)!=group:
             raise ValueError('发送目标与当前会话不一致。')
         target=next(row for row in engine.group_list if row['id']==group)
@@ -120,11 +151,11 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     if hook_sender is None or database_service is None:
                         self.respond({'available':False,'status':'unavailable','issue':'当前模式未启用 Windows Hook 发送。'});return
                     with database_service.lock:
-                        binding=hook_binding() if database_service.config and engine.account else None
-                        self.respond(hook_sender.status(binding));return
+                        self.respond(hook_status());return
                 if path=='/api/windows/hook/attempt':
                     if hook_sender is None or database_service is None:raise ValueError('当前模式未启用 Windows Hook 发送。')
                     with database_service.lock:
+                        reload_hook_sender()
                         binding=hook_binding()
                         if params.get('account')!=binding['account']:raise ValueError('账号已变化，请刷新页面。')
                         draft_id=params.get('draftId')
@@ -133,7 +164,8 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                         engine.validate(binding['account'],target)
                         if target not in (engine.store.watched(binding['account']) or []):
                             raise ValueError('该会话已取消读取。')
-                        if result.get('serverAccepted') and not result.get('localRecordConfirmed'):
+                        if (result.get('serverAccepted') and not result.get('localRecordConfirmed') or
+                                result.get('status')=='submitted_unconfirmed'):
                             messages=engine.adapter.call('messages',account=binding['account'],groupId=target)['messages']
                             result=hook_sender.reconcile(draft_id,messages,binding,target_id=target)
                         self.respond(result);return
@@ -214,11 +246,20 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                 if path in ('/api/database/configure','/api/database/refresh'):
                     if database_service is None:raise ValueError('请使用 Database 模式启动工作台。')
                     self.respond(database_service.configure(data) if path.endswith('/configure') else database_service.refresh(),202);return
+                if path in ('/api/windows/hook/start','/api/windows/hook/stop'):
+                    if hook_manager is None or database_service is None:raise ValueError('当前模式未启用本机发送管理。')
+                    with database_service.lock:
+                        if data.get('account')!=engine.account or not engine.account:raise ValueError('账号已变化，请刷新页面。')
+                        hook_binding()
+                        if path.endswith('/start'):hook_manager.start()
+                        else:hook_manager.stop()
+                        self.respond(hook_status());return
                 if path in ('/api/windows/hook/prepare','/api/windows/hook/confirm'):
                     if hook_sender is None or database_service is None:raise ValueError('当前模式未启用 Windows Hook 发送。')
                     # The database source and selected target are frozen on the
                     # server. A stale tab may not silently send to a new account.
                     with database_service.lock,engine.lock:
+                        reload_hook_sender()
                         if database_service.busy:raise ValueError('正在更新数据库副本，请完成后再操作。')
                         binding=hook_binding();target=hook_target(data)
                         payload={**data,**binding,**target}
@@ -226,7 +267,8 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                             draft=hook_sender.get(data.get('draftId'),binding)
                             if draft.get('targetId')!=target['targetId']:
                                 raise ValueError('当前会话已变化，请重新准备发送内容。')
-                            result=hook_sender.confirm(payload)
+                            messages=engine.adapter.call('messages',account=binding['account'],groupId=target['targetId'])['messages']
+                            result=hook_sender.confirm(payload,baseline_messages=messages)
                         else:result=hook_sender.prepare(payload)
                         self.respond(result);return
                 if path in ('/api/windows/send/preview','/api/windows/send/stage','/api/windows/send/confirm'):
@@ -311,20 +353,23 @@ def main():
             # The selected Windows route uses a Hook sender. Visual input stays
             # as an unexposed diagnostic implementation, never an automatic fallback.
             engine.desktop_sender=desktop_sender
-            hook_sender=None
+            hook_sender=None;hook_manager=None
             if args.mode=='database':
                 from windows_hook_sender import WindowsHookSender
+                from windows_hook_bridge import WindowsHookBridgeManager
                 hook_sender=WindowsHookSender.from_config(directory/'hook-send',directory/'hook-config.json')
+                hook_manager=WindowsHookBridgeManager(directory)
             engine.hook_sender=hook_sender
             login=LoginFlow(engine)
             media=MediaCache(engine,directory/'media')
-            server=ThreadingHTTPServer(('127.0.0.1',args.port),make_handler(engine,login,secrets.token_urlsafe(32),args.port,media,database_service,desktop_sender,hook_sender))
+            server=ThreadingHTTPServer(('127.0.0.1',args.port),make_handler(engine,login,secrets.token_urlsafe(32),args.port,media,database_service,desktop_sender,hook_sender,hook_manager))
             engine.start()
             (directory/'server.pid').write_text(str(os.getpid()),encoding='ascii')
             print(f'WeBridge ({args.mode}): http://127.0.0.1:{args.port}',flush=True)
             try:server.serve_forever()
             except KeyboardInterrupt:pass
             finally:
+                if hook_manager is not None:hook_manager.stop()
                 engine.stop.set();server.server_close()
                 for thread in engine.threads:thread.join(timeout=2)
                 (directory/'server.pid').unlink(missing_ok=True)

@@ -26,6 +26,7 @@ class HookTests(unittest.TestCase):
                        'selfId': self.source['selfId'], 'sourceRoot': self.source['sourceRoot']}
         self.instance = 'synthetic-bridge-instance-1'
         self.calls, self.outcome = [], 'server_accepted'
+        self.scope = {'targetId': 'filehelper'}
         self.sender = WindowsHookSender(self.root, transport=self.transport, profiles=[self.profile], clock=lambda: self.now)
         self.data = {**self.source, 'targetId': 'filehelper', 'targetName': '文件传输助手',
                      'text': 'synthetic 中文 🙂\n第二行', 'idempotencyKey': 'synthetic-hook-request-001'}
@@ -34,7 +35,8 @@ class HookTests(unittest.TestCase):
         self.calls.append((method, path, deepcopy(payload)))
         if method == 'GET':
             return {'protocol': PROTOCOL, 'ready': True, 'instanceId': self.instance,
-                    'capabilities': {'sendText': True, 'idempotency': True}, 'binding': deepcopy(self.native)}
+                    'capabilities': {'sendText': True, 'idempotency': True}, 'binding': deepcopy(self.native),
+                    **({'scope': deepcopy(self.scope)} if self.scope is not None else {})}
         if isinstance(self.outcome, BaseException):
             raise self.outcome
         response = {key: payload[key] for key in ('protocol', 'requestId', 'textHash', 'targetId')}
@@ -66,6 +68,28 @@ class HookTests(unittest.TestCase):
         self.assertEqual(status['moduleSha256'], 'a' * 64)
         with self.assertRaises(HookSendError):
             self.sender.prepare(self.data)
+        self.assertFalse(any(call[0] == 'POST' for call in self.calls))
+
+    def test_conversation_scope_preserves_target_and_old_bridge_stays_filehelper_only(self):
+        group = {**self.data, 'targetId': '123456789012345@chatroom', 'targetName': '合成测试群'}
+        for scope in (None, {'targetId': 'filehelper'}):
+            self.scope = scope
+            with self.assertRaises(HookSendError) as error:
+                self.sender.prepare(group)
+            self.assertEqual(error.exception.code, 'unsupported_target')
+        self.scope = {'targetPolicy': 'selected_conversation'}
+        draft = self.sender.prepare(group)
+        self.assertEqual(self.sender.confirm(self.confirm_data(draft))['targetId'], group['targetId'])
+        posts = [call[2] for call in self.calls if call[0] == 'POST']
+        self.assertEqual(len(posts), 1)
+        self.assertEqual(posts[0]['targetId'], group['targetId'])
+
+    def test_scope_contraction_after_prepare_blocks_confirm(self):
+        self.scope = {'targetPolicy': 'selected_conversation'}
+        draft = self.sender.prepare({**self.data, 'targetId': '123456789012345@chatroom'})
+        self.scope = {'targetId': 'filehelper'}
+        result = self.sender.confirm(self.confirm_data(draft))
+        self.assertEqual((result['status'], result['issueCode']), ('blocked', 'unsupported_target'))
         self.assertFalse(any(call[0] == 'POST' for call in self.calls))
 
     def test_status_without_source_cannot_claim_send_available(self):
@@ -167,6 +191,31 @@ class HookTests(unittest.TestCase):
                        {'targetId': ''}, {'idempotencyKey': 'short'}):
             with self.assertRaises(HookSendError): self.sender.prepare({**self.data, **change})
         self.assertEqual(self.calls, [])
+
+    def test_new_self_record_observation_and_repeat_send_do_not_claim_server_ack(self):
+        self.outcome = 'submitted'
+        def message(identity, server_id, timestamp=1000):
+            return {'id': identity, 'serverId': server_id, 'timestamp': timestamp,
+                    'senderId': self.source['selfId'], 'sourceId': self.source['sourceId'],
+                    'source': 'database', 'isSelfKnown': True, 'isSelf': True, 'type': 1,
+                    'text': self.data['text'], 'kind': 'text', 'decodeStatus': 'ok'}
+        old, first, second = message('old', '10', 999), message('first', '11'), message('second', '12')
+        draft = self.sender.prepare(self.data)
+        self.sender.confirm(self.confirm_data(draft), baseline_messages=[old])
+        lookup = lambda rows: self.sender.reconcile(draft['draftId'], rows, self.source, target_id='filehelper')
+        self.assertEqual(lookup([old])['status'], 'submitted_unconfirmed')
+        self.assertEqual(lookup([old, first, second])['status'], 'submitted_unconfirmed')
+        result = lookup([old, first])
+        self.assertEqual(result['status'], 'local_record_observed')
+        self.assertTrue(result['localRecordObserved'])
+        self.assertFalse(result['localRecordConfirmed'])
+        self.assertFalse(result['serverAccepted'])
+        self.assertFalse(result['delivered'])
+        self.assertNotIn('baselineMessageIds', result)
+        draft = self.sender.prepare({**self.data, 'idempotencyKey': 'synthetic-repeat-text-002'})
+        self.sender.confirm(self.confirm_data(draft), baseline_messages=[old])
+        self.assertEqual(lookup([old, first])['status'], 'submitted_unconfirmed')
+        self.assertEqual(lookup([old, first, second])['serverId'], '12')
 
     def test_native_lock_prevents_overlapping_different_requests(self):
         entered, release = threading.Event(), threading.Event()

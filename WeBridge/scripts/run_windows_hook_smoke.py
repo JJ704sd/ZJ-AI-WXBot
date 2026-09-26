@@ -80,9 +80,9 @@ def bounded_call(function, timeout=8):
     return output[0][1]
 
 
-def read_source():
+def read_source(runtime_dir=RUNTIME):
     try:
-        config = json.loads((RUNTIME / 'database-config.json').read_text(encoding='utf-8'))['config']
+        config = json.loads((Path(runtime_dir) / 'database-config.json').read_text(encoding='utf-8'))['config']
         source = Path(config['sourceRoot']).resolve(strict=True)
         # Same already selected source as the reviewed metadata preflight.
         if config.get('selfId') != 'wxid_c1wz4p7o4yg529' or source.parent.name != 'wxid_c1wz4p7o4yg529_559e':
@@ -94,7 +94,10 @@ def read_source():
 
 class NativeSession:
     """Own one agent and payload; loading a module never starts this class."""
-    def __init__(self):
+    def __init__(self, script_path=SCRIPT, runtime_dir=RUNTIME, code_rvas=CODE_RVAS):
+        self.script_path = Path(script_path)
+        self.runtime_dir = Path(runtime_dir)
+        self.code_rvas = dict(code_rvas)
         self.session = None
         self.script = None
         self.detached = False
@@ -106,7 +109,7 @@ class NativeSession:
         self._ended = threading.Event()
         self._attach_pending = False
         self.nonce = secrets.token_urlsafe(32)
-        self.source = read_source()
+        self.source = read_source(self.runtime_dir)
         from acquire_database_keys import inventory, WindowsDependencies
         self.inventory = inventory
         self.owners = WindowsDependencies()  # Only .owner(), never .scan().
@@ -117,14 +120,14 @@ class NativeSession:
             raise SmokeError('module_changed')
         image = Image(MODULE)
         expected_code = {name: image.data[image.offset(rva):image.offset(rva)+32].hex()
-                         for name, rva in CODE_RVAS.items()}
+                         for name, rva in self.code_rvas.items()}
         self.binding = {**PROFILE, **self.source, 'pid': self.owner[0],
                         'processStarted': str(self.owner[1]), 'instanceId': secrets.token_hex(16)}
-        program = SCRIPT.read_text(encoding='utf-8')
+        program = self.script_path.read_text(encoding='utf-8')
         self.script_hash = hashlib.sha256(program.encode('utf-8')).hexdigest()
         # Independent metadata recheck immediately before submit. No payload,
         # user strings, memory addresses or arbitrary memory reads are returned.
-        program += '\nconst hostChecks=' + json.dumps(expected_code) + ';\nconst hostRvas=' + json.dumps(CODE_RVAS) + ';\n' + r'''
+        program += '\nconst hostChecks=' + json.dumps(expected_code) + ';\nconst hostRvas=' + json.dumps(self.code_rvas) + ';\n' + r'''
 rpc.exports.inspectidentity = function () {
   const m = Process.getModuleByName('Weixin.dll');
   const matches = {};
@@ -201,19 +204,19 @@ rpc.exports.inspectidentity = function () {
             raise
 
     def revalidate(self):
-        if self.detached or self.invalidated or read_source() != self.source:
+        if self.detached or self.invalidated or read_source(self.runtime_dir) != self.source:
             raise SmokeError('binding_changed')
         _, _, files = self.inventory(self.source['sourceRoot'])
         if self.owners.owner(files) != self.owner:
             raise SmokeError('owner_changed')
         if hashlib.sha256(MODULE.read_bytes()).hexdigest() != HASH:
             raise SmokeError('module_changed')
-        if hashlib.sha256(SCRIPT.read_text(encoding='utf-8').encode('utf-8')).hexdigest() != self.script_hash:
+        if hashlib.sha256(self.script_path.read_text(encoding='utf-8').encode('utf-8')).hexdigest() != self.script_hash:
             raise SmokeError('native_script_changed')
         result = self._rpc('inspectidentity', {})
         if (result.get('pid') != self.owner[0] or result.get('arch') != 'x64' or
                 os.path.normcase(str(result.get('modulePath', ''))) != os.path.normcase(str(MODULE)) or
-                result.get('codeMatches') != {key: True for key in CODE_RVAS} or
+                result.get('codeMatches') != {key: True for key in self.code_rvas} or
                 self.owners.owner(files) != self.owner):
             self.invalidated = True
             raise SmokeError('runtime_identity_changed')
@@ -355,7 +358,7 @@ class SmokeBridge:
                 return response
 
 
-def handler_type(bridge, token, port):
+def handler_type(bridge, token, port, max_request_bytes=8192):
     class Handler(BaseHTTPRequestHandler):
         server_version = 'WeBridgeHookSmoke'
         sys_version = ''
@@ -404,7 +407,7 @@ def handler_type(bridge, token, port):
             try:
                 lengths = self.headers.get_all('Content-Length', [])
                 if (len(lengths) != 1 or not re.fullmatch(r'[0-9]{1,5}', lengths[0]) or
-                        not 1 <= int(lengths[0]) <= 8192 or self.headers.get_all('Transfer-Encoding') or
+                        not 1 <= int(lengths[0]) <= max_request_bytes or self.headers.get_all('Transfer-Encoding') or
                         self.headers.get_content_type() != 'application/json'):
                     raise SmokeError('invalid_request')
                 raw = self.rfile.read(int(lengths[0]))

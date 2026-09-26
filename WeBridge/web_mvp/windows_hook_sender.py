@@ -6,6 +6,8 @@ A separately reviewed native bridge must implement ``webridge.windows-hook.v1``:
 GET /v1/status -> {protocol, ready, instanceId, capabilities: {sendText,
 idempotency}, binding: {pid, processStarted, clientVersion, arch, moduleName,
 moduleSha256, selfId, sourceRoot}}. processStarted is a Windows FILETIME string.
+Optional scope.targetPolicy='selected_conversation' permits server-validated
+conversation IDs; older scope.targetId (or no scope) stays fixed-target only.
 POST /v1/send-text accepts {protocol, requestId, draftId, textHash, text, targetId,
 expectedBinding}. The bridge MUST atomically recheck expectedBinding before
 calling WeChat and durably deduplicate requestId, including unknown outcomes.
@@ -45,6 +47,7 @@ ISSUES = {
     'bridge_invalid': '本机 Hook 桥返回的协议或身份信息不完整，未启用发送。',
     'bridge_not_ready': '本机 Hook 桥尚未就绪，未执行发送。',
     'unsupported_version': '当前客户端版本和模块哈希尚无已配置的 Hook 适配，未启用发送。',
+    'unsupported_target': '当前发送桥尚未开放该会话，请重新连接发送后再试。',
     'source_changed': '当前数据库账号与发送绑定不一致，旧确认已失效。',
     'binding_changed': '微信进程、账号、模块或 Hook 桥实例已变化，请重新准备。',
     'not_submitted': 'Hook 桥确认尚未调用微信发送入口，本次请求已停止。',
@@ -217,6 +220,7 @@ class WindowsHookSender:
         self.transport = transport if transport is not None else LoopbackTransport(endpoint, token) if endpoint else None
         self.clock = clock or time.time
         self.configuration_error = None
+        self.target_scope = {'targetId': 'filehelper'}
         with closing(self._connect()) as database:
             database.execute('CREATE TABLE IF NOT EXISTS hook_drafts ('
                 'id TEXT PRIMARY KEY, request_hash TEXT NOT NULL, request TEXT NOT NULL, '
@@ -291,7 +295,21 @@ class WindowsHookSender:
         if (response.get('ready') is not True or not isinstance(capabilities, dict) or
                 capabilities.get('sendText') is not True or capabilities.get('idempotency') is not True):
             raise HookSendError('bridge_not_ready')
+        scope = response.get('scope', {'targetId': 'filehelper'})
+        if not isinstance(scope, dict):
+            raise HookSendError('bridge_invalid')
+        if scope.get('targetPolicy') == 'selected_conversation':
+            self.target_scope = {'targetPolicy': 'selected_conversation'}
+        elif isinstance(scope.get('targetId'), str) and re.fullmatch(r'[A-Za-z0-9_.@-]{1,256}', scope['targetId']):
+            self.target_scope = {'targetId': scope['targetId']}
+        else:
+            raise HookSendError('bridge_invalid')
         return binding
+
+    def supports_target(self, target_id):
+        return (isinstance(target_id, str) and re.fullmatch(r'[A-Za-z0-9_.@-]{1,256}', target_id) is not None and
+                (self.target_scope.get('targetPolicy') == 'selected_conversation' or
+                 self.target_scope.get('targetId') == target_id))
 
     def status(self, binding=None):
         result = {'supported': True, 'available': False, 'bridgeConfigured': self.transport is not None,
@@ -303,7 +321,7 @@ class WindowsHookSender:
                 ('clientVersion', 'arch', 'moduleName', 'moduleSha256', 'selfId')}, processId=native['pid'])
             if source is None:
                 raise HookSendError('source_changed')
-            result.update(issueCode='', issue='Hook 桥和当前数据库账号绑定已核对；发送仍需确认。')
+            result.update(scope=dict(self.target_scope), issueCode='', issue='Hook 桥和当前数据库账号绑定已核对；发送仍需确认。')
         except HookSendError as error:
             observed = getattr(error, 'observed', None)
             if observed:
@@ -319,12 +337,14 @@ class WindowsHookSender:
                 any(ord(c) < 32 and c not in '\n\t' or ord(c) == 127 for c in text)):
             raise HookSendError('invalid_text', '请填写 1–2000 字符的纯文本消息。')
         try:
-            text.encode('utf-8')
+            if len(text.encode('utf-16-le')) // 2 > 2000 or len(text.encode('utf-8')) > 8000:
+                raise HookSendError('invalid_text', '纯文本消息最多 2000 字符。')
         except UnicodeError:
             raise HookSendError('invalid_text', '消息包含无效字符。') from None
         if not isinstance(key, str) or not re.fullmatch(r'[A-Za-z0-9_-]{16,100}', key):
             raise HookSendError('invalid_key', '缺少有效的一次性发送请求标识。')
-        if not _string(data.get('targetId')) or not _string(data.get('targetName'), 512):
+        if (not isinstance(data.get('targetId'), str) or not re.fullmatch(r'[A-Za-z0-9_.@-]{1,256}', data['targetId']) or
+                not _string(data.get('targetName'), 512)):
             raise HookSendError('invalid_target', '缺少服务端已核实的当前账号会话。')
         if data.get('mentionIds'):
             raise HookSendError('unsupported_mentions', '当前 Hook 桥契约仅发送普通文本，尚未适配真实 @。')
@@ -335,14 +355,16 @@ class WindowsHookSender:
         request = json.loads(row['request'])
         status = 'unknown' if row['status'] == 'attempted' else row['status']
         result = json.loads(row['result'])
-        if status == 'unknown' and not result:
-            result = {'issueCode': 'outcome_unknown', 'issue': ISSUES['outcome_unknown']}
+        if status == 'unknown' and not result.get('issue'):
+            result.update(issueCode='outcome_unknown', issue=ISSUES['outcome_unknown'])
+        public_result = {key: value for key, value in result.items() if key not in ('baselineMessageIds', 'submittedAtEpoch')}
         return {'draftId': row['id'], 'status': status, 'text': request['text'], 'textHash': row['text_hash'],
                 'targetId': request['targetId'], 'targetName': request['targetName'],
                 'expiresAt': datetime.fromtimestamp(row['expires'], timezone.utc).isoformat(timespec='seconds'),
                 'retryAllowed': False, 'delivered': False,
                 'serverAccepted': status in ('server_accepted', 'local_record_confirmed'),
-                'localRecordConfirmed': status == 'local_record_confirmed', **result}
+                'localRecordConfirmed': status == 'local_record_confirmed',
+                'localRecordObserved': status == 'local_record_observed', **public_result}
 
     def _row(self, draft_id):
         if not isinstance(draft_id, str) or not re.fullmatch(r'[a-f0-9]{32}', draft_id):
@@ -368,6 +390,8 @@ class WindowsHookSender:
                 raise HookSendError('idempotency_conflict', '该请求标识已绑定其他目标或内容。')
             return self._view(previous)
         binding = self._probe(request)
+        if not self.supports_target(request['targetId']):
+            raise HookSendError('unsupported_target')
         with closing(self._connect()) as database:
             database.execute('INSERT OR IGNORE INTO hook_drafts VALUES (?,?,?,?,?,?,?,?)',
                 (draft_id, digest, _json(request), _json(binding), _hash(request['text']), self.clock() + TTL_SECONDS, 'prepared', '{}'))
@@ -383,7 +407,7 @@ class WindowsHookSender:
             database.commit()
         return self._view(self._row(draft_id))
 
-    def confirm(self, data):
+    def confirm(self, data, *, baseline_messages=None):
         if not isinstance(data, dict) or data.get('targetConfirmed') is not True:
             raise HookSendError('confirmation_required', '请核对账号、目标会话和完整正文后确认发送。')
         with _send_guard(self.directory):
@@ -399,14 +423,25 @@ class WindowsHookSender:
             try:
                 if self._probe(request) != binding:
                     raise HookSendError('binding_changed')
+                if not self.supports_target(request['targetId']):
+                    raise HookSendError('unsupported_target')
             except HookSendError as error:
                 return self._save_result(row['id'], 'blocked', {'issueCode': error.code, 'issue': error.public_message})
+            evidence = {}
+            if baseline_messages is not None:
+                if not isinstance(baseline_messages, (list, tuple)):
+                    raise HookSendError('invalid_evidence', '无法记录发送前的数据库消息基线。')
+                evidence = {'baselineMessageIds': [message['id'] for message in baseline_messages
+                    if isinstance(message, dict) and isinstance(message.get('id'), str)],
+                    'submittedAtEpoch': self.clock()}
             with closing(self._connect()) as database:
-                database.execute("UPDATE hook_drafts SET status='attempted' WHERE id=? AND status='prepared'", (row['id'],))
+                database.execute("UPDATE hook_drafts SET status='attempted',result=? WHERE id=? AND status='prepared'",
+                                 (_json(evidence), row['id']))
                 database.commit()  # durable before handing anything to native code
             payload = {'protocol': PROTOCOL, 'requestId': row['id'], 'draftId': row['id'], 'textHash': row['text_hash'],
                        'text': request['text'], 'targetId': request['targetId'], 'expectedBinding': binding}
             status, result = 'unknown', {'issueCode': 'outcome_unknown', 'issue': ISSUES['outcome_unknown']}
+            correlated = False
             try:
                 outcome = self.transport('POST', '/v1/send-text', payload)
                 correlated = (isinstance(outcome, dict) and all(outcome.get(key) == payload[key] for key in
@@ -422,26 +457,58 @@ class WindowsHookSender:
                             'issue': '已取得匹配本次请求的服务器接受回执；尚未确认本地存档或收件端送达。'}
             except Exception:
                 pass
-            return self._save_result(row['id'], status, result)
+            if correlated:
+                client_id = outcome.get('clientMessageId')
+                if _string(client_id, 128):
+                    result['clientMessageId'] = client_id
+            return self._save_result(row['id'], status, {**evidence, **result})
 
     def reconcile(self, draft_id, messages, source_binding, *, target_id):
         """Accept only exact correlated outgoing DB records supplied by the server.
 
         The caller reads ``messages`` from target_id in the currently validated
         snapshot. It must never accept these rows or source fields from a browser.
-        Without a server ACK ID this method deliberately cannot identify an
-        ambiguous timeout by text/time similarity.
+        Without a server ACK ID, a new self-authored row is only an observation,
+        not exact request attribution. Unknown submissions are never resolved
+        by text/time similarity.
         """
         row = self._row(draft_id)
         request = json.loads(row['request'])
         _same_source(source_binding, request)
         if target_id != request['targetId']:
             raise HookSendError('target_changed', '数据库核对目标与原发送目标不一致。')
-        if row['status'] != 'server_accepted':
+        if row['status'] not in ('server_accepted', 'submitted_unconfirmed'):
             return self._view(row)
         result = json.loads(row['result'])
         if not isinstance(messages, (list, tuple)):
             raise HookSendError('invalid_evidence', '数据库确认记录格式无效。')
+        if row['status'] == 'submitted_unconfirmed':
+            if 'baselineMessageIds' not in result or 'submittedAtEpoch' not in result:
+                return self._view(row)  # Old drafts lack a pre-send observation baseline.
+            baseline = set(result['baselineMessageIds'])
+            started = result['submittedAtEpoch']
+            with closing(self._connect()) as database:
+                claimed = set()
+                for previous in database.execute("SELECT request,result FROM hook_drafts WHERE status IN ('local_record_observed','local_record_confirmed')"):
+                    old_request, old_result = json.loads(previous['request']), json.loads(previous['result'])
+                    if old_request['sourceId'] == request['sourceId'] and old_request['targetId'] == target_id:
+                        claimed.add(old_result.get('serverId'))
+            candidates = {message['id']: message for message in messages if isinstance(message, dict) and
+                isinstance(message.get('id'), str) and message['id'] not in baseline and
+                isinstance(message.get('serverId'), str) and re.fullmatch(r'[1-9][0-9]{0,19}', message['serverId']) and
+                message['serverId'] not in claimed and message.get('source') == 'database' and
+                message.get('sourceId') == request['sourceId'] and message.get('senderId') == request['selfId'] and
+                message.get('isSelfKnown') is True and message.get('isSelf') is True and
+                type(message.get('type')) is int and message['type'] == 1 and message.get('decodeStatus') == 'ok' and
+                message.get('text') == request['text'] and message.get('kind') not in ('revoke', 'system') and
+                type(message.get('timestamp')) is int and int(started) <= message['timestamp'] <= int(started) + 120}
+            if len(candidates) == 1:
+                message = next(iter(candidates.values()))
+                result.update(serverId=message['serverId'], observedMessageId=message['id'], serverAccepted=False,
+                    issue='数据库副本出现一条新增的本人同文本记录；未取得服务器回执，不能据此证明收件端送达。',
+                    databaseObservedAt=datetime.fromtimestamp(self.clock(), timezone.utc).isoformat(timespec='seconds'))
+                return self._save_result(row['id'], 'local_record_observed', result)
+            return self._view(row)
         for message in messages:
             if (isinstance(message, dict) and message.get('serverId') == result['serverId'] and
                     message.get('source') == 'database' and message.get('sourceId') == request['sourceId'] and
