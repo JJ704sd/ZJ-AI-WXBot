@@ -215,7 +215,8 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     if engine.read_only:
                         revision=engine.adapter.get_source_info().get('revision')
                         data=engine.adapter.call('messages',account=account,groupId=group) if watching else {'messages':[]}
-                        result={**data,'reply':{'enabled':False,'text':'','cooldown':30},'outbox':[],'watching':watching}
+                        automatic=getattr(engine,'windows_auto_reply',None)
+                        result={**data,'reply':automatic.get(account,group) if automatic else {'enabled':False,'text':'','cooldown':30},'outbox':[],'watching':watching}
                         if path=='/api/group':result.update(engine.adapter.call('members',account=account,groupId=group))
                         engine.validate(account,group)
                         if revision!=engine.adapter.get_source_info().get('revision'):raise ValueError('副本已更新，请刷新当前群聊。')
@@ -257,7 +258,12 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                         if data.get('account')!=engine.account or not engine.account:raise ValueError('账号已变化，请刷新页面。')
                         hook_binding()
                         if path.endswith('/start'):hook_manager.start()
-                        else:hook_manager.stop()
+                        else:
+                            automatic=getattr(engine,'windows_auto_reply',None)
+                            if automatic:automatic.pause_all()
+                            scheduler=getattr(engine,'windows_scheduler',None)
+                            if scheduler:scheduler.pause_all('Hook 已手动断开，请连接后恢复任务。')
+                            hook_manager.stop()
                         self.respond(hook_status());return
                 if path in ('/api/windows/hook/prepare','/api/windows/hook/confirm'):
                     if hook_sender is None or database_service is None:raise ValueError('当前模式未启用 Windows Hook 发送。')
@@ -296,6 +302,14 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                 if path=='/api/windows/ocr-preview':
                     from windows_reader import preview_ocr
                     self.respond(preview_ocr(data.get('pid'),data.get('hwnd')));return
+                if engine.read_only and path=='/api/reply' and getattr(engine,'windows_auto_reply',None):
+                    self.respond(engine.windows_auto_reply.configure(data.get('account'),data.get('groupId'),
+                        data.get('enabled'),data.get('text',''),data.get('cooldown',30)));return
+                scheduler=getattr(engine,'windows_scheduler',None)
+                if engine.read_only and scheduler and path in ('/api/jobs','/api/jobs/cancel','/api/jobs/pause','/api/jobs/resume'):
+                    if path=='/api/jobs':self.respond(scheduler.create(data),201)
+                    else:self.respond(scheduler.action(data.get('account'),data.get('id'),path.rsplit('/',1)[1]))
+                    return
                 if engine.read_only and path in ('/api/login','/api/logout','/api/send','/api/reply','/api/jobs','/api/jobs/cancel'):
                     raise ValueError('数据库副本为只读模式，不支持发送、定时、自动回复或微信登录操作。')
                 if path=='/api/login':login.start();self.respond(login.snapshot());return
@@ -305,6 +319,13 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     if login.running:raise ValueError('正在登录，请等待登录完成。')
                     self.respond(engine.logout(account));return
                 if path=='/api/subscriptions':
+                    automatic=getattr(engine,'windows_auto_reply',None)
+                    if automatic:
+                        with database_service.lock:
+                            watched=engine.set_watched(account,data.get('groupIds'))
+                            with engine.sync_lock:automatic.pause_unwatched(account)
+                            if scheduler:scheduler.pause_all('已取消读取收件会话，请重新勾选后恢复任务。',unwatched_account=account)
+                        self.respond({'watchedGroups':watched});return
                     self.respond({'watchedGroups':engine.set_watched(account,data.get('groupIds'))});return
                 if path=='/api/jobs/cancel':
                     if account!=engine.account:raise ValueError('账号已变化。')
@@ -365,6 +386,13 @@ def main():
                 hook_sender=WindowsHookSender.from_config(directory/'hook-send',directory/'hook-config.json')
                 hook_manager=WindowsHookBridgeManager(directory)
             engine.hook_sender=hook_sender
+            if args.mode=='database':
+                from windows_auto_reply import WindowsAutoReply
+                engine.windows_auto_reply=WindowsAutoReply(engine,database_service,
+                    lambda: WindowsHookSender.from_config(directory/'hook-send',directory/'hook-config.json'))
+                from windows_scheduler import WindowsScheduler
+                engine.windows_scheduler=WindowsScheduler(engine,database_service,
+                    lambda: WindowsHookSender.from_config(directory/'hook-send',directory/'hook-config.json'))
             login=LoginFlow(engine)
             if args.mode == 'database':
                 from windows_media import WindowsMediaCache

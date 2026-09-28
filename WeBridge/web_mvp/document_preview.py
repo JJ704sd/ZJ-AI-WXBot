@@ -13,7 +13,8 @@ R = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
 
 def xml(archive, name):
     data = archive.read(name)
-    if b'<!DOCTYPE' in data.upper() or b'<!ENTITY' in data.upper():
+    declarations = data.replace(b'\x00', b'').upper()
+    if b'<!DOCTYPE' in declarations or b'<!ENTITY' in declarations:
         raise ValueError('附件包含不支持的 XML 声明。')
     return ET.fromstring(data)
 

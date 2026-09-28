@@ -156,3 +156,7 @@ python -m unittest discover -s web_mvp -p 'test_*.py' -v
 单元测试使用模拟接口与合成数据，不能替代真实 Windows 微信窗口验收。本次 Windows 启动、只读状态探测、预览能力和真实收发的证据应分别记录。
 
 UIA / OCR 界面的合成浏览器回归脚本为 `web_mvp/diagnostics/check_windows_ui.js`，使用 Playwright CLI 的 `run-code --filename` 执行。脚本拦截全部 Windows API 请求，不读取真实微信窗口。
+
+Windows 被 @ 自动回复的配置、触发边界和验证记录见 [自动回复说明](execution/windows-auto-reply-2026-09-28.md)。
+
+Windows 一次性 / 每日定时发送的操作及执行边界见 [定时发送说明](execution/windows-scheduled-send-2026-09-28.md)。

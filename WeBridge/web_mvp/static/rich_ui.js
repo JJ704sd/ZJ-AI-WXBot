@@ -30,7 +30,7 @@ function previewTable(rows){
 function previewMarkdown(text,host){
  // A deliberately small Markdown subset; raw HTML and remote resources stay inert.
  let code=null,list=null;
- for(const line of text.split('\n')){
+ for(const line of text.replace(/\r\n?/g,'\n').split('\n')){
   if(/^\s*```/.test(line)){if(code){code=null;}else{code=el('pre');host.append(code);}list=null;continue;}
   if(code){code.textContent+=line+'\n';continue;}
   const heading=/^(#{1,6})\s+(.*)$/.exec(line),bullet=/^\s*[-*+]\s+(.*)$/.exec(line);

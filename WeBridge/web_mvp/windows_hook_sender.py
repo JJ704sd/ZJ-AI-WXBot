@@ -410,6 +410,27 @@ class WindowsHookSender:
     def confirm(self, data, *, baseline_messages=None):
         if not isinstance(data, dict) or data.get('targetConfirmed') is not True:
             raise HookSendError('confirmation_required', '请核对账号、目标会话和完整正文后确认发送。')
+        return self._submit(data, baseline_messages=baseline_messages)
+
+    def automation_binding(self, source):
+        """Server-only session identity to freeze when a rule is explicitly enabled."""
+        return self._probe(_source(source))
+
+    def send_automatic(self, data, *, expected_binding, baseline_messages):
+        """Server-only entry for an enabled, durably claimed reply rule.
+
+        The rule owner validates the incoming event and authority before calling.
+        This is intentionally not exposed as an HTTP send endpoint.
+        """
+        if self.automation_binding(data) != expected_binding:
+            raise HookSendError('binding_changed')
+        draft = self.prepare(data)
+        if json.loads(self._row(draft['draftId'])['binding']) != expected_binding:
+            raise HookSendError('binding_changed')
+        return self._submit({**data, 'draftId': draft['draftId'], 'textHash': draft['textHash']},
+                            baseline_messages=baseline_messages)
+
+    def _submit(self, data, *, baseline_messages=None):
         with _send_guard(self.directory):
             row = self._row(data.get('draftId'))
             request, binding = json.loads(row['request']), json.loads(row['binding'])

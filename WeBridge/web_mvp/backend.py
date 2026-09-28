@@ -374,6 +374,10 @@ class Engine:
                 database_service=getattr(self,'database_service',None)
                 if database_service:database_service.check_for_changes()
                 account=self.refresh_connection()
+                automatic=getattr(self,'windows_auto_reply',None)
+                if automatic:automatic.tick()
+                scheduler=getattr(self,'windows_scheduler',None)
+                if scheduler:scheduler.tick()
                 if account and not self.read_only:
                     groups=set(self.store.watched(account) or [])
                     for group in groups:
@@ -382,6 +386,10 @@ class Engine:
                         except (ValueError,BridgeError) as exc:
                             with self.lock:self.error=str(exc)
             except Exception as exc:
+                automatic=getattr(self,'windows_auto_reply',None)
+                if automatic:automatic.pause_all()
+                scheduler=getattr(self,'windows_scheduler',None)
+                if scheduler:scheduler.pause_all()
                 with self.lock:self.error=str(exc) if isinstance(exc,(ValueError,BridgeError)) else '同步暂时失败，正在重试。'
             self.stop.wait(2)
 
@@ -416,6 +424,8 @@ class Engine:
                 'groups':self.group_list,'selected':self.selected,'lastSync':self.last_sync,'syncError':self.error,'timezone':'Asia/Shanghai','loggingOut':self.logging_out}
         account=result['account']
         result['jobs']=self.store.jobs(account) if account and not self.read_only else []
+        scheduler=getattr(self,'windows_scheduler',None)
+        if account and scheduler:result['jobs']=scheduler.list(account)
         result['outbox']=self.store.outbox(account) if account and not self.read_only else []
         result['watchedGroups']=self.store.watched(account) or [] if account else []
         return result
