@@ -76,8 +76,19 @@ class DatabaseService:
         if not isinstance(auto, bool):
             raise ValueError('自动接收开关格式无效。')
         clean['autoRefresh'] = auto
+        for field in ('includeMedia',):
+            value = data.get(field, False)
+            if not isinstance(value, bool):
+                raise ValueError('附件索引开关格式无效。')
+            if value:
+                clean[field] = value
         if clean['keyFile']:
             clean['keyFile'] = str(Path(clean['keyFile']).resolve())
+        image_key = data.get('imageKeyFile', '')
+        if image_key:
+            if not isinstance(image_key, str) or len(image_key) > 2048 or '\0' in image_key or not Path(image_key).is_absolute():
+                raise ValueError('图片密钥文件须为本机绝对路径。')
+            clean['imageKeyFile'] = str(Path(image_key).resolve())
         return clean
 
     def snapshot(self):
@@ -92,7 +103,7 @@ class DatabaseService:
         root = Path(config['sourceRoot'])
         if (root / 'db_storage').is_dir():
             root = root / 'db_storage'
-        return _inventory(root)
+        return _inventory(root, config.get('includeMedia', False))
 
     def check_for_changes(self):
         """Poll file metadata; copy only changed sources, at most every 5 seconds."""
@@ -141,7 +152,8 @@ class DatabaseService:
         try:
             observed = self._signature(config)
             from database_snapshot import prepare_snapshot
-            prepared = prepare_snapshot(config['sourceRoot'], self.snapshot_directory, keys_file=config['keyFile'] or None)
+            options = {'include_media': True} if config.get('includeMedia') else {}
+            prepared = prepare_snapshot(config['sourceRoot'], self.snapshot_directory, keys_file=config['keyFile'] or None, **options)
             root = Path(prepared['root']).resolve()
             if not root.is_relative_to(self.snapshot_directory.resolve()) or root == self.snapshot_directory.resolve():
                 raise ValueError('Invalid snapshot result')

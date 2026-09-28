@@ -23,13 +23,52 @@ async function previewPdf(url,area){
 }
 function sizeLabel(bytes){if(!bytes)return '';return bytes<1024*1024?(bytes/1024).toFixed(1)+' KB':(bytes/1024/1024).toFixed(1)+' MB';}
 function assetUrl(asset,account,download=false){return '/api/asset?'+new URLSearchParams({id:asset.assetId,account,...(download?{download:'1'}:{})});}
+function previewTable(rows){
+ const table=el('table','document-table');
+ for(const row of rows){const tr=el('tr');for(const value of row){const td=el('td');td.textContent=value;tr.append(td);}table.append(tr);}return table;
+}
+function previewMarkdown(text,host){
+ // A deliberately small Markdown subset; raw HTML and remote resources stay inert.
+ let code=null,list=null;
+ for(const line of text.split('\n')){
+  if(/^\s*```/.test(line)){if(code){code=null;}else{code=el('pre');host.append(code);}list=null;continue;}
+  if(code){code.textContent+=line+'\n';continue;}
+  const heading=/^(#{1,6})\s+(.*)$/.exec(line),bullet=/^\s*[-*+]\s+(.*)$/.exec(line);
+  if(bullet){if(!list){list=el('ul');host.append(list);}list.append(el('li','',bullet[1]));continue;}list=null;
+  const block=el(heading?'h'+heading[1].length:line.startsWith('> ')?'blockquote':'p');
+  const value=heading?heading[2]:line.replace(/^> /,'');
+  for(const token of value.split(/(\*\*[^*]+\*\*|`[^`]+`)/g)){
+   if(token.startsWith('**')&&token.endsWith('**'))block.append(el('strong','',token.slice(2,-2)));
+   else if(token.startsWith('`')&&token.endsWith('`'))block.append(el('code','',token.slice(1,-1)));
+   else block.append(document.createTextNode(token));
+  }host.append(block);
+ }
+}
+async function previewDocument(asset,account,area){
+ const host=el('div','document-preview'),status=el('p','subtle','正在读取附件内容…');host.append(status);area.append(host);
+ try{
+  const response=await fetch('/api/document-preview?'+new URLSearchParams({id:asset.assetId,account}));
+  const result=await response.json();if(!host.isConnected)return;
+  if(!response.ok)throw new Error(result.error||'附件暂时无法预览。');host.replaceChildren();
+  if(result.notice)host.append(el('p','subtle',result.notice));
+  if(result.kind==='word')for(const block of result.blocks)host.append(block.rows?previewTable(block.rows):el('p','document-paragraph',block.text));
+  else if(result.kind==='spreadsheet'){
+   const select=el('select'),content=el('div');select.setAttribute('aria-label','选择工作表');
+   result.sheets.forEach((sheet,index)=>{const option=el('option','',sheet.name);option.value=index;select.append(option);});
+   const render=()=>{const sheet=result.sheets[Number(select.value)];content.replaceChildren();if(sheet)content.append(previewTable(sheet.rows.map(row=>row.map(cell=>cell.ref+'\n'+cell.text))));};
+   select.onchange=render;host.append(select,content);render();
+  }else if(result.kind==='markdown')previewMarkdown(result.text,host);
+  else if(result.kind==='text')host.append(el('pre','',result.text));
+  if(result.truncated)host.append(el('p','subtle','内容过长，仅显示前 200000 个字符；完整内容请下载查看。'));
+ }catch(error){if(host.isConnected)status.textContent=error.message||'附件暂时无法预览，请下载原文件查看。';}
+}
 function showMedia(asset,account){
  if(asset.kind==='video'&&asset.previewOnly){toast('目前只有视频封面，请先下载完整视频。',true);return;}
  $('media-title').textContent=asset.filename;const area=$('media-preview');area.replaceChildren();const url=assetUrl(asset,account);
  if(asset.mime.startsWith('image/')){const img=el('img');img.src=url;img.alt=asset.filename;area.append(img);}
  else if(asset.mime.startsWith('video/')){const video=el('video');video.src=url;video.controls=true;video.preload='metadata';area.append(video);}
  else if(asset.mime==='application/pdf'){previewPdf(url,area);}
- else if(asset.mime==='text/plain'){const frame=el('iframe');frame.src=url;frame.title=asset.filename;frame.setAttribute('sandbox','allow-same-origin');area.append(frame);}
+ else if(/\.(docx?|xlsx?|md|txt|csv|json|log)$/i.test(asset.filename)){previewDocument(asset,account,area);}
  else area.append(el('p','empty compact','此格式暂不支持浏览器预览，可下载后打开。'));
  const download=el('a','button secondary','下载文件');download.href=assetUrl(asset,account,true);download.download=asset.filename;area.append(download);$('media-dialog').showModal();
 }
@@ -44,7 +83,7 @@ function mediaCard(message,group,account,description=message.media){
   if(value?.status==='ready'){
    if(value.kind==='video'&&value.previewOnly){
     const poster=el('img','video-poster');poster.src=assetUrl(value,account);poster.alt='视频封面（尚未取得完整视频）';area.append(poster,el('p','media-pending',value.reason||'当前仅有封面，尚未取得可播放的视频。'));
-    const retry=el('button','button secondary','下载并播放视频');retry.type='button';retry.onclick=loadMedia;area.append(retry);return;
+    const retry=el('button','button secondary',isDatabase()?'重新读取本机视频':'下载并播放视频');retry.type='button';retry.onclick=loadMedia;area.append(retry);return;
    }
    if(value.mime.startsWith('image/')){const button=el('button','image-preview');button.type='button';const image=el('img');image.src=assetUrl(value,account);image.alt=value.filename;image.loading='lazy';button.append(image);button.onclick=()=>showMedia(value,account);area.append(button);if(value.previewOnly){area.append(el('p','subtle',value.kind==='video'?'当前仅有视频封面，完整视频尚未下载。':'当前显示缩略图。'));const retry=el('button','button secondary','重新读取完整附件');retry.type='button';retry.onclick=loadMedia;area.append(retry);}}
    else if(value.mime.startsWith('video/')){const video=el('video','inline-video');video.src=assetUrl(value,account);video.controls=true;video.preload='metadata';area.append(video);}

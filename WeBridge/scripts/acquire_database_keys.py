@@ -43,7 +43,7 @@ class AcquireError(ValueError):
         super().__init__(self.code)
 
 
-def inventory(source_root):
+def inventory(source_root, include_media=False):
     """Inspect names only in the explicit account root and known child dirs."""
     try:
         root = Path(source_root).expanduser().resolve(strict=True)
@@ -51,15 +51,17 @@ def inventory(source_root):
             raise AcquireError('invalid_source')
         entries = list(root.iterdir())
         folders = [root]
+        pattern = re.compile(r'(?:contact|session|(?:biz_)?message_\d+|message_resource|hardlink)\.db\Z', re.I) if include_media else BUSINESS_DB
+        directories = BUSINESS_DIRS | {'hardlink'} if include_media else BUSINESS_DIRS
         for entry in entries:
-            if entry.name.lower() in BUSINESS_DIRS and entry.is_dir():
+            if entry.name.lower() in directories and entry.is_dir():
                 if entry.is_symlink() or not entry.resolve().is_relative_to(root):
                     raise AcquireError('invalid_source')
                 folders.append(entry)
         databases, owned_files = [], []
         for folder in folders:
             for path in sorted(folder.iterdir()):
-                if not BUSINESS_DB.fullmatch(path.name) or not path.is_file():
+                if not pattern.fullmatch(path.name) or not path.is_file():
                     continue
                 if path.is_symlink() or not path.resolve().is_relative_to(root):
                     raise AcquireError('invalid_source')
@@ -132,10 +134,10 @@ def matching_keys(pages, candidates):
     return [{'key_hex': key, 'salt_hex': salt} for key, salt in sorted(verified)]
 
 
-def collect_keys(source_root, dependencies, *, max_scan_bytes=4096 * 1024 * 1024, timeout=90):
+def collect_keys(source_root, dependencies, *, max_scan_bytes=4096 * 1024 * 1024, timeout=90, include_media=False):
     """Dependency-injected seam for synthetic tests; performs no output writes."""
     try:
-        root, databases, owned_files = inventory(source_root)
+        root, databases, owned_files = inventory(source_root, include_media)
         owner = dependencies.owner(owned_files)
         pages = read_first_pages(databases)
         candidates = dependencies.scan(owner[0], expected_start_time=owner[1], max_scan_bytes=max_scan_bytes, timeout=timeout)
@@ -143,7 +145,7 @@ def collect_keys(source_root, dependencies, *, max_scan_bytes=4096 * 1024 * 1024
         # Ignore unrelated process candidates after matching; only verified keys
         # can cross the worker IPC boundary and reach the new JSON file.
         del candidates
-        current_root, current_databases, current_owned = inventory(root)
+        current_root, current_databases, current_owned = inventory(root, include_media)
         if current_root != root or current_databases != databases or current_owned != owned_files:
             raise AcquireError('source_changed')
         if dependencies.owner(current_owned) != owner:
@@ -372,14 +374,14 @@ class WindowsDependencies:
         return scanner.scan_owned_process(pid, process_factory=factory)
 
 
-def _worker(source_root, result_pipe, budget, timeout):
+def _worker(source_root, result_pipe, budget, timeout, include_media=False):
     # Redirect all incidental library output. Keys travel only in this private
     # parent/child connection after HMAC filtering, never stdout or stderr.
     with open(os.devnull, 'w') as sink:
         os.dup2(sink.fileno(), 1); os.dup2(sink.fileno(), 2)
         sys.stdout = sink; sys.stderr = sink
         try:
-            result = collect_keys(source_root, WindowsDependencies(), max_scan_bytes=budget, timeout=timeout)
+            result = collect_keys(source_root, WindowsDependencies(), max_scan_bytes=budget, timeout=timeout, include_media=include_media)
             result_pipe.send({'ok': True, **result})
         except AcquireError as exc:
             result_pipe.send({'ok': False, 'code': exc.code})
@@ -389,10 +391,10 @@ def _worker(source_root, result_pipe, budget, timeout):
             result_pipe.close()
 
 
-def run_worker(source_root, budget, timeout):
+def run_worker(source_root, budget, timeout, include_media=False):
     context = multiprocessing.get_context('spawn')
     incoming, outgoing = context.Pipe(duplex=False)
-    worker = context.Process(target=_worker, args=(str(source_root), outgoing, budget, timeout))
+    worker = context.Process(target=_worker, args=(str(source_root), outgoing, budget, timeout, include_media))
     try:
         worker.start(); outgoing.close()
         if not incoming.poll(timeout):
@@ -421,6 +423,7 @@ def main(argv=None):
             raise AcquireError('invalid_arguments')
     parser = SafeParser(description='Optional Windows x64 key bootstrap. Requires sibling poc/wechat_agent_poc; scans only the unique owner of the explicitly selected account business DB/WAL files. Never logs key values.')
     parser.add_argument('--source-root', required=True, help='Explicit account db_storage directory; no account discovery')
+    parser.add_argument('--include-media', action='store_true', help='Also authenticate hardlink and message_resource indexes for the same account')
     parser.add_argument('--output-file', required=True, help='New .json file directly inside WeBridge/.secrets; existing files are refused')
     parser.add_argument('--timeout', type=int, default=90, help='Worker time limit, 5..300 seconds (default 90)')
     parser.add_argument('--max-scan-mib', type=int, default=4096, help='Read budget, 64..16384 MiB (default 4096)')
@@ -429,8 +432,8 @@ def main(argv=None):
         if not 5 <= args.timeout <= 300 or not 64 <= args.max_scan_mib <= 16384:
             raise AcquireError('scan_budget_exceeded')
         validate_output(args.output_file)
-        root, _, _ = inventory(args.source_root)
-        result = run_worker(root, args.max_scan_mib * 1024 * 1024, args.timeout)
+        root, _, _ = inventory(args.source_root, args.include_media)
+        result = run_worker(root, args.max_scan_mib * 1024 * 1024, args.timeout, args.include_media)
         write_keys(args.output_file, result['keys'])
         print(json.dumps({'status': 'ok', 'databaseCount': result['databaseCount'], 'matchedCount': result['matchedCount']}))
         return 0

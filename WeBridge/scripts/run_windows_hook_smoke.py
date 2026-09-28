@@ -23,7 +23,7 @@ import sqlite3
 import sys
 import threading
 
-from inspect_windows_hook_runtime import ROOT, MODULE, HASH, CODE_RVAS
+from inspect_windows_hook_runtime import ROOT, HASH, CODE_RVAS, loaded_module_path
 from analyze_windows_hook_send import Image
 from acquire_database_keys import AcquireError
 
@@ -115,10 +115,11 @@ class NativeSession:
         self.owners = WindowsDependencies()  # Only .owner(), never .scan().
         _, _, files = inventory(self.source['sourceRoot'])
         self.owner = self.owners.owner(files)
-        raw = MODULE.read_bytes()
+        self.module_path = loaded_module_path(self.owner[0])
+        raw = self.module_path.read_bytes()
         if hashlib.sha256(raw).hexdigest() != HASH:
             raise SmokeError('module_changed')
-        image = Image(MODULE)
+        image = Image(self.module_path)
         expected_code = {name: image.data[image.offset(rva):image.offset(rva)+32].hex()
                          for name, rva in self.code_rvas.items()}
         self.binding = {**PROFILE, **self.source, 'pid': self.owner[0],
@@ -163,7 +164,7 @@ rpc.exports.inspectidentity = function () {
             self.script = self.session.create_script(program)
             # Deliberately do not print Frida log/error messages or exception repr.
             bounded_call(self.script.load)
-            profile = {**PROFILE, 'moduleName': 'Weixin.dll', 'modulePath': str(MODULE), 'expectedCode': expected_code}
+            profile = {**PROFILE, 'moduleName': 'Weixin.dll', 'modulePath': str(self.module_path), 'expectedCode': expected_code}
             result = self._rpc('configure', {'profile': profile, 'binding': self.binding, 'nonce': self.nonce})
             if result.get('state') != 'configured' or result.get('sendCalled') is not False:
                 raise SmokeError('configuration_failed')
@@ -209,13 +210,13 @@ rpc.exports.inspectidentity = function () {
         _, _, files = self.inventory(self.source['sourceRoot'])
         if self.owners.owner(files) != self.owner:
             raise SmokeError('owner_changed')
-        if hashlib.sha256(MODULE.read_bytes()).hexdigest() != HASH:
+        if loaded_module_path(self.owner[0]) != self.module_path or hashlib.sha256(self.module_path.read_bytes()).hexdigest() != HASH:
             raise SmokeError('module_changed')
         if hashlib.sha256(self.script_path.read_text(encoding='utf-8').encode('utf-8')).hexdigest() != self.script_hash:
             raise SmokeError('native_script_changed')
         result = self._rpc('inspectidentity', {})
         if (result.get('pid') != self.owner[0] or result.get('arch') != 'x64' or
-                os.path.normcase(str(result.get('modulePath', ''))) != os.path.normcase(str(MODULE)) or
+                os.path.normcase(str(result.get('modulePath', ''))) != os.path.normcase(str(self.module_path)) or
                 result.get('codeMatches') != {key: True for key in self.code_rvas} or
                 self.owners.owner(files) != self.owner):
             self.invalidated = True

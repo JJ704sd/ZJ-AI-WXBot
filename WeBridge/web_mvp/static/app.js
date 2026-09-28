@@ -440,7 +440,8 @@ function renderDatabaseSource(){
 function renderDatabase(data){
  databaseData=data;databaseBusy=!!data.busy;
  if(!databaseFormLoaded||!databaseDirty){
-  for(const [id,key] of [['database-source-root','sourceRoot'],['database-self-id','selfId'],['database-key-file','keyFile']])if($(id).value!==(data.config?.[key]||''))$(id).value=data.config?.[key]||'';
+  for(const [id,key] of [['database-source-root','sourceRoot'],['database-self-id','selfId'],['database-key-file','keyFile'],['database-image-key-file','imageKeyFile']])if($(id).value!==(data.config?.[key]||''))$(id).value=data.config?.[key]||'';
+  $('database-include-media').checked=data.config?.includeMedia===true;
   $('database-auto-refresh').checked=data.config?.autoRefresh!==false;
  }
  databaseFormLoaded=true;
@@ -482,7 +483,7 @@ async function changeDatabase(path,body){
 }
 function openDatabaseSettings(){setView('environment');loadDatabase();}
 async function refreshDatabase(){if(!databaseData?.configured){openDatabaseSettings();return;}await changeDatabase('/api/database/refresh',{});}
-$('database-form').onsubmit=async event=>{event.preventDefault();await changeDatabase('/api/database/configure',{sourceRoot:$('database-source-root').value.trim(),selfId:$('database-self-id').value.trim(),keyFile:$('database-key-file').value.trim(),autoRefresh:$('database-auto-refresh').checked});};
+$('database-form').onsubmit=async event=>{event.preventDefault();await changeDatabase('/api/database/configure',{sourceRoot:$('database-source-root').value.trim(),selfId:$('database-self-id').value.trim(),keyFile:$('database-key-file').value.trim(),autoRefresh:$('database-auto-refresh').checked,includeMedia:$('database-include-media').checked,imageKeyFile:$('database-image-key-file').value.trim()});};
 for(const id of ['database-source-root','database-self-id','database-key-file','database-auto-refresh'])$(id).addEventListener('input',()=>databaseDirty=true);
 $('database-refresh').onclick=refreshDatabase;$('database-refresh-workspace').onclick=refreshDatabase;
 $('database-open-settings').onclick=openDatabaseSettings;$('database-browse').onclick=()=>setView('workspace');

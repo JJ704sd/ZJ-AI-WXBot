@@ -50,15 +50,17 @@ def _inside(path, root):
         return False
 
 
-def _inventory(root):
+def _inventory(root, include_media=False):
+    pattern = re.compile(r'(?:contact|session|(?:biz_)?message_\d+|message_resource|hardlink)\.db\Z', re.I) if include_media else BUSINESS_DB
+    directories = BUSINESS_DIRS | {'hardlink'} if include_media else BUSINESS_DIRS
     paths = list(root.iterdir())
-    files = [path for path in paths if path.is_file() and BUSINESS_DB.fullmatch(path.name)]
+    files = [path for path in paths if path.is_file() and pattern.fullmatch(path.name)]
     for directory in paths:
-        if directory.name.lower() not in BUSINESS_DIRS or not directory.is_dir():
+        if directory.name.lower() not in directories or not directory.is_dir():
             continue
         if directory.is_symlink() or not _inside(directory, root):
             raise SnapshotError('数据库目录包含越界链接，请选择真实的单账号目录。')
-        files.extend(path for path in directory.iterdir() if path.is_file() and BUSINESS_DB.fullmatch(path.name))
+        files.extend(path for path in directory.iterdir() if path.is_file() and pattern.fullmatch(path.name))
     if not files:
         raise SnapshotError('所选目录没有已支持的业务数据库；请选择单个账号的 db_storage 或已解密副本目录。')
     result = {}
@@ -111,21 +113,21 @@ def _remove_owned(path, owner):
         shutil.rmtree(path)
 
 
-def _capture_batch(source, generation):
+def _capture_batch(source, generation, include_media=False):
     # Keep the original signatures: comparing final mtime to a new current mtime
     # would miss same-length changes after an individually stable file read.
     for attempt in range(3):
         raw = generation / ('.raw-' + str(attempt))
         raw.mkdir()
         try:
-            before = _inventory(source)
+            before = _inventory(source, include_media)
             hashes = {}
             for relative, signature in before.items():
                 original = source / relative
                 hashes[relative] = _copy_file(original, raw / relative)
                 if _signature(original) != signature:
                     raise SourceChanged('复制期间源数据库发生变化。')
-            if _inventory(source) != before:
+            if _inventory(source, include_media) != before:
                 raise SourceChanged('复制期间数据库或 WAL 清单发生变化。')
             # A second complete streaming read detects equal-length replacements
             # even when their timestamps have been preserved.
@@ -133,7 +135,7 @@ def _capture_batch(source, generation):
                 original = source / relative
                 if _hash_file(original) != hashes[relative] or _signature(original) != signature:
                     raise SourceChanged('复制后源数据库或 WAL 内容发生变化。')
-            if _inventory(source) != before:
+            if _inventory(source, include_media) != before:
                 raise SourceChanged('复核期间数据库或 WAL 清单发生变化。')
             return raw, before, hashes
         except (SourceChanged, FileNotFoundError):
@@ -244,7 +246,7 @@ def _quick_check(path):
         raise SnapshotError('无法验证数据库副本；未将损坏或格式不支持的文件作为成功结果。') from None
 
 
-def prepare_snapshot(source_root, output_root, keys_file=None):
+def prepare_snapshot(source_root, output_root, keys_file=None, include_media=False):
     """Return {'root': Path, 'source': metadata} only after the whole batch passes."""
     source, output = Path(source_root).expanduser().resolve(), Path(output_root).expanduser().resolve()
     if not source.is_dir():
@@ -254,11 +256,11 @@ def prepare_snapshot(source_root, output_root, keys_file=None):
     if output == source or _inside(output, source):
         raise SnapshotError('输出目录不能位于源目录内；不会向微信数据目录写入文件。')
     keys = _load_keys(keys_file)
-    _inventory(source)
+    _inventory(source, include_media)
     output.mkdir(parents=True, exist_ok=True)
     generation = Path(tempfile.mkdtemp(prefix='snapshot-', dir=output))
     try:
-        raw, signatures, hashes = _capture_batch(source, generation)
+        raw, signatures, hashes = _capture_batch(source, generation, include_media)
         reports = []
         encrypted_count = 0
         for relative in signatures:
@@ -284,7 +286,7 @@ def prepare_snapshot(source_root, output_root, keys_file=None):
         metadata = {'sourceRoot': str(source), 'createdAt': datetime.now(timezone.utc).isoformat(timespec='seconds'),
                     'dbCount': len(reports), 'walCount': sum(name.endswith('-wal') for name in signatures),
                     'encryptedCount': encrypted_count, 'integrity': 'ok', 'databases': reports,
-                    'limitations': ['只包含显式选择账号的已支持业务库；不会读取 FTS、附件索引或其他账号。',
+                    'limitations': ['只包含所选账号的业务库及显式开启的附件索引；不读取 FTS 或其他账号。',
                                     '副本反映本次稳定复制的状态，后续新消息需要手动刷新。']}
         if any(report['wal'].get('uncommittedFrames') for report in reports):
             metadata['limitations'].append('存在完整但未提交的 WAL 尾帧；仅合并最后可证明提交边界之前的页。')

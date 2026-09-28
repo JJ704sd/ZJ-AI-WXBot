@@ -181,8 +181,13 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                                   'status':'ready' if ready and windows else 'unavailable','windows':windows,
                                   'targetId':'filehelper','issue':('请先创建数据库副本。' if not ready else
                                   '选择当前微信窗口，核对文件传输助手后准备草稿。' if windows else '请打开本机微信主窗口。')});return
+                if path=='/api/document-preview':
+                    from document_preview import preview
+                    entry=media.get(params.get('id'),params.get('account'))
+                    result=preview(entry['path'],entry['public']['filename'])
+                    media.get(params.get('id'),params.get('account'))
+                    self.respond(result);return
                 if path=='/api/asset':
-                    if engine.read_only:raise ValueError('数据库副本模式暂不提供附件读取。')
                     entry=media.get(params.get('id'),params.get('account'));info=entry['public'];size=info['size']
                     try:start,end=byte_range(self.headers.get('Range'),size)
                     except ValueError:self.respond({'error':'Range not satisfiable'},416);return
@@ -291,8 +296,8 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                 if path=='/api/windows/ocr-preview':
                     from windows_reader import preview_ocr
                     self.respond(preview_ocr(data.get('pid'),data.get('hwnd')));return
-                if engine.read_only and path in ('/api/login','/api/logout','/api/send','/api/reply','/api/jobs','/api/jobs/cancel','/api/media'):
-                    raise ValueError('数据库副本为只读模式，不支持发送、定时、自动回复、附件或微信登录操作。')
+                if engine.read_only and path in ('/api/login','/api/logout','/api/send','/api/reply','/api/jobs','/api/jobs/cancel'):
+                    raise ValueError('数据库副本为只读模式，不支持发送、定时、自动回复或微信登录操作。')
                 if path=='/api/login':login.start();self.respond(login.snapshot());return
                 if path=='/api/refresh':engine.refresh_connection(force=True);self.respond(engine.snapshot());return
                 account=data.get('account');group=data.get('groupId')
@@ -361,7 +366,11 @@ def main():
                 hook_manager=WindowsHookBridgeManager(directory)
             engine.hook_sender=hook_sender
             login=LoginFlow(engine)
-            media=MediaCache(engine,directory/'media')
+            if args.mode == 'database':
+                from windows_media import WindowsMediaCache
+                media=WindowsMediaCache(engine,directory/'media')
+            else:
+                media=MediaCache(engine,directory/'media')
             server=ThreadingHTTPServer(('127.0.0.1',args.port),make_handler(engine,login,secrets.token_urlsafe(32),args.port,media,database_service,desktop_sender,hook_sender,hook_manager))
             engine.start()
             (directory/'server.pid').write_text(str(os.getpid()),encoding='ascii')

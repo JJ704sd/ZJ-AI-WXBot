@@ -67,7 +67,7 @@ def runtime_summary(engine):
                              'scheduledSend':not database, 'automaticReplies':not database,
                              'mentions': bool(engine.self_id), 'supportsLiveSend': not demo and not database,
                              'liveSend': not demo and not database and bridge_ready,
-                             'media': not demo and not database and bridge_ready,
+                             'media': connected if database else not demo and bridge_ready,
                              'canSend': not database and bridge_ready,
                              'send': 'disabled' if database else 'simulated' if demo else 'live'}}
 

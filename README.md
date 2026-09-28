@@ -20,6 +20,8 @@
 
 ## Windows 工作台
 
+- [Windows 媒体接入验收（2026-09-28）](./WeBridge/execution/windows-media-acceptance-2026-09-28.md)：新增本机 V2 图片解码、附件索引映射与缓存预览；已验证完整图片、缩略图及合并记录中的 MP4。未下载附件、WXGF/部分表情和普通文件的实机验收边界见记录。
+
 - [WeBridge 工作台](./WeBridge/README.md)：基于 WeBridge 的 Windows 界面、启动入口、会话与消息检索、草稿和连接诊断。
 - [Windows 启动与接入说明](./WeBridge/WINDOWS.md)：双击 `WeBridge/start-workbench.cmd`；默认从本机微信数据库副本读取，支持按变化更新、演示及窗口诊断。
 - [本轮检查与验证](./WeBridge/execution/windows-workbench-review-2026-09-26.md) · [上游来源与仓库归属](./WeBridge/UPSTREAM.md)。已实现当前账号数据库副本接收、向当前已读取的好友或群会话重复发送纯文本，以及发送后的新记录观察。文件传输助手连续两条中文文本（含换行、emoji）验证通过；一名用户指定好友的发送、本机回读及对端回复接收闭环已验证。对端送达由用户确认，未取得服务器投递回执；群聊尚未实际发送。

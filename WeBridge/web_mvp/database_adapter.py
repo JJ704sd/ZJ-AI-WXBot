@@ -213,6 +213,10 @@ class DatabaseAdapter:
                 if not shards:
                     raise DatabaseError('no_message_database', '没有找到 message_数字.db 或 biz_message_数字.db；请选择单个账号的明文副本目录。')
                 files += shards
+                for relative in ('hardlink/hardlink.db', 'message/message_resource.db'):
+                    index = directory / relative
+                    if index.exists():
+                        files.append(self._check_file(index, directory))
                 fingerprints = {path: _fingerprint(path) for path in files}
                 namespace = source_id or 'database:' + hashlib.sha256((str(directory).casefold() + '|' + self_id).encode()).hexdigest()[:24]
                 state = {'root': directory, 'files': files, 'metadata': metadata, 'shards': shards,
@@ -343,6 +347,10 @@ class DatabaseAdapter:
             for folder in (directory, directory / 'message', directory / 'biz_message'):
                 if folder.is_dir():
                     discovered.update(path.resolve(strict=True) for path in folder.glob('*.db') if SHARD_NAME.fullmatch(path.name))
+            for relative in ('hardlink/hardlink.db', 'message/message_resource.db'):
+                index = directory / relative
+                if index.exists():
+                    discovered.add(index.resolve(strict=True))
             if discovered != set(state['files']):
                 raise DatabaseError('snapshot_changed', '数据库副本的文件列表已变化，请重新导入。')
         except OSError:
@@ -403,7 +411,9 @@ class DatabaseAdapter:
         except (ValueError, TypeError, UnicodeError):
             return [], [_warning('members_schema_unsupported', '群成员字段结构尚未适配，成员列表保持未知。')]
 
-    def _messages(self, state, group):
+    def _messages(self, state, group, include_raw=False, limit=200):
+        if not isinstance(limit, int) or not 1 <= limit <= 2000:
+            raise ValueError('消息读取数量无效。')
         rows = []
         warnings = deepcopy(state['warnings'])
         for path in state['shards']:
@@ -427,7 +437,7 @@ class DatabaseAdapter:
                         join = ' LEFT JOIN ' + _quote(names) + ' n ON m.' + _quote(columns['real_sender_id']) + '=n.rowid'
                 sql = 'SELECT ' + ','.join('m.' + _quote(columns[key]) + ' AS ' + _quote(key) for key in selected)
                 sql += ',' + sender + ' AS sender_username FROM ' + _quote(table) + ' m' + join
-                sql += ' ORDER BY m.' + _quote(columns['create_time']) + ' DESC,m.' + _quote(columns['local_id']) + ' DESC LIMIT 200'
+                sql += ' ORDER BY m.' + _quote(columns['create_time']) + ' DESC,m.' + _quote(columns['local_id']) + ' DESC LIMIT ' + str(limit)
                 for row in db.execute(sql):
                     item = dict(row)
                     try:
@@ -460,6 +470,8 @@ class DatabaseAdapter:
                                  'mentionStatus': mention_status if state['self_id'] else 'self_unknown',
                                  'decodeStatus': decode_status, 'source': 'database', 'sourceId': state['source_id'],
                                  '_contentHash': hashlib.sha256((str(kind) + '\0' + text).encode('utf-8')).hexdigest()})
+                    if include_raw:
+                        rows[-1]['_raw'] = text
         # Deduplicate only confirmed identical server messages; local IDs are per shard.
         unique = []
         seen = set()
@@ -479,7 +491,7 @@ class DatabaseAdapter:
                 for key in ('media', 'record', 'quote'):
                     row.pop(key, None)
                 row.update(kind='revoke', text=revokes[row['serverId']], mentionSelf=False, mentionEveryone=False)
-        return {'messages': sorted(unique, key=lambda row: (row['timestamp'], row['id']))[-200:], 'warnings': warnings}
+        return {'messages': sorted(unique, key=lambda row: (row['timestamp'], row['id']))[-limit:], 'warnings': warnings}
 
     @staticmethod
     def _mentions(item):
@@ -513,6 +525,20 @@ class DatabaseAdapter:
         if invalid:
             return [], 'invalid'
         return sorted(mentioned), ('structured' if mentioned else 'none') if known else 'unknown'
+
+    def attachment_message(self, account, group, message_id):
+        """Internal-only raw XML; callers must not serialize it to the browser."""
+        with self.lock:
+            self.call('groups', account=account)
+            state = self._state
+            if group not in {row['id'] for row in state['groups']}:
+                raise DatabaseError('invalid_conversation', '请选择当前副本中的有效会话。')
+            rows = self._messages(state, group, include_raw=True)['messages']
+            self._ensure_unchanged(state)
+            row = next((row for row in rows if row['id'] == message_id), None)
+            if row is None or row['kind'] == 'revoke':
+                raise ValueError('消息不存在或已经撤回，请刷新会话。')
+            return row, state['root'], state['info']['revision']
 
     def call(self, action, **params):
         if action in ('send', 'media', 'login', 'logout'):
