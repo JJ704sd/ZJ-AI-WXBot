@@ -85,7 +85,7 @@ def read_source(runtime_dir=RUNTIME):
         config = json.loads((Path(runtime_dir) / 'database-config.json').read_text(encoding='utf-8'))['config']
         source = Path(config['sourceRoot']).resolve(strict=True)
         # Same already selected source as the reviewed metadata preflight.
-        if config.get('selfId') != 'wxid_c1wz4p7o4yg529' or source.parent.name != 'wxid_c1wz4p7o4yg529_559e':
+        if config.get('selfId') != 'wxid_synthetic_self' or source.parent.name != 'wxid_synthetic_self_559e':
             raise ValueError()
         return {'selfId': config['selfId'], 'sourceRoot': os.path.normcase(str(source))}
     except Exception:

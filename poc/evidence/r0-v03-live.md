@@ -65,7 +65,7 @@
 
 ## 5. 附件审阅（未运行聚合入口）
 
-审阅了 `wechat.zip.temp` 中 `wx_csv/key_extractor.py`、`db_decrypt.py`、`main.py`、`chat_exporter.py`：无网络；`main.py` 选第一个账号并全量导出，**未运行**。已移植为项目内受控函数：只读 `OpenProcess`、全页 HMAC 校验、盐值仅匹配授权账号文件。本 run 因归属失败 **没有调用扫描器**。
+审阅了参考附件（标识已脱敏）中的 `wx_csv/key_extractor.py`、`db_decrypt.py`、`main.py`、`chat_exporter.py`：无网络；`main.py` 选第一个账号并全量导出，**未运行**。已移植为项目内受控函数：只读 `OpenProcess`、全页 HMAC 校验、盐值仅匹配授权账号文件。本 run 因归属失败 **没有调用扫描器**。
 
 ---
 

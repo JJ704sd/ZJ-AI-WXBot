@@ -1,5 +1,5 @@
 
-D:\Program Files\Tencent\Weixin\4.1.15.13\Weixin.dll:     file format pei-x86-64
+WECHAT_INSTALL_ROOT\Weixin.dll:     file format pei-x86-64
 
 
 Disassembly of section .text:

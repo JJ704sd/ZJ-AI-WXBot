@@ -15,7 +15,7 @@
 | 真实模型 HTTP | 否 | `model.provider=mock`，无授权凭据 |
 | 真实双端（企微+个微） | 否 | 测试账号、数据路径、接收端未配置 |
 
-附件 `C:\Users\Example\Downloads\reference.zip` SHA-256 复核为 `51664D8F5A1D8DDF45D41DB66227280E89CA2C95AEB4DFB862B4CABD72D2E479`，与 spec §12 / archive-audit 一致。未运行附件 `main.py`、`key_extractor.py`、解密或随包数据库。
+参考附件（本地路径与指纹已脱敏）。未运行附件 `main.py`、`key_extractor.py`、解密或随包数据库。
 
 仓库无 AGENTS.md。未修改外部 Chat-Lab，未采购、未启动长期后台进程。R0 本机探测见 [r0-machine.md](./r0-machine.md)。
 

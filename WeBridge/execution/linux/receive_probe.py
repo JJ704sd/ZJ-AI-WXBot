@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 from db_probe import context, query, TABLE
 from wal_snapshot_probe import decode
 
-SELF='wxid_c1wz4p7o4yg529'
+SELF='wxid_synthetic_self'
 
 
 def signature(path):
