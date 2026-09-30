@@ -91,6 +91,17 @@ class DatabaseAdapterTests(unittest.TestCase):
     def messages(self, adapter, group=GROUP):
         return adapter.call('messages', account=adapter.auth()['sourceId'], groupId=group)
 
+    def test_expanded_message_history_limit(self):
+        create_shard(self.root,rows=[{'local':i+1,'time':STAMP+i,'text':'history '+str(i)} for i in range(510)])
+        adapter=self.adapter();params={'account':adapter.auth()['sourceId'],'groupId':GROUP}
+        self.assertEqual(len(adapter.call('messages',**params)['messages']),200)
+        expanded=adapter.call('messages',**params,limit=500)['messages']
+        self.assertEqual(len(expanded),500)
+        self.assertEqual(expanded[0]['text'],'history 10')
+        self.assertEqual(expanded[-1]['text'],'history 509')
+        self.assertEqual(len(adapter.call('messages',**params,limit=2000)['messages']),510)
+        with self.assertRaises(DatabaseError):adapter.call('messages',**params,limit=2001)
+
     def test_unconfigured_and_explicit_read_only_actions(self):
         adapter = DatabaseAdapter()
         self.assertEqual(adapter.auth()['status'], 'unconfigured')
@@ -333,11 +344,11 @@ class DatabaseAdapterTests(unittest.TestCase):
         entered, release = threading.Event(), threading.Event()
         original = adapter._messages
         results, errors = [], []
-        def blocked(state, group):
+        def blocked(state, group, **options):
             entered.set()
             if not release.wait(5):
                 raise RuntimeError('synthetic test release missing')
-            return original(state, group)
+            return original(state, group, **options)
         def read():
             try:
                 results.append(adapter.call('messages', account='first', groupId=GROUP))

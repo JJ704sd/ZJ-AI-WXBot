@@ -148,7 +148,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     with database_service.lock if database_service is not None else nullcontext():
                         with engine.lock:
                             if params.get('account')!=engine.account:raise ValueError('账号已变化，请刷新页面。')
-                            self.respond(history(engine,hook_sender));return
+                            self.respond(history(engine,hook_sender,limit=params.get('limit','200')));return
                 if path=='/api/environment':
                     self.respond(environment_report(engine));return
                 if path=='/api/database':
@@ -217,11 +217,13 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     account=params.get('account');group=params.get('groupId');engine.validate(account,group)
                     self.respond(engine.adapter.call('group_info',account=account,groupId=group));return
                 if path in ('/api/group','/api/messages'):
+                    from execution_history import history_limit
+                    limit=history_limit(params.get('limit','200'))
                     account=params.get('account');group=params.get('groupId');engine.validate(account,group)
                     watching=group in (engine.store.watched(account) or [])
                     if engine.read_only:
                         revision=engine.adapter.get_source_info().get('revision')
-                        data=engine.adapter.call('messages',account=account,groupId=group) if watching else {'messages':[]}
+                        data=engine.adapter.call('messages',account=account,groupId=group,limit=limit) if watching else {'messages':[]}
                         automatic=getattr(engine,'windows_auto_reply',None)
                         result={**data,'reply':automatic.get(account,group) if automatic else {'enabled':False,'text':'','cooldown':30},'outbox':[],'watching':watching}
                         if path=='/api/group':result.update(engine.adapter.call('members',account=account,groupId=group))
@@ -229,7 +231,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                         if revision!=engine.adapter.get_source_info().get('revision'):raise ValueError('副本已更新，请刷新当前群聊。')
                         self.respond(result);return
                     rows=engine.store.rows('SELECT payload FROM messages WHERE account=? AND group_id=?',(account,group)) if watching else []
-                    messages=sorted((json.loads(x['payload']) for x in rows),key=lambda x:(x['timestamp'],x['id']))[-200:]
+                    messages=sorted((json.loads(x['payload']) for x in rows),key=lambda x:(x['timestamp'],x['id']))[-limit:]
                     result={'messages':messages,'reply':engine.store.reply(account,group),'outbox':engine.store.outbox(account,group),'watching':watching}
                     if path=='/api/group':result.update(engine.adapter.call('members',account=account,groupId=group))
                     self.respond(result);return

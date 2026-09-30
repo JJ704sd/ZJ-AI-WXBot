@@ -4,6 +4,15 @@ import json
 import sqlite3
 
 LIMIT = 200
+MAX_LIMIT = 2000
+
+def history_limit(value):
+    try: limit = int(value)
+    except (TypeError, ValueError): raise ValueError("历史条数须为 1 至 2000 的整数。") from None
+    if str(limit) != str(value) or not 1 <= limit <= MAX_LIMIT:
+        raise ValueError("历史条数须为 1 至 2000 的整数。")
+    return limit
+
 LABELS = {
     'prepared': '草稿已准备，未发送', 'attempted': '处理中，结果待核对',
     'submitted_unconfirmed': '已提交，收件端待确认', 'server_accepted': '服务器已接受，收件端待确认',
@@ -26,17 +35,18 @@ def read_rows(path, sql, args):
         return db.execute(sql, args).fetchall()
 
 
-def history(engine, hook_sender=None):
+def history(engine, hook_sender=None, *, limit=LIMIT):
+    limit = history_limit(limit)
     account = engine.account
     targets = {g['id']: g.get('name') or g['id'] for g in engine.group_list
                if g['id'] in (engine.store.watched(account) or [])}
-    if not account or not targets: return {'records': [], 'limit': LIMIT, 'truncated': False}
+    if not account or not targets: return {'records': [], 'limit': limit, 'truncated': False}
     records, drafts = [], {}
     allowed = tuple(targets)
     marks = ','.join('?' for _ in allowed)
     runtime = engine.store.path.parent
     if not engine.read_only:
-        for row in engine.store.outbox(account):
+        for row in engine.store.rows(f'SELECT * FROM outbox WHERE account=? AND group_id IN ({marks}) ORDER BY created_at DESC LIMIT ?', (account, *allowed, limit+1)):
             if row['group_id'] in targets:
                 records.append(dict(id=row['id'], source=row['origin'], targetId=row['group_id'],
                                     text=row['text'], createdAt=row['created_at'], status=row['status'], timeBasis='执行记录时间'))
@@ -44,7 +54,7 @@ def history(engine, hook_sender=None):
         if hook_sender is not None:
             rows = read_rows(hook_sender.path,
                 f"SELECT * FROM hook_drafts WHERE json_extract(request,'$.account')=? AND json_extract(request,'$.targetId') IN ({marks}) ORDER BY expires DESC LIMIT ?",
-                (account, *allowed, LIMIT+1))
+                (account, *allowed, limit+1))
             for row in rows:
                 request, result = json.loads(row['request']), json.loads(row['result'])
                 # Source paths, native bindings, hashes and baseline IDs never cross the API.
@@ -56,10 +66,10 @@ def history(engine, hook_sender=None):
                 if not request['idempotencyKey'].startswith(('reply_', 'schedule_')): records.append(draft)
         automatic = read_rows(runtime/'windows-auto-reply.sqlite',
             f'SELECT * FROM events WHERE account=? AND group_id IN ({marks}) ORDER BY created DESC LIMIT ?',
-            (account, *allowed, LIMIT+1))
+            (account, *allowed, limit+1))
         scheduled = read_rows(runtime/'windows-schedules.sqlite',
             f"SELECT r.*,s.payload FROM runs r JOIN schedules s ON s.id=r.job_id WHERE s.account=? AND json_extract(s.payload,'$.group_id') IN ({marks}) ORDER BY r.created DESC LIMIT ?",
-            (account, *allowed, LIMIT+1))
+            (account, *allowed, limit+1))
         for source, rows in [('reply', automatic), ('schedule', scheduled)]:
             for row in rows:
                 result = json.loads(row['result'])
@@ -75,4 +85,4 @@ def history(engine, hook_sender=None):
     for row in records:
         row.update(targetName=targets[row['targetId']], label=LABELS.get(row['status'], '结果待核对'),
                    pending=row['status'] in PENDING, attention=row['status'] in ISSUES, delivered=False)
-    return {'records': records[:LIMIT], 'limit': LIMIT, 'truncated': len(records)>LIMIT}
+    return {'records': records[:limit], 'limit': limit, 'truncated': len(records)>limit}

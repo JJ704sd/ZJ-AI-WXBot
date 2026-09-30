@@ -562,7 +562,7 @@ class DatabaseAdapter:
                     if group not in {row['id'] for row in state['groups']}:
                         raise DatabaseError('invalid_conversation', '请选择当前副本中的有效会话。')
                     if action == 'messages':
-                        result = self._messages(state, group)
+                        result = self._messages(state, group, limit=params.get('limit', 200))
                     else:
                         members, warnings = self._members(state, group)
                         result = {'members': members, 'membersAvailable': not warnings, 'warnings': warnings}

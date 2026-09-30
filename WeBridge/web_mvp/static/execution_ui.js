@@ -1,6 +1,6 @@
 'use strict';
 let executionRows=[],executionScope='',executionVersion=0,executionLoading=false,executionNextAt=0,executionRenderKey='';
-function executionScopeKey(){return JSON.stringify([state.account,state.runtime?.mode,state.runtime?.source?.id,state.watchedGroups]);}
+function executionScopeKey(){return JSON.stringify([state.account,state.runtime?.mode,state.runtime?.source?.id,state.watchedGroups,$('execution-limit').value]);}
 function updateExecutionScope(){
  const scope=executionScopeKey();
  if(scope!==executionScope){executionScope=scope;++executionVersion;executionLoading=false;executionNextAt=0;executionRows=[];executionRenderKey='';$('execution-list').replaceChildren();$('execution-message').textContent='';$('execution-refresh').disabled=false;}
@@ -26,13 +26,15 @@ async function loadExecutionHistory(force=false){
  updateExecutionScope();if(executionLoading||document.hidden||!serviceAvailable||(!force&&Date.now()<executionNextAt))return;
  const version=executionVersion,scope=executionScope,account=state.account;executionLoading=true;$('execution-refresh').disabled=true;executionNextAt=Date.now()+10000;
  try{
-  const data=await api('/api/execution-history?'+new URLSearchParams({account:account||''}));
+  const data=await api('/api/execution-history?'+new URLSearchParams({account:account||'',limit:$('execution-limit').value}));
   if(version!==executionVersion||scope!==executionScopeKey())return;
   executionRows=data.records||[];renderExecutionHistory();
-  $('execution-scope').textContent='当前账号 · 已勾选会话 · 最近 '+data.limit+' 条'+(isDemo()?' · 本机模拟':'');
+  $('execution-scope').textContent='当前账号 · 已勾选会话 · 最近 '+data.limit+' 条 · 搜索仅限已加载记录'+(isDemo()?' · 本机模拟':'');
   $('execution-message').textContent=(data.truncated?'仅展示最近记录，较早记录未加载。 ':'')+'已显示 '+executionRows.length+' 条 · 更新于 '+stamp(Date.now()/1000)+' · 不自动重发';
  }catch(error){if(version===executionVersion&&scope===executionScopeKey()){$('execution-message').textContent='记录刷新失败：'+error.message+' 当前列表为上次读取结果。';}}
  finally{if(version===executionVersion){executionLoading=false;$('execution-refresh').disabled=false;}}
 }
 $('execution-refresh').onclick=()=>loadExecutionHistory(true);
 for(const id of ['execution-search','execution-source','execution-status'])$(id).addEventListener(id==='execution-search'?'input':'change',renderExecutionHistory);
+
+$('execution-limit').onchange=()=>{updateExecutionScope();loadExecutionHistory(true);};

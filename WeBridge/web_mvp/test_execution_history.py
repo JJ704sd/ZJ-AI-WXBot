@@ -59,8 +59,15 @@ class HistoryTests(unittest.TestCase):
         for i in range(205):self.draft(str(i))
         result=history(self.engine,self.hook)
         self.assertEqual(len(result['records']),200);self.assertTrue(result['truncated'])
+        expanded=history(self.engine,self.hook,limit=500)
+        self.assertEqual(len(expanded['records']),205);self.assertFalse(expanded['truncated'])
+        self.assertEqual(len(history(self.engine,self.hook,limit=2000)['records']),205)
         self.store.set_watched('a',[])
         self.assertEqual(history(self.engine,self.hook)['records'],[])
+
+    def test_history_limit_rejects_unbounded_or_invalid_values(self):
+        for value in (0,-1,2001,'all','1.5',True):
+            with self.assertRaises(ValueError):history(self.engine,self.hook,limit=value)
 
     def test_missing_file_is_not_created_and_readonly(self):
         absent=self.root/'absent.sqlite'
@@ -80,6 +87,11 @@ class HistoryTests(unittest.TestCase):
         response=connection.getresponse();self.assertEqual(response.status,400);response.read()
         connection.request('GET','/api/execution-history?account='+engine.account)
         response=connection.getresponse();self.assertEqual(response.status,200);self.assertIn('records',json.loads(response.read()))
+        for endpoint in ('/api/execution-history','/api/messages'):
+            connection.request('GET',endpoint+'?account='+engine.account+'&limit=2001')
+            response=connection.getresponse();self.assertEqual(response.status,400);response.read()
+        connection.request('GET','/api/execution-history?account='+engine.account+'&limit=2000')
+        response=connection.getresponse();self.assertEqual(response.status,200);self.assertEqual(json.loads(response.read())['limit'],2000)
         connection.request('GET','/execution_ui.js')
         response=connection.getresponse();self.assertEqual(response.status,200);self.assertIn(b'loadExecutionHistory',response.read())
 

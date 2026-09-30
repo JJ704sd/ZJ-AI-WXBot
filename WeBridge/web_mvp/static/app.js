@@ -98,13 +98,22 @@ async function api(path,body){
   if(error instanceof TypeError)throw Error('无法连接本机服务，请确认启动窗口仍在运行。');throw error;
  }finally{clearTimeout(timeout);}
 }
-function groupQuery(path,group=selected){return path+'?'+new URLSearchParams({account:state.account||'',groupId:group||''});}
+function groupQuery(path,group=selected){return path+'?'+new URLSearchParams({account:state.account||'',groupId:group||'',...(['/api/group','/api/messages'].includes(path)?{limit:$('message-history-limit').value}:{})});}
+$('message-history-limit').onchange=async()=>{
+ if(!selected||groupLoadState!=='ready')return;
+ const version=++groupVersion,account=state.account,group=selected;
+ try{const data=await api(groupQuery('/api/messages',group));
+  if(version!==groupVersion||account!==state.account||group!==selected)return;
+  messageData=data.messages||[];outboxData=supportsComposer()?data.outbox||[]:[];renderMessages(true);
+ }catch(error){if(version===groupVersion)toast('历史范围读取失败，当前仍显示上次消息：'+error.message,true);}
+};
 function groupName(id){return (state.groups||[]).find(x=>x.id===id)?.name||'未知会话';}
 function nameFor(id,list=people){return list.find(x=>x.id===id)?.name||id;}
 function stamp(seconds,options={hour:'2-digit',minute:'2-digit'}){return new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',...options}).format(new Date(seconds*1000));}
 function dateKey(seconds){return stamp(seconds,{year:'numeric',month:'2-digit',day:'2-digit'});}
 function controls(){
  const database=isDatabase();
+ $('message-history-limit').disabled=!selected||groupLoadState!=='ready';
  $('composer-controls').hidden=!supportsComposer();$('mention-picker-label').hidden=database;$('mention-picker').hidden=database;$('mention-chips').hidden=database;$('hook-composer-feedback').hidden=!database;$('hook-composer-connection').hidden=!database;$('database-source-controls').hidden=!database||supportsComposer();$('database-panel').hidden=!database;document.querySelector('[data-view="schedules"]').hidden=!supportsSchedules();$('reply-tab').hidden=!supportsReplies();$('schedule-from-message').hidden=!supportsSchedules();
  $('hook-sender-panel').hidden=!database;
  if(!supportsReplies()&&!$('reply-form').hidden){$('reply-form').hidden=true;$('send-form').hidden=false;$('send-tab').classList.add('active');$('reply-tab').classList.remove('active');}
