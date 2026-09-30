@@ -10,16 +10,29 @@ let groupRenderKey='',scheduleRenderKey='',groupLoadState='idle';
 let serviceAvailable=false,serviceError='',groupFilter='all',currentView='workspace',sendBusy=false,replyBusy=false,scheduleBusy=false;
 let replyDirty=false;
 let scheduleRequestId=null;
+const scheduleActionsBusy=new Set();
+function filteredSchedules(jobs){
+ const query=$('schedule-search').value.trim().toLocaleLowerCase(),status=$('schedule-filter').value;
+ return jobs.filter(job=>(status==='all'||(status==='active'?job.enabled:!job.enabled))&&
+  (!query||[job.targetName||groupName(job.group_id),job.text,job.issue,job.last_result].filter(Boolean).join(' ').toLocaleLowerCase().includes(query)));
+}
+function scheduleScope(){
+ const database=isDatabase();
+ $('schedule-record-scope').textContent=database?'每个任务最近 10 条执行记录':'取最近 100 条记录中的定时发送';
+ $('schedule-pending-scope').textContent=database?'每个任务最近 10 条 · 未确认收件端送达':'最近记录中的定时发送 · 不自动重发';
+}
+$('schedule-search').oninput=()=>{scheduleRenderKey='';renderSchedules();};
+$('schedule-filter').onchange=()=>{scheduleRenderKey='';renderSchedules();};
 function renderWindowsSchedules(){
  const jobs=state.jobs||[],runs=jobs.flatMap(job=>job.runs||[]),active=jobs.filter(job=>job.enabled).length;
  $('job-count').textContent=active;$('active-jobs').textContent=active;
  $('today-sent').textContent=runs.filter(run=>['submitted_unconfirmed','server_accepted'].includes(run.status)&&dateKey(run.createdAt)===dateKey(Date.now()/1000)).length;
- $('unknown-count').textContent=runs.filter(run=>['unknown','submitted_unconfirmed'].includes(run.status)).length;
- const key=JSON.stringify([state.account,serviceAvailable,jobs]);if(key===scheduleRenderKey)return;scheduleRenderKey=key;
+ $('unknown-count').textContent=runs.filter(run=>['unknown','submitted_unconfirmed','server_accepted','attempted'].includes(run.status)).length;
+ const key=JSON.stringify([state.account,serviceAvailable,jobs,$('schedule-search').value,$('schedule-filter').value,[...scheduleActionsBusy]]);if(key===scheduleRenderKey)return;scheduleRenderKey=key;
  const list=$('schedule-list');list.replaceChildren();
  if(!jobs.length){list.append(el('div','empty','暂无定时任务。可选择已勾选读取的个人或群聊，创建一次发送或每日计划。'));return;}
  const states={active:'已启用',paused:'已暂停',cancelled:'已取消',finished:'已执行',missed:'已错过'};
- for(const job of jobs){
+ for(const job of filteredSchedules(jobs)){
   const row=el('article','schedule-row'),time=el('div','schedule-time',job.mode==='once'?job.at.slice(11):job.clock);
   time.append(el('small','',job.mode==='once'?job.at.slice(0,10)+' · 一次':'每天 · 北京时间'));
   const content=el('div','schedule-content');content.append(el('strong','',job.targetName),el('p','',job.text));
@@ -28,12 +41,13 @@ function renderWindowsSchedules(){
   if(job.issue)info.append(el('div','',job.issue));
   if(job.runs?.length){const details=el('details'),summary=el('summary','',job.last_result);details.append(summary);for(const run of job.runs)details.append(el('p','',stamp(run.createdAt,{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})+' · '+run.label));info.append(details);}
   const actions=el('div','schedule-actions');
-  const add=(label,action)=>{const button=el('button','schedule-stop',label);button.type='button';button.disabled=!serviceAvailable;button.onclick=async()=>{button.disabled=true;try{await api('/api/jobs/'+action,{account:state.account,id:job.id});scheduleRenderKey='';await poll();}catch(error){toast(error.message,true);}finally{button.disabled=!serviceAvailable;}};actions.append(button);};
+  const add=(label,action)=>{const button=el('button','schedule-stop',label);button.type='button';button.disabled=!serviceAvailable||scheduleActionsBusy.has(job.id);button.onclick=async()=>{if(scheduleActionsBusy.has(job.id))return;const account=state.account;scheduleActionsBusy.add(job.id);scheduleRenderKey='';renderSchedules();try{await api('/api/jobs/'+action,{account,id:job.id});await poll();}catch(error){toast(error.message,true);}finally{scheduleActionsBusy.delete(job.id);scheduleRenderKey='';renderSchedules();}};actions.append(button);};
   if(job.enabled)add('暂停','pause');
   else if(job.state==='paused'&&(job.mode==='daily'||!job.runs.length))add('恢复','resume');
   if(!['cancelled','finished','missed'].includes(job.state))add('取消任务','cancel');
   row.append(time,content,info,actions);list.append(row);
  }
+ if(!list.children.length)list.append(emptyCard('没有匹配的任务','更换关键词或状态筛选。','search'));
 }
 let environmentData=null,environmentBusy=false,environmentError='',environmentTime=null;
 const draftMemory=new Map();
@@ -185,7 +199,7 @@ async function selectGroup(id,{persistSelection=true}={}){
 }
 
 function renderReplyStatus(rule){
- const statuses={submitted_unconfirmed:'已调用发送，尚未确认送达',server_accepted:'服务器已接受，尚未确认收件端送达',unknown:'发送结果未知，不重试',blocked:'发送被阻止',expired:'发送已过期',cooldown_skipped:'间隔内的新 @ 已跳过'};
+ const statuses={local_record_observed:'已观察到本地消息记录，尚未确认收件端送达',local_record_confirmed:'服务器已接受并匹配本地记录，尚未确认收件端送达',submitted_unconfirmed:'已调用发送，尚未确认送达',server_accepted:'服务器已接受，尚未确认收件端送达',unknown:'发送结果未知，不重试',blocked:'发送被阻止',expired:'发送已过期',cooldown_skipped:'间隔内的新 @ 已跳过'};
  const last=rule.attempts?.[0];
  $('reply-saved-status').textContent=(rule.enabled?(isDemo()?'本机模拟规则已开启':isDatabase()?'当前群自动回复已开启 · 发送固定文本':'当前群自动回复已开启 · 回复时 @ 发送者'):'当前群自动回复已关闭')+(rule.issue?' · '+rule.issue:'')+(last?' · 最近：'+(statuses[last.status]||last.status):'');
 }
@@ -237,17 +251,17 @@ function setView(view){
  if(!supportsSchedules()&&view==='schedules')view='workspace';
  if(currentView==='environment'&&view!=='environment'){resetWindowsPanel();resetDesktopSender();discardHookDraft();}
  currentView=view;document.querySelectorAll('[data-view]').forEach(button=>{button.classList.toggle('active',button.dataset.view===view);button.setAttribute('aria-current',button.dataset.view===view?'page':'false');});
- for(const name of ['workspace','schedules','environment'])$(name+'-view').hidden=view!==name;
+ for(const name of ['workspace','schedules','executions','environment'])$(name+'-view').hidden=view!==name;
  updateViewTitle();
- if(view==='schedules')renderSchedules();if(view==='environment'){loadEnvironment();if(isDatabase())loadDatabase();}
+ if(view==='executions')loadExecutionHistory();if(view==='schedules')renderSchedules();if(view==='environment'){loadEnvironment();if(isDatabase())loadDatabase();}
 }
 function updateViewTitle(){
- const titles={workspace:['会话工作台',isDatabase()?'查看本机微信消息，向已选择读取的会话发送文本。'+databasePolicy():'查看群消息，管理发送计划与自动回复。'],schedules:['定时任务',isDatabase()?'向指定个人或群聊发送文本，支持一次发送和每日计划。':'管理每天的发送计划，查看每次执行结果。'],environment:[isDatabase()?'数据源与环境':'环境诊断',isDatabase()?'创建本地只读副本，检查来源与更新结果。':'从运行环境到桥接连接，逐项了解当前状态。']};
+ const titles={executions:['执行记录','集中核对手动发送、自动回复和定时执行结果。提交和本地记录不代表收件端送达。'],workspace:['会话工作台',isDatabase()?'查看本机微信消息，向已选择读取的会话发送文本。'+databasePolicy():'查看群消息，管理发送计划与自动回复。'],schedules:['定时任务',isDatabase()?'向指定个人或群聊发送文本，支持一次发送和每日计划。':'管理每天的发送计划，查看每次执行结果。'],environment:[isDatabase()?'数据源与环境':'环境诊断',isDatabase()?'创建本地只读副本，检查来源与更新结果。':'从运行环境到桥接连接，逐项了解当前状态。']};
  $('page-title').textContent=titles[currentView][0];$('page-subtitle').textContent=titles[currentView][1];
 }
 
-function renderSchedules(){if(isDatabase())return renderWindowsSchedules();const jobs=state.jobs||[],out=state.outbox||[];const active=jobs.filter(x=>x.enabled).length;$('job-count').textContent=active;$('active-jobs').textContent=active;$('today-sent').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='sent'&&dateKey(x.created_at)===dateKey(Date.now()/1000)).length;$('unknown-count').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='unknown').length;const key=JSON.stringify([state.account,isDemo(),online,serviceAvailable,!!state.loggingOut,state.runtime?.capabilities,state.groups,jobs,jobs.map(job=>memberCache.get(state.account+'|'+job.group_id)||[])]);if(key===scheduleRenderKey)return;scheduleRenderKey=key;const list=$('schedule-list');list.replaceChildren();if(!jobs.length){const empty=el('div','empty');const art=el('span');art.append(icon('clock'));empty.append(art,el('h3','','给每天的消息安排一个时间'),el('p','','创建任务，选择会话、成员与每日发送内容。'));list.append(empty);return;}
- for(const job of jobs){const row=el('article','schedule-row');const clock=el('div','schedule-time',job.clock);clock.append(el('small','','每天 · 上海时间'));const content=el('div','schedule-content');content.append(el('strong','',groupName(job.group_id)),el('p','',job.text));if(job.mentions.length){const members=memberCache.get(state.account+'|'+job.group_id)||[];content.append(el('p','',job.mentions.map(id=>'@'+nameFor(id,members)).join(' ')));}const info=el('div','schedule-info');info.append(el('span','status-chip'+(job.enabled?'':' off'),job.enabled?(isDemo()?'模拟已启用':'已启用'):'已停用'));if(job.enabled&&job.nextRun)info.append(el('div','','下次 '+stamp(job.nextRun,{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})));if(job.last_result)info.append(el('div','',job.last_result));row.append(clock,content,info);if(job.enabled){const cancel=el('button','schedule-stop','停用');cancel.disabled=!serviceAvailable||!!state.loggingOut;cancel.title=!serviceAvailable?'本机服务未连接':state.loggingOut?'正在退出账号':'停用此每日任务';cancel.onclick=async()=>{try{await api('/api/jobs/cancel',{account:state.account,id:job.id});toast('任务已停用');await poll();}catch(error){toast(error.message,true);}};row.append(cancel);}list.append(row);}}
+function renderSchedules(){scheduleScope();if(isDatabase())return renderWindowsSchedules();const jobs=state.jobs||[],out=state.outbox||[];const active=jobs.filter(x=>x.enabled).length;$('job-count').textContent=active;$('active-jobs').textContent=active;$('today-sent').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='sent'&&dateKey(x.created_at)===dateKey(Date.now()/1000)).length;$('unknown-count').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='unknown').length;const key=JSON.stringify([state.account,isDemo(),online,serviceAvailable,!!state.loggingOut,state.runtime?.capabilities,state.groups,jobs,$('schedule-search').value,$('schedule-filter').value,jobs.map(job=>memberCache.get(state.account+'|'+job.group_id)||[])]);if(key===scheduleRenderKey)return;scheduleRenderKey=key;const list=$('schedule-list');list.replaceChildren();if(!jobs.length){const empty=el('div','empty');const art=el('span');art.append(icon('clock'));empty.append(art,el('h3','','给每天的消息安排一个时间'),el('p','','创建任务，选择会话、成员与每日发送内容。'));list.append(empty);return;}
+ for(const job of filteredSchedules(jobs)){const row=el('article','schedule-row');const clock=el('div','schedule-time',job.clock);clock.append(el('small','','每天 · 上海时间'));const content=el('div','schedule-content');content.append(el('strong','',groupName(job.group_id)),el('p','',job.text));if(job.mentions.length){const members=memberCache.get(state.account+'|'+job.group_id)||[];content.append(el('p','',job.mentions.map(id=>'@'+nameFor(id,members)).join(' ')));}const info=el('div','schedule-info');info.append(el('span','status-chip'+(job.enabled?'':' off'),job.enabled?(isDemo()?'模拟已启用':'已启用'):'已停用'));if(job.enabled&&job.nextRun)info.append(el('div','','下次 '+stamp(job.nextRun,{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})));if(job.last_result)info.append(el('div','',job.last_result));row.append(clock,content,info);if(job.enabled){const cancel=el('button','schedule-stop','停用');cancel.disabled=!serviceAvailable||!!state.loggingOut;cancel.title=!serviceAvailable?'本机服务未连接':state.loggingOut?'正在退出账号':'停用此每日任务';cancel.onclick=async()=>{try{await api('/api/jobs/cancel',{account:state.account,id:job.id});toast('任务已停用');await poll();}catch(error){toast(error.message,true);}};row.append(cancel);}list.append(row);}if(!list.children.length)list.append(emptyCard('没有匹配的任务','更换关键词或状态筛选。','search'));}
 function renderLogin(){
  if(isDatabase()){openDatabaseSettings();return;}
  $('login-title').textContent=isDemo()?'本机演示账号':'连接你的微信';
@@ -270,6 +284,7 @@ async function poll(){
   }
   if(snapshotChanged){memberCache.clear();messageNodes.clear();mediaStates.clear();renderKey='';}
   syncDatabaseRuntime();setConnection();renderGroups();renderSchedules();
+  updateExecutionScope();if(currentView==='executions')loadExecutionHistory();
   if(isDatabase()&&!databaseData&&!databaseLoading)loadDatabase();
   if(!initialModeSeen){initialModeSeen=true;if(isDatabase()&&!online)setView('environment');}
   if(!supportsSchedules()&&currentView==='schedules')setView('workspace');

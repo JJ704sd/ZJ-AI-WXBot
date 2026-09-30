@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Local-only Windows/Linux workbench with isolated demo and Docker live modes."""
 import argparse
+from contextlib import nullcontext
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import mimetypes
@@ -142,6 +143,12 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
             try:
                 if path=='/api/state':
                     self.respond({**engine.snapshot(),'login':login.snapshot(),'csrfToken':csrf,'runtime':runtime_summary(engine)});return
+                if path=='/api/execution-history':
+                    from execution_history import history
+                    with database_service.lock if database_service is not None else nullcontext():
+                        with engine.lock:
+                            if params.get('account')!=engine.account:raise ValueError('账号已变化，请刷新页面。')
+                            self.respond(history(engine,hook_sender));return
                 if path=='/api/environment':
                     self.respond(environment_report(engine));return
                 if path=='/api/database':
@@ -226,7 +233,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     result={'messages':messages,'reply':engine.store.reply(account,group),'outbox':engine.store.outbox(account,group),'watching':watching}
                     if path=='/api/group':result.update(engine.adapter.call('members',account=account,groupId=group))
                     self.respond(result);return
-                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/app.css':'app.css'}
+                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/app.css':'app.css'}
                 if path.startswith('/vendor/pdfjs/'):
                     folder=(static/'vendor/pdfjs').resolve();target=(static/path.lstrip('/')).resolve()
                     if not target.is_relative_to(folder) or not target.is_file() or target.suffix not in ('.mjs','.bcmap','.pfb','.ttf','.wasm'):
