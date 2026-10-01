@@ -1,0 +1,77 @@
+{
+  "research_date": "2026-10-01",
+  "timezone": "Asia/Shanghai",
+  "scope": "public-source and local-code research; no live client operations",
+  "repository_sync": {
+    "remote": "https://github.com/JJ704sd/ZJ-AI-WXBot.git",
+    "branch": "main",
+    "before_short_sha": "ae4cf4c",
+    "after_sha": "533661f4d44ec218cb27cf911bf71f5df76ae101",
+    "method": "fetch origin --prune; merge --ff-only origin/main",
+    "worktree_clean_before_sync": true,
+    "divergence_after_sync": {"local_only": 0, "remote_only": 0},
+    "research_pushed": false
+  },
+  "execution_boundaries": {
+    "client_attached": false,
+    "process_injected": false,
+    "live_chats_read": false,
+    "message_sent": false,
+    "candidate_framework_installed": false,
+    "jev_api_called": false,
+    "upstream_tests_run": false,
+    "new_runtime_tests_run": false
+  },
+  "shared_conversation": {
+    "url": "https://chatgpt.com/s/t_6abe0795b4d08191836378c390e0f503",
+    "body_read": false,
+    "web_result": "login/share shell only; no conversation body",
+    "browser_result": "runtime failed: referenced browser-service.mjs missing from installed plugin version",
+    "user_followup": "same URL repeated; no body supplied",
+    "incorporated": "only directions explicitly stated in user request; no attribution to inaccessible conversation"
+  },
+  "github_metadata_method": "GitHub REST repository metadata and default-branch commit endpoints, certificate verification preserved",
+  "github_snapshots": [
+    {"repo": "openclaw/openclaw", "branch": "main", "sha": "1195747068d1d4b113c8798550184908d000c862", "committer_date_utc": "2026-10-01T09:20:18Z", "archived": false, "github_license_id": "NOASSERTION"},
+    {"repo": "NousResearch/hermes-agent", "branch": "main", "sha": "234badf4012af380d23c91eae55d045a69c69ffb", "committer_date_utc": "2026-10-01T08:50:55Z", "archived": false, "github_license_id": "MIT"},
+    {"repo": "linuxxx/wxwork_pc_api", "branch": "master", "sha": "540e01894941ac26b269057040e3b98ef3c0fa65", "committer_date_utc": "2025-07-31T10:14:28Z", "archived": false, "github_license_id": "GPL-3.0"},
+    {"repo": "alliswella/wework", "branch": "master", "sha": "e0a3258eed70f96117c5255bb5a865604682a204", "committer_date_utc": "2020-12-09T05:28:28Z", "archived": false, "github_license_id": null},
+    {"repo": "WecomTeam/wecom-openclaw-plugin", "branch": "main", "sha": "3b1cbe3e664352821758d99ae5907f5620fce26e", "committer_date_utc": "2026-08-17T07:45:28Z", "archived": false, "github_license_id": null},
+    {"repo": "WecomTeam/aibot-node-sdk", "branch": "main", "sha": "80615b987ef69c6028ad764924609247c0725955", "committer_date_utc": "2026-04-07T03:58:37Z", "archived": false, "github_license_id": null}
+  ],
+  "snapshot_limit": "HEAD metadata does not pin dynamic documentation-site contents. License API fields are not a full licensing audit.",
+  "fixed_hook_tree_audit": {
+    "repo": "linuxxx/wxwork_pc_api",
+    "sha": "540e01894941ac26b269057040e3b98ef3c0fa65",
+    "recursive_tree_complete": true,
+    "files": [".gitignore", "LICENSE", "README.md", "doc/api.md", "doc/dll.md", "doc/python.md", "doc/qqgroup.jpg", "libs/WxWorkHelper_3.0.14.1205.dll", "libs/WxWorkLoader_x64.dll", "libs/WxWorkLoader_x86.dll", "samples/python/demo.py", "samples/python/wxwork.py"],
+    "read_at_fixed_sha": ["README.md", "doc/dll.md"],
+    "core_hook_c_cpp_source_seen": false,
+    "binaries_downloaded_or_executed": false,
+    "current_wecom_compatibility_verified": false
+  },
+  "official_pages_unreadable": [
+    "https://developer.work.weixin.qq.com/document/path/91770",
+    "https://developer.work.weixin.qq.com/document/path/91774",
+    "https://developer.work.weixin.qq.com/document/path/99110",
+    "https://open.work.weixin.qq.com/help?doc_id=21657"
+  ],
+  "budget_example": {
+    "kind": "hypothetical, not measured",
+    "groups": 300,
+    "daily_messages_per_group": 200,
+    "daily_messages": 60000,
+    "baseline": {"calls": 60000, "input_tokens_per_call": 2000, "output_tokens_per_call": 100, "input_tokens": 120000000, "output_tokens": 6000000},
+    "layers": [
+      {"name": "gate_if_llm", "calls": 12000, "input_tokens_per_call": 300, "output_tokens_per_call": 20, "input_tokens": 3600000, "output_tokens": 240000},
+      {"name": "business_generation", "calls": 600, "input_tokens_per_call": 1800, "output_tokens_per_call": 180, "input_tokens": 1080000, "output_tokens": 108000},
+      {"name": "summary_update", "calls": 600, "input_tokens_per_call": 800, "output_tokens_per_call": 80, "input_tokens": 480000, "output_tokens": 48000}
+    ],
+    "layered_input_tokens": 5160000,
+    "layered_output_tokens": 396000,
+    "input_reduction_percent": 95.7,
+    "output_reduction_percent": 93.4,
+    "exclusions": ["coordination", "embedding", "OCR", "ASR", "retries", "cache pricing", "device and maintenance cost"],
+    "jev_substitution": "replace gate_if_llm with actual decision-provider billing; typed decisions do not imply zero cost"
+  }
+}
