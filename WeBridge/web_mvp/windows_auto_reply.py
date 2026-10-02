@@ -2,10 +2,12 @@
 from contextlib import closing
 import hashlib
 import json
-import math
 import sqlite3
 import time
 import uuid
+
+from backend import BridgeError
+from database_adapter import has_blocking_warnings
 
 
 class WindowsAutoReply:
@@ -18,6 +20,9 @@ class WindowsAutoReply:
                     account TEXT, group_id TEXT, payload TEXT, PRIMARY KEY(account,group_id));
                 CREATE TABLE IF NOT EXISTS events (
                     id TEXT PRIMARY KEY, account TEXT, group_id TEXT, created REAL, status TEXT, result TEXT);
+                CREATE TABLE IF NOT EXISTS baselines (
+                    account TEXT, group_id TEXT, event_id TEXT,
+                    PRIMARY KEY(account,group_id,event_id));
             ''')
             for row in db.execute('SELECT * FROM rules').fetchall():
                 rule = json.loads(row['payload'])
@@ -60,9 +65,16 @@ class WindowsAutoReply:
 
     def _messages(self, account, group):
         data = self.engine.adapter.call('messages', account=account, groupId=group)
-        if data.get('warnings'):
+        if has_blocking_warnings(data['warnings']):
             raise ValueError('消息副本存在解析警告，自动回复已暂停。')
         return data['messages']
+
+    def _inbound(self, account, group, start, end, cursor=None):
+        data = self.engine.adapter.call('inbound_messages', account=account, groupId=group,
+                                       start=start, end=end, cursor=cursor)
+        if has_blocking_warnings(data['warnings']):
+            raise ValueError('消息副本存在解析警告，自动回复已暂停。')
+        return data
 
     def configure(self, account, group, enabled, text, cooldown):
         if type(enabled) is not bool or type(cooldown) is not int or not 5 <= cooldown <= 3600:
@@ -83,19 +95,38 @@ class WindowsAutoReply:
                                  'text': text, 'idempotencyKey': uuid.uuid4().hex})
                 native = sender.automation_binding(binding)
                 if not sender.supports_target(group): raise ValueError('当前 Hook 桥不支持这个群聊。')
-                rows = self._messages(account, group)
                 rule = {'enabled': True, 'text': text, 'cooldown': cooldown, 'issue': '',
                         'activated': self.clock(), 'lastSent': 0,
-                        'binding': binding, 'native': native,
-                        'baseline': [self._event_id(account, group, row) for row in rows]}
-            with closing(self._db()) as db, db: self._save(db, account, group, rule)
+                        'binding': binding, 'native': native}
+            with closing(self._db()) as db, db:
+                if enabled:
+                    # The enable snapshot may already contain future-dated rows.
+                    # Record all of them, independent of the recent UI window.
+                    db.execute('DELETE FROM baselines WHERE account=? AND group_id=?', (account, group))
+                    cursor = None
+                    while True:
+                        page = self._inbound(account, group, rule['activated'], None, cursor)
+                        db.executemany('INSERT OR IGNORE INTO baselines VALUES (?,?,?)',
+                            ((account, group, self._event_id(account, group, row)) for row in page['messages']))
+                        if page['complete']: break
+                        cursor = page['cursor']
+                self._save(db, account, group, rule)
             return self.get(account, group)
 
     @staticmethod
     def _event_id(account, group, message):
-        server = message.get('serverId', '')
-        identity = str(server) if str(server).isdigit() and int(server) > 0 else message.get('id', '')
+        server = message['serverId']
+        identity = server if int(server) > 0 else message['id']
         return hashlib.sha256((account+'|'+group+'|'+identity).encode()).hexdigest()
+
+    @staticmethod
+    def _decision(rule, message, cooldown):
+        """Freeze the approved reply and its trigger before any send attempt."""
+        return {'replyText': rule['text'], 'decision': 'cooldown_skipped' if cooldown else 'reply',
+                'trigger': {'messageId': message['id'], 'serverId': message['serverId'],
+                            'senderId': message['senderId'], 'senderName': message['senderName'],
+                            'timestamp': message['timestamp'], 'text': message['text'][:2000],
+                            'textTruncated': len(message['text']) > 2000}}
 
     def _pause(self, account, group, rule, issue):
         rule.update(enabled=False, issue=issue)
@@ -121,14 +152,16 @@ class WindowsAutoReply:
 
     @staticmethod
     def eligible(message, account, activated, now):
-        stamp = message.get('timestamp')
-        return (type(stamp) in (int, float) and math.isfinite(stamp) and activated < stamp <= now+5 and now-stamp <= 120
-                and message.get('source') == 'database' and message.get('sourceId') == account
-                and message.get('isSelfKnown') is True and message.get('isSelf') is False
-                and bool(message.get('senderId')) and message.get('mentionSelf') is True
-                and message.get('mentionEveryone') is False and message.get('mentionStatus') == 'structured'
-                and message.get('decodeStatus') == 'ok' and message.get('kind') not in ('revoke', 'system')
-                and str(message.get('serverId', '')).isdigit() and int(message['serverId']) > 0)
+        # Adapter decoding has already validated coordinates and populated these
+        # required fields. This layer checks business eligibility only.
+        stamp = message['timestamp']
+        return (activated < stamp <= now+5 and now-stamp <= 120
+                and message['source'] == 'database' and message['sourceId'] == account
+                and message['isSelfKnown'] is True and message['isSelf'] is False
+                and bool(message['senderId']) and message['mentionSelf'] is True
+                and message['mentionEveryone'] is False and message['mentionStatus'] == 'structured'
+                and message['decodeStatus'] == 'ok' and message['kind'] not in ('revoke', 'system')
+                and int(message['serverId']) > 0)
 
     def tick(self):
         # Same lock order as rule writes: source -> subscriptions -> engine validation.
@@ -145,33 +178,61 @@ class WindowsAutoReply:
                     sender = self.sender_factory()
                     if binding != rule['binding'] or sender.automation_binding(binding) != rule['native']:
                         raise ValueError('账号或 Hook 进程已变化，请重新核对并启用。')
-                    rows = self._messages(account, group)
-                except Exception:
+                    # Keep the existing outgoing-evidence baseline separate from
+                    # inbound pages, which may contain older trigger messages.
+                    evidence = self._messages(account, group)
+                except (ValueError, BridgeError, OSError, sqlite3.Error):
                     self._pause(account, group, rule, '数据源、群聊读取或 Hook 连接异常，规则已暂停，请核对后重新启用。')
                     continue
-                now = self.clock()
-                for message in rows:
-                    event = self._event_id(account, group, message)
-                    if event in rule['baseline'] or not self.eligible(message, account, rule['activated'], now): continue
-                    cooldown = now-rule['lastSent'] < rule['cooldown']
-                    with closing(self._db()) as db, db:
-                        claimed = db.execute('INSERT OR IGNORE INTO events VALUES (?,?,?,?,?,?)',
-                            (event, account, group, now, 'cooldown_skipped' if cooldown else 'attempted', '{}')).rowcount
-                    if not claimed or cooldown: continue
-                    # This claim commits before contacting native code. Never replay it.
-                    target = next(row for row in self.engine.group_list if row['id'] == group)
+                observed = self.clock()
+                start, end = max(rule['activated'], observed-120), observed+5
+                cursor = None
+                while rule['enabled']:
                     try:
-                        result = sender.send_automatic({**binding, 'targetId': group, 'targetName': target['name'],
-                            'text': rule['text'], 'idempotencyKey': 'reply_'+event},
-                            expected_binding=rule['native'], baseline_messages=rows)
-                        status = result['status']
-                        detail = {key: result[key] for key in ('draftId', 'issue') if key in result}
-                    except Exception:
-                        status, detail = 'unknown', {'issue': '发送未确认，不会自动重试；请查看微信。'}
-                    rule['lastSent'] = now
-                    if status not in ('submitted_unconfirmed', 'server_accepted', 'local_record_confirmed', 'local_record_observed'):
-                        rule.update(enabled=False, issue='发送被阻止或结果未知，规则已暂停；本条不会重发。')
-                    with closing(self._db()) as db, db:
-                        db.execute('UPDATE events SET status=?,result=? WHERE id=?', (status, json.dumps(detail, ensure_ascii=False), event))
-                        self._save(db, account, group, rule)
-                    if not rule['enabled']: break
+                        page = self._inbound(account, group, start, end, cursor)
+                    except (ValueError, BridgeError, OSError, sqlite3.Error):
+                        self._pause(account, group, rule, '消息增量读取异常，规则已暂停，请核对后重新启用。')
+                        break
+                    for message in page['messages']:
+                        self._handle_message(account, group, rule, binding, sender, message, observed, evidence)
+                        if not rule['enabled']: break
+                    if page['complete']: break
+                    cursor = page['cursor']
+
+    def _handle_message(self, account, group, rule, binding, sender, message, observed, evidence):
+        # Every page belongs to the same observed burst. Reading a later page
+        # never turns a cooldown skip into a delayed reply.
+        now = self.clock()
+        event = self._event_id(account, group, message)
+        if not self.eligible(message, account, rule['activated'], now): return
+        cooldown = observed-rule['lastSent'] < rule['cooldown']
+        detail = self._decision(rule, message, cooldown)
+        with closing(self._db()) as db, db:
+            if db.execute('SELECT 1 FROM baselines WHERE account=? AND group_id=? AND event_id=?',
+                          (account, group, event)).fetchone(): return
+            claimed = db.execute('INSERT OR IGNORE INTO events VALUES (?,?,?,?,?,?)',
+                (event, account, group, now, 'cooldown_skipped' if cooldown else 'attempted',
+                 json.dumps(detail, ensure_ascii=False))).rowcount
+        if not claimed or cooldown: return
+        # This claim commits before contacting native code. Never replay it.
+        target = next(row for row in self.engine.group_list if row['id'] == group)
+        status = 'unknown'
+        try:
+            result = sender.send_automatic({**binding, 'targetId': group, 'targetName': target['name'],
+                'text': rule['text'], 'idempotencyKey': 'reply_'+event},
+                expected_binding=rule['native'], baseline_messages=evidence)
+            status = result['status']
+            detail.update({key: result[key] for key in ('draftId', 'issue') if key in result})
+        except (ValueError, BridgeError, OSError, sqlite3.Error):
+            detail['issue'] = '发送未确认，不会自动重试；请查看微信。'
+        finally:
+            # An unexpected programming error still leaves a durable unknown
+            # claim, but propagates instead of being hidden.
+            if status == 'unknown':
+                detail.setdefault('issue', '发送未确认，不会自动重试；请查看微信。')
+            rule['lastSent'] = now
+            if status not in ('submitted_unconfirmed', 'server_accepted', 'local_record_confirmed', 'local_record_observed'):
+                rule.update(enabled=False, issue='发送被阻止或结果未知，规则已暂停；本条不会重发。')
+            with closing(self._db()) as db, db:
+                db.execute('UPDATE events SET status=?,result=? WHERE id=?', (status, json.dumps(detail, ensure_ascii=False), event))
+                self._save(db, account, group, rule)

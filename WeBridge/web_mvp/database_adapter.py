@@ -68,6 +68,16 @@ def _warning(code, message, file=None, message_id=None):
     return result
 
 
+def has_blocking_warnings(warnings):
+    """Only a failed display label is unrelated to automated message identity.
+
+    All other warnings, including unfamiliar codes, still block automation.
+    The adapter emits this exception only after validating the contact ID and
+    deletion flag; callers continue showing the warning to the user.
+    """
+    return any(row['code'] != 'contact_label_decode_error' for row in warnings)
+
+
 def _decode(value):
     """Decode strictly and bound decompressed output; never discard bad bytes."""
     if value is None:
@@ -265,12 +275,21 @@ class DatabaseAdapter:
                                 continue
                             if item.get('delete_flag') and int(item['delete_flag']):
                                 deleted.add(username)
-                            label = next((_text(item[key]).strip() for key in ('remark', 'nick_name', 'alias') if key in item and item[key] and _text(item[key]).strip()), username)
-                            state['contacts'].setdefault(username, label)
-                            if GROUP_ID.fullmatch(username):
-                                candidates.add(username)
                         except (ValueError, UnicodeError):
                             state['warnings'].append(_warning('contact_decode_error', '有联系人字段无法解码，已跳过该名称。'))
+                            continue
+                        label = username
+                        try:
+                            for key in ('remark', 'nick_name', 'alias'):
+                                candidate = _text(item.get(key)).strip()
+                                if candidate:
+                                    label = candidate
+                                    break
+                        except UnicodeError:
+                            state['warnings'].append(_warning('contact_label_decode_error', '有联系人显示名称无法解码，已改用账号标识显示。'))
+                        state['contacts'].setdefault(username, label)
+                        if GROUP_ID.fullmatch(username):
+                            candidates.add(username)
                 if 'chat_room' in tables:
                     table = tables['chat_room']; columns = self._columns(db, table)
                     if 'username' in columns:
@@ -440,38 +459,9 @@ class DatabaseAdapter:
                 sql += ' ORDER BY m.' + _quote(columns['create_time']) + ' DESC,m.' + _quote(columns['local_id']) + ' DESC LIMIT ' + str(limit)
                 for row in db.execute(sql):
                     item = dict(row)
-                    try:
-                        local_id = int(item['local_id']); timestamp = int(item['create_time']); kind = int(item['local_type'])
-                        if local_id < 0 or timestamp < 0 or timestamp > 253402300799:
-                            raise ValueError('invalid message coordinates')
-                        server_id = str(int(item.get('server_id') or 0))
-                        sender_id = _name(item.get('sender_username'))
-                    except (ValueError, TypeError, UnicodeError):
-                        warnings.append(_warning('message_metadata_invalid', '一条消息的编号、时间或发送者字段无效，已跳过。', file)); continue
-                    identity = state['source_id'] + '|' + file + '|' + table + '|' + str(local_id)
-                    value = item.get('compress_content')
-                    value = value if value not in (None, '', b'') else item['message_content']
-                    text, decode_status = _decode(value)
-                    if decode_status == 'ok':
-                        presentation = parse_content(text, kind)
-                    else:
-                        presentation = {'kind': 'unsupported', 'text': '压缩消息尚未解码，请安装 zstandard 后重新读取。' if decode_status == 'missing_zstandard' else '消息内容无法完整解码，未显示损坏文本。'}
-                        warnings.append(_warning(decode_status, presentation['text'], file, identity))
-                    mentioned, mention_status = self._mentions(item)
-                    if mention_status == 'invalid':
-                        warnings.append(_warning('mention_metadata_invalid', '此消息的结构化 @ 信息无法解析，未推断真实 @。', file, identity))
-                    known_self = bool(state['self_id'] and sender_id)
-                    rows.append({'id': identity, 'serverId': server_id, 'localId': local_id,
-                                 'dbName': file, 'senderId': sender_id, 'senderName': state['contacts'].get(sender_id, sender_id or '未知成员'),
-                                 'timestamp': timestamp, 'type': kind & 0xffffffff, **presentation,
-                                 'isSelf': known_self and sender_id == state['self_id'], 'isSelfKnown': known_self,
-                                 'mentionSelf': bool(state['self_id'] and state['self_id'] in mentioned),
-                                 'mentionEveryone': 'notify@all' in mentioned,
-                                 'mentionStatus': mention_status if state['self_id'] else 'self_unknown',
-                                 'decodeStatus': decode_status, 'source': 'database', 'sourceId': state['source_id'],
-                                 '_contentHash': hashlib.sha256((str(kind) + '\0' + text).encode('utf-8')).hexdigest()})
-                    if include_raw:
-                        rows[-1]['_raw'] = text
+                    message = self._present_message(item, state, file, table, warnings, include_raw)
+                    if message is not None:
+                        rows.append(message)
         # Deduplicate only confirmed identical server messages; local IDs are per shard.
         unique = []
         seen = set()
@@ -492,6 +482,41 @@ class DatabaseAdapter:
                     row.pop(key, None)
                 row.update(kind='revoke', text=revokes[row['serverId']], mentionSelf=False, mentionEveryone=False)
         return {'messages': sorted(unique, key=lambda row: (row['timestamp'], row['id']))[-limit:], 'warnings': warnings}
+
+    def _present_message(self, item, state, file, table, warnings, include_raw=False):
+        try:
+            local_id = int(item['local_id']); timestamp = int(item['create_time']); kind = int(item['local_type'])
+            if local_id < 0 or timestamp < 0 or timestamp > 253402300799:
+                raise ValueError('invalid message coordinates')
+            server_id = str(int(item.get('server_id') or 0))
+            sender_id = _name(item.get('sender_username'))
+        except (ValueError, TypeError, UnicodeError):
+            warnings.append(_warning('message_metadata_invalid', '一条消息的编号、时间或发送者字段无效，已跳过。', file)); return None
+        identity = state['source_id'] + '|' + file + '|' + table + '|' + str(local_id)
+        value = item.get('compress_content')
+        value = value if value not in (None, '', b'') else item['message_content']
+        text, decode_status = _decode(value)
+        if decode_status == 'ok':
+            presentation = parse_content(text, kind)
+        else:
+            presentation = {'kind': 'unsupported', 'text': '压缩消息尚未解码，请安装 zstandard 后重新读取。' if decode_status == 'missing_zstandard' else '消息内容无法完整解码，未显示损坏文本。'}
+            warnings.append(_warning(decode_status, presentation['text'], file, identity))
+        mentioned, mention_status = self._mentions(item)
+        if mention_status == 'invalid':
+            warnings.append(_warning('mention_metadata_invalid', '此消息的结构化 @ 信息无法解析，未推断真实 @。', file, identity))
+        known_self = bool(state['self_id'] and sender_id)
+        result = {'id': identity, 'serverId': server_id, 'localId': local_id,
+                     'dbName': file, 'senderId': sender_id, 'senderName': state['contacts'].get(sender_id, sender_id or '未知成员'),
+                     'timestamp': timestamp, 'type': kind & 0xffffffff, **presentation,
+                     'isSelf': known_self and sender_id == state['self_id'], 'isSelfKnown': known_self,
+                     'mentionSelf': bool(state['self_id'] and state['self_id'] in mentioned),
+                     'mentionEveryone': 'notify@all' in mentioned,
+                     'mentionStatus': mention_status if state['self_id'] else 'self_unknown',
+                     'decodeStatus': decode_status, 'source': 'database', 'sourceId': state['source_id'],
+                     '_contentHash': hashlib.sha256((str(kind) + '\0' + text).encode('utf-8')).hexdigest()}
+        if include_raw:
+            result['_raw'] = text
+        return result
 
     @staticmethod
     def _mentions(item):
@@ -543,7 +568,7 @@ class DatabaseAdapter:
     def call(self, action, **params):
         if action in ('send', 'media', 'login', 'logout'):
             raise DatabaseError('read_only_source', '数据库副本模式只读，不支持发送、登录、退出或附件加载。')
-        if action not in ('groups', 'members', 'group_info', 'messages'):
+        if action not in ('groups', 'members', 'group_info', 'messages', 'message_history', 'inbound_messages'):
             raise DatabaseError('unsupported_action', '数据库副本模式不支持此操作。')
         with self.lock:
             state = self._state
@@ -561,7 +586,13 @@ class DatabaseAdapter:
                     group = params.get('groupId')
                     if group not in {row['id'] for row in state['groups']}:
                         raise DatabaseError('invalid_conversation', '请选择当前副本中的有效会话。')
-                    if action == 'messages':
+                    if action == 'inbound_messages':
+                        from inbound_messages import scan_inbound
+                        result = scan_inbound(self, state, group, params['start'], params['end'], params.get('cursor'))
+                    elif action == 'message_history':
+                        from message_history import query_history
+                        result = query_history(self, state, group, params)
+                    elif action == 'messages':
                         result = self._messages(state, group, limit=params.get('limit', 200))
                     else:
                         members, warnings = self._members(state, group)

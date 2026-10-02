@@ -158,6 +158,7 @@ function controls(){
  updateViewTitle();
  updateDesktopSender();
  updateHookSender();
+ if(typeof updateMessageHistoryScope==='function')updateMessageHistoryScope();
 }
 function setConnection(){
  const database=isDatabase(),source=state.runtime?.source||{};
