@@ -11,6 +11,22 @@ class TemplateConflict(ValueError):
     pass
 
 
+class MissingTemplateValues(ValueError):
+    def __init__(self, missing):
+        self.missing = missing
+        super().__init__('请填写变量：'+'、'.join(missing)+'。')
+
+
+def _render_profile(payload, profile):
+    text, values = profile['overrideText'], profile['values']
+    if text is None:
+        missing = [key for key in _variables(payload['text']) if key not in values or not values[key].strip()]
+        if missing: raise MissingTemplateValues(missing)
+        text = re.sub(r'\{\{([^{}]+)\}\}', lambda match:values[match.group(1)], payload['text'])
+    validate_text(text)
+    return text
+
+
 def _variables(text):
     variables, position = [], 0
     while match := re.search(r'\{\{|\}\}', text[position:]):
@@ -168,13 +184,33 @@ class ScheduleTemplates:
             self._account(account)
             payload = json.loads(self._row(db, account, id, version)['payload'])
             profile = self._profile_data(payload, groupId, values, overrideText)
-            text = profile['overrideText']
-            if text is None:
-                missing = [key for key in _variables(payload['text']) if key not in values or not values[key].strip()]
-                if missing: raise ValueError('请填写变量：'+'、'.join(missing)+'。')
-                text = re.sub(r'\{\{([^{}]+)\}\}', lambda match:values[match.group(1)], payload['text'])
-            validate_text(text)
+            text = _render_profile(payload, profile)
             return {'id':id, 'version':version, 'groupId':groupId, 'templateName':payload['name'], 'text':text}
+
+    def render_saved(self, account, id, version, groupIds):
+        """Render a single saved template revision, preserving per-target errors."""
+        _identity(id)
+        _version(version)
+        with self.engine.lock, closing(self._db()) as db:
+            self._account(account)
+            payload = json.loads(self._row(db, account, id, version)['payload'])
+            variables = _variables(payload['text'])
+            records = []
+            for group in groupIds:
+                saved = payload['profiles'].get(group, {'values':{}, 'overrideText':None})
+                values = {key:value for key,value in saved['values'].items() if key in variables}
+                record = {'groupId':group, 'text':'',
+                    'contentSource':'override' if saved['overrideText'] is not None else 'template',
+                    'error':'', 'missing':[]}
+                try:
+                    profile = self._profile_data(payload, group, values, saved['overrideText'])
+                    record['text'] = _render_profile(payload, profile)
+                except MissingTemplateValues as error:
+                    record.update(error=str(error), missing=error.missing)
+                except ValueError as error:
+                    record['error'] = str(error)
+                records.append(record)
+            return payload['name'], records
 
     def delete(self, account, id, version):
         _identity(id)

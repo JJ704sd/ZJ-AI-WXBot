@@ -1,0 +1,504 @@
+{
+  "research_date": "2026-10-02",
+  "timezone": "Asia/Shanghai",
+  "repository_head": "edeb7a42886ba68b683c9fa06728a552911af248",
+  "scope": "Research report update; external research as of 2026-10-02, current local commit and worktree reviewed separately; no product implementation by this research task",
+  "report": "specs/wecom-hook-agent-research-2026-10-02.md",
+  "previous_report_preserved": "specs/wecom-hook-agent-research-2026-10-01.md",
+  "shared_conversation": {
+    "url": "https://chatgpt.com/s/t_6abe0795b4d08191836378c390e0f503",
+    "web_body_read": false,
+    "web_result": "Login/share shell only",
+    "browser_result": "Missing browser-service.mjs in runtime plugin 26.930.21537",
+    "body_provided_by_user_in_chat": true,
+    "incorporated": true,
+    "central_requirement": "Independent conversation/task orchestration between capture and business agent; message != turn != task; new events do not automatically rerun the entire agent",
+    "source_status": "User-provided design input; framework claims independently checked"
+  },
+  "execution_boundaries": {
+    "client_attached": false,
+    "process_injected": false,
+    "live_chats_read": false,
+    "message_sent": false,
+    "model_api_called": false,
+    "framework_installed_or_run": false,
+    "product_code_changed": false,
+    "git_fetch_commit_or_push_performed": false,
+    "local_synthetic_reproductions_run": true,
+    "selected_existing_tests_run": true,
+    "full_regression_run": false
+  },
+  "evidence_files": [
+    "evidence/research-hook-boundaries-2026-10-02.md",
+    "evidence/research-frameworks-2026-10-02.md",
+    "evidence/research-jev-evaluation-2026-10-02.md",
+    "evidence/research-task-orchestration-2026-10-02.md",
+    "evidence/research-local-ingress-2026-10-02.md",
+    "evidence/research-local-actions-2026-10-02.md",
+    "evidence/research-local-poc-reuse-2026-10-02.md",
+    "evidence/research-current-state-audit.md"
+  ],
+  "source_snapshots": [
+    {
+      "repo": "openclaw/openclaw",
+      "sha": "94cbbecd46cc2a0871da4f5f01d876dfd946000c",
+      "use": "metadata only; descriptions from dynamic official docs"
+    },
+    {
+      "repo": "NousResearch/hermes-agent",
+      "sha": "0a374d167424cdc730ce9761368b62255b551e58",
+      "use": "selected source paths pinned"
+    },
+    {
+      "repo": "WecomTeam/wecom-openclaw-plugin",
+      "sha": "3b1cbe3e664352821758d99ae5907f5620fce26e",
+      "use": "selected source paths pinned"
+    }
+  ],
+  "local_checks": {
+    "synthetic_window": {
+      "input_rows": 205,
+      "same_timestamp": true,
+      "default_returned": 200,
+      "missing_local_ids": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "expanded_limit": 2000,
+      "expanded_returned": 205,
+      "proves_incremental_cursor": false
+    },
+    "activation_same_second": {
+      "activated": 1000.5,
+      "message_timestamp": 1000,
+      "now": 1001,
+      "eligible": false
+    },
+    "synthetic_im_chatroom_enable": "ValueError from current suffix guard; not a claim that all real mixed groups use this namespace",
+    "existing_tests_passed": 5,
+    "test_seconds": 0.689,
+    "interpretation": "Historical synthetic checks on the messages view and old auto-reply baseline; not evidence of a latest-200 trigger limit in current inbound_messages scanning",
+    "repository_head": "626b123226f1c974b48a6dceaa1373fe81b724c4"
+  },
+  "budget": {
+    "kind": "hypothetical arithmetic, not measured usage or performance",
+    "raw_daily_messages": 60000,
+    "shared_candidate_batches": 12000,
+    "assumed_effective_drafts": 600,
+    "assumed_summary_updates": 600,
+    "quality_condition": "Comparable draft quality/length and task outcomes are assumed only for this illustration; actual completion, calls, intervention recall, human burden and usage must be measured",
+    "arms": [
+      {
+        "name": "A_optimized_single",
+        "layers": [
+          {
+            "name": "decision_and_generation_mean",
+            "calls": 12000,
+            "input_each": 1500,
+            "output_each": 80
+          },
+          {
+            "name": "summary",
+            "calls": 600,
+            "input_each": 800,
+            "output_each": 80
+          }
+        ],
+        "input_total": 18480000,
+        "output_total": 1008000
+      },
+      {
+        "name": "B_gate_single",
+        "layers": [
+          {
+            "name": "gate",
+            "calls": 12000,
+            "input_each": 300,
+            "output_each": 20
+          },
+          {
+            "name": "generation",
+            "calls": 600,
+            "input_each": 1800,
+            "output_each": 180
+          },
+          {
+            "name": "summary",
+            "calls": 600,
+            "input_each": 800,
+            "output_each": 80
+          }
+        ],
+        "input_total": 5160000,
+        "output_total": 396000
+      },
+      {
+        "name": "C_on_demand_specialist",
+        "layers": [
+          {
+            "name": "gate",
+            "calls": 12000,
+            "input_each": 300,
+            "output_each": 20
+          },
+          {
+            "name": "generation",
+            "calls": 600,
+            "input_each": 1200,
+            "output_each": 180
+          },
+          {
+            "name": "summary",
+            "calls": 600,
+            "input_each": 800,
+            "output_each": 80
+          },
+          {
+            "name": "routing",
+            "calls": 600,
+            "input_each": 250,
+            "output_each": 15
+          },
+          {
+            "name": "review",
+            "calls": 120,
+            "input_each": 1000,
+            "output_each": 80
+          }
+        ],
+        "input_total": 5070000,
+        "output_total": 414600
+      }
+    ],
+    "B_vs_A_input_reduction_pct_rounded": 72.08,
+    "B_vs_A_output_reduction_pct_rounded": 60.71,
+    "C_minus_B_input": -90000,
+    "C_minus_B_output": 18600,
+    "excluded_costs": [
+      "actual retries",
+      "embeddings and retrieval",
+      "OCR and ASR",
+      "queue and storage",
+      "devices",
+      "adapter maintenance",
+      "human work",
+      "provider account terms and taxes"
+    ],
+    "jev_gate_substitution": {
+      "model": "jev-1.13.0",
+      "pricing_url": "https://docs.typesafe.ai/models",
+      "public_usd_per_million_input_tokens": 0.042,
+      "public_output_token_price": 0,
+      "assumed_billable_input_tokens": 3600000,
+      "illustrative_gate_usd_per_day": 0.1512,
+      "account_bill_verified": false,
+      "chinese_quality_verified": false
+    }
+  },
+  "evaluation": {
+    "status": "design only; no model replay results",
+    "sequential_replay_no_future_context": true,
+    "common_opportunity_definition": "Frozen task plus decision-time opportunities after common deterministic preprocessing, including gate rejections",
+    "critical_sequences": [
+      "fragmented input",
+      "interleaved participants and tasks",
+      "unmarked pending reply",
+      "ambiguous can-do response",
+      "deadline with final input",
+      "change during run",
+      "cancel during tool",
+      "stale result after human takeover",
+      "unconsumed inbox input before submit",
+      "atomic version check and submission claim",
+      "duplicate ingress",
+      "process restart",
+      "unknown external outcome"
+    ],
+    "zero_error_iid_one_sided_95": {
+      "negative_examples": 200,
+      "upper_probability": 0.014867039231272054,
+      "minimum_zero_error_examples_for_below_0_001": 2995,
+      "warning": "IID approximation; adjacent group events are correlated"
+    }
+  },
+  "unverified": [
+    "current target WeCom Hook compatibility",
+    "both member types non-mention reception in original mixed group",
+    "framework live integration",
+    "Chinese semantic benchmark",
+    "actual model billing",
+    "long-run 300-group capacity",
+    "server delivery or read receipt"
+  ],
+  "local_project_revision": {
+    "date": "2026-10-02",
+    "scope": "Current local code, historical acceptance records, new temporary synthetic checks; no live state inspection",
+    "recommended_initial_delivery": "Persistent event consumption plus deterministic/scripted shadow task workbench; model shadow evaluation precedes controlled send migration",
+    "implemented_reuse": [
+      "Windows database snapshot reader and UI",
+      "shared Windows Hook submission and draft ledger",
+      "fixed mention reply and once/daily text schedules",
+      "separate PoC inbox/tasks/sessions/outbox, call budgets and HTTP model client"
+    ],
+    "gaps": [
+      "lossless incremental event contract",
+      "multi-party multi-task correlation",
+      "task-level pending reply and ownership",
+      "atomic business action arbitration",
+      "Windows outbound native mentions",
+      "actual model integration into WeBridge"
+    ],
+    "new_synthetic_checks": [
+      {
+        "case": "quote_identity",
+        "observed_quote_keys": [
+          "sender",
+          "text"
+        ],
+        "stable_quote_ids_preserved": false
+      },
+      {
+        "case": "multi_mention",
+        "mention_self": true,
+        "status": "structured",
+        "full_mention_set_in_output": false
+      },
+      {
+        "case": "older_attachment",
+        "visible_rows": 201,
+        "ui_limit": 2000,
+        "oldest_attachment_lookup": "ValueError due to default 200 window"
+      },
+      {
+        "case": "same_second_order",
+        "local_ids": [
+          1,
+          10,
+          11,
+          12,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "numeric_order": false
+      }
+    ],
+    "new_synthetic_check_count": 4,
+    "selected_existing_tests_rerun": false,
+    "full_regression_run": false,
+    "live_chats_or_private_runtime_read": false,
+    "product_code_changed": false,
+    "historical_evidence_correction": "Later 2026-09-28 scheduler note records two auto-reply local_record_observed outcomes; this does not prove counterpart delivery",
+    "capability_gate": "Windows outbound native mentions are a current inquiry gap; WeCom Hook is required only if the WeCom client capture route is selected",
+    "current_windows_template_inference_tokens": 0,
+    "current_windows_template_token_basis": "No LLM invocation in current fixed reply and scheduler code paths; not an actual account billing audit",
+    "independent_review_fixes": [
+      "clarified shadow takeover does not stop legacy direct sends",
+      "moved actual model evaluation before automatic model send migration",
+      "distinguished attempted ledger entry from actual native call",
+      "corrected conditional WeCom Hook gate",
+      "separated physical account snapshot from watched-group usage scope"
+    ],
+    "repository_head": "626b123226f1c974b48a6dceaa1373fe81b724c4",
+    "status": "Historical review before edeb7a4; see continuation_review for superseding current-state findings"
+  },
+  "previous_repository_head": "626b123226f1c974b48a6dceaa1373fe81b724c4",
+  "prior_document_validation": {
+    "independent_review": "Cost and Jev review, framework-source review, orchestration race review completed; findings incorporated",
+    "budget_arithmetic": "PASS",
+    "probability_arithmetic": "PASS",
+    "local_markdown_links_checked": 50,
+    "encoding_and_code_fences": "PASS",
+    "scope": "Document checks and specified synthetic tests only; not implementation acceptance",
+    "files_checked": 9,
+    "local_project_review": "PASS with corrections incorporated",
+    "historical_report_preserved": true,
+    "product_code_changes": false
+  },
+  "document_validation": {
+    "status": "PASS",
+    "scope": "Document checks only; historical product tests explicitly attributed, none rerun in continuation",
+    "local_markdown_links_checked": 54,
+    "markdown_files_checked": 9,
+    "encoding_and_code_fences": "PASS",
+    "local_link_targets_and_used_heading_anchor": "PASS",
+    "budget_and_probability_arithmetic": "PASS",
+    "json_parse_and_source_baseline": "PASS",
+    "historical_report_preserved": true,
+    "product_files_edited_by_this_research_task": false,
+    "independent_reviews": [
+      "Current local capability and unfinished-work boundaries",
+      "Original research directions, nine modules and four input scenarios"
+    ],
+    "corrections_incorporated": [
+      "edeb7a4 inbound/history/audit/scheduler progress",
+      "final uncommitted handoff API/UI/recall snapshot",
+      "partial completion and separate handoff lifecycle states"
+    ],
+    "not_proven": [
+      "live client availability",
+      "real mixed-group capture or delivery",
+      "new product regression",
+      "Chinese model quality",
+      "model cost saving",
+      "300-group capacity"
+    ]
+  },
+  "continuation_review": {
+    "repository_head": "edeb7a42886ba68b683c9fa06728a552911af248",
+    "scope": "Read-only source, existing test definitions, committed execution notes and requirements; only research documents edited",
+    "external_sources_refreshed": false,
+    "product_tests_rerun": false,
+    "model_calls": 0,
+    "real_messages_sent": 0,
+    "private_runtime_or_chats_read": false,
+    "product_files_edited_by_this_task": false,
+    "source_snapshots": [
+      {
+        "path": "WeBridge/web_mvp/inbound_messages.py",
+        "working_tree_sha256": "f7587e049514f895167862def77f7a97eb54a675107eef9010c7d512851ac9ba",
+        "head_git_blob": "87a80d4f8addcfddebb3afbd242d5338dc6ec851",
+        "head_text_matches_worktree": true
+      },
+      {
+        "path": "WeBridge/web_mvp/message_history.py",
+        "working_tree_sha256": "4d7a3d57c7d60be3595892f8187e862e8aece509664688159556480d75182f7c",
+        "head_git_blob": "995b1813457abafc9ebe538d44aafa7b587b5837",
+        "head_text_matches_worktree": true
+      },
+      {
+        "path": "WeBridge/web_mvp/database_adapter.py",
+        "working_tree_sha256": "c87491d9173c61ff71b3c8ba10bf62f14fd1b768f48c1683cea89de49439b7b6",
+        "head_git_blob": "4ecb31deebadeebc220b7eb7ce772502e29b2ddb",
+        "head_text_matches_worktree": true
+      },
+      {
+        "path": "WeBridge/web_mvp/windows_scheduler.py",
+        "working_tree_sha256": "6c976747fa9640e50ea1076f68c2d5cd2ed4589a996952874e88ce57cab68fc4",
+        "head_git_blob": "06c55e87a867debafc385068e92b8892d4dc80dc",
+        "head_text_matches_worktree": true
+      },
+      {
+        "path": "WeBridge/web_mvp/server.py",
+        "working_tree_sha256": "03611901cd6897aab46b5447a614ded5e494be6668158df17dcf85330a50d6fa",
+        "head_git_blob": "c6d09b974764c0e566ebdfb763b6bc262a1b84fd",
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/static/app.js",
+        "working_tree_sha256": "a11b20bd829a065a39caa0a4645a64fd511abd8bd3147dbfc01062cfd3752978",
+        "head_git_blob": "aff5f31d41a47ee2b15f11056e360729eecb5190",
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/windows_auto_reply.py",
+        "working_tree_sha256": "6b35f1a0cdc8cd73e58864b7b403b0ae5c9ff7ea9e08026c1db3fee3be0bd148",
+        "head_git_blob": "cd88b9b6b0d1875828a55f6c83aeca5641875599",
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/execution_history.py",
+        "working_tree_sha256": "c447c274b4989a084f2bf2a8c0f3f8746ff8df162e820ff88f5df89e43552900",
+        "head_git_blob": "0c61048d48bc8096ac7ac8eaa93fb6feeaab0e85",
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/test_windows_auto_reply.py",
+        "working_tree_sha256": "1664ab3a12042479ab48d9c04cb910c41bbc8493f81566b2a217260499cafbdc",
+        "head_git_blob": "6ae6a36a2b0134fc1a424339a2acc027df0aa9b0",
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/human_handoffs.py",
+        "working_tree_sha256": "df7b0e46dbf780eee759525264dff70554bdbcf97b00208d306b5700aa7f6ab2",
+        "head_git_blob": null,
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/test_handoff_ingestion.py",
+        "working_tree_sha256": "9eb502f923fd493dc4bab964d18967dfe8d581591d274cb5d953eaccf91ada66",
+        "head_git_blob": null,
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/test_human_handoffs.py",
+        "working_tree_sha256": "defb8e0b95c2a7c72cd0f9fc8dbcf989264ba8588f2e05849f8d64f2c98955e7",
+        "head_git_blob": null,
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/diagnostics/check_handoff_controls.cjs",
+        "working_tree_sha256": "75daf438ff96259184202082ce77e85725c5b5441e2aea7a8b6b3c640095242c",
+        "head_git_blob": null,
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/static/index.html",
+        "working_tree_sha256": "69205ef6a943c4fac76a14c4c2c52a4138a7ef4c53dd9be22beda0fbd87afa11",
+        "head_git_blob": "53dc2f24a128c0d996f7af3afe224728c452747e",
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/static/handoff_ui.js",
+        "working_tree_sha256": "3c0104f6a64a9941bc4ea6920a39cd70b2207aba0fceb7d424f6964b1984dd2b",
+        "head_git_blob": null,
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/test_handoff_http.py",
+        "working_tree_sha256": "10c83b95951529797b8cadeb1ef7ed9e743f359786d9c923704d1f41d8fb1729",
+        "head_git_blob": null,
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/web_mvp/diagnostics/check_handoff_ui.js",
+        "working_tree_sha256": "3d3d49c115364a9659a63a4acd4e8b63fb29ee1f460d83fa39581ad10f24ad9b",
+        "head_git_blob": null,
+        "head_text_matches_worktree": false
+      },
+      {
+        "path": "WeBridge/execution/workbench-handoffs-2026-10-03.md",
+        "working_tree_sha256": "cf06a2c92439eb8eaef790175dbd1019dca99cc9d2664fa7ed2c9ec968f84af3",
+        "head_git_blob": null,
+        "head_text_matches_worktree": false
+      }
+    ],
+    "committed_capability_updates": [
+      "independent 120-second inbound paging with numeric composite order and supported recall prescan",
+      "persistent activation baselines and eligible-event dedupe; not an all-message task inbox",
+      "server-side message and execution history filtering and pagination",
+      "frozen reply text, decision and trigger audit excerpt",
+      "daily missed occurrence accounting and precise pre-submit vs unknown outcomes",
+      "scoped display-label warning handling and bounded same-snapshot recall cache"
+    ],
+    "working_tree_handoff_status": "Uncommitted implementation now includes API, UI, mode selection and recall handling. Static review only; no product tests rerun here, no responsible-person notification and no unified takeover of manual/scheduled/native send exits.",
+    "historical_latest_suite": {
+      "document": "WeBridge/execution/workbench-operations-2026-10-02.md",
+      "reported_passed": 350,
+      "rerun_by_this_review": false,
+      "applies_to_uncommitted_handoff": false
+    },
+    "requirements_audit": {
+      "original_research_directions": 5,
+      "orchestration_modules": 9,
+      "input_scenarios": 4,
+      "mapping": "specs/wecom-hook-agent-research-2026-10-02.md section 9.4",
+      "clarifications": [
+        "multi-recipient mention policy",
+        "partial completion does not close whole task",
+        "handoff creation, notification, business completion and resume are separate"
+      ]
+    },
+    "recommended_next_step": "Reuse scanner/history/audit and Hook submitter; extend durable task ingestion, then deterministic/scripted shadow orchestration; model evaluation before send migration",
+    "evidence": "evidence/research-current-state-audit.md",
+    "snapshot_note": "Concurrent development continued during review; final snapshot supersedes initial missing-API/missing-revoke observations. Hashes identify reviewed files, not deployed process state."
+  }
+}

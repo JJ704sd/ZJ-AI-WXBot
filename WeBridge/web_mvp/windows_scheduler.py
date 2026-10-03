@@ -75,6 +75,29 @@ def _run_id(job_id, due):
     return hashlib.sha256((job_id+'|'+str(int(due))).encode()).hexdigest()
 
 
+def _schedule_spec(data):
+    if data.get('mentionIds'): raise ValueError('Windows 定时发送目前只支持普通文本。')
+    mode = data.get('mode', 'daily')
+    if mode not in ('once','daily','weekly'): raise ValueError('请选择一次发送、每日发送或按星期发送。')
+    window = data.get('windowMinutes', 2)
+    if type(window) is not int or not 1<=window<=1439:
+        raise ValueError('发送窗口必须是 1 至 1439 分钟的整数。')
+    spec = {'groupId':data.get('groupId'), 'text':data.get('text'), 'mode':mode,
+            'clock':data.get('clock','') if mode!='once' else '', 'at':data.get('at','') if mode=='once' else ''}
+    if window != 2: spec['windowMinutes'] = window
+    if mode=='weekly':
+        weekdays = data.get('weekdays')
+        if (not isinstance(weekdays, list) or not weekdays or
+                any(type(day) is not int or not 1<=day<=7 for day in weekdays) or
+                len(set(weekdays)) != len(weekdays)):
+            raise ValueError('请至少选择一个不重复的星期，星期一至日对应整数 1 至 7。')
+        spec['weekdays'] = sorted(weekdays)
+    elif 'weekdays' in data:
+        raise ValueError('只有按星期发送的任务可以指定星期。')
+    if mode!='once': _check_clock(spec['clock'])
+    return spec
+
+
 class WindowsScheduler:
     def __init__(self, engine, source, sender_factory, *, clock=time.time):
         self.engine, self.source, self.sender_factory, self.clock = engine, source, sender_factory, clock
@@ -90,6 +113,8 @@ class WindowsScheduler:
                     self._save(db, job)
             db.execute("UPDATE runs SET status='unknown' WHERE status='attempted'")
         self.templates = ScheduleTemplates(engine)
+        from schedule_batches import ScheduleBatches
+        self.batches = ScheduleBatches(self)
 
     def _db(self):
         db = sqlite3.connect(self.path, timeout=10)
@@ -134,25 +159,8 @@ class WindowsScheduler:
         account, group, key = data.get('account'), data.get('groupId'), data.get('requestId')
         if not isinstance(key, str) or not re.fullmatch(r'[A-Za-z0-9_-]{16,100}', key):
             raise ValueError('缺少有效的任务请求标识，请重新打开创建窗口。')
-        if data.get('mentionIds'): raise ValueError('Windows 定时发送目前只支持普通文本。')
-        mode = data.get('mode', 'daily')
-        if mode not in ('once','daily','weekly'): raise ValueError('请选择一次发送、每日发送或按星期发送。')
-        window = data.get('windowMinutes', 2)
-        if type(window) is not int or not 1<=window<=1439:
-            raise ValueError('发送窗口必须是 1 至 1439 分钟的整数。')
-        spec = {'groupId':group, 'text':data.get('text'), 'mode':mode,
-                'clock':data.get('clock','') if mode!='once' else '', 'at':data.get('at','') if mode=='once' else ''}
-        if window != 2: spec['windowMinutes'] = window
-        if mode=='weekly':
-            weekdays = data.get('weekdays')
-            if (not isinstance(weekdays, list) or not weekdays or
-                    any(type(day) is not int or not 1<=day<=7 for day in weekdays) or
-                    len(set(weekdays)) != len(weekdays)):
-                raise ValueError('请至少选择一个不重复的星期，星期一至日对应整数 1 至 7。')
-            spec['weekdays'] = sorted(weekdays)
-        elif 'weekdays' in data:
-            raise ValueError('只有按星期发送的任务可以指定星期。')
-        if mode!='once': _check_clock(spec['clock'])
+        spec = _schedule_spec(data)
+        mode, window = spec['mode'], spec.get('windowMinutes', 2)
         id = hashlib.sha256((str(account)+'|'+key).encode()).hexdigest()
         with self.source.lock, self.engine.sync_lock:
             if account != self.engine.account or not account: raise ValueError('账号已变化，请刷新页面。')
