@@ -7,7 +7,7 @@ const nodes=new Map(),$=id=>{if(!nodes.has(id))nodes.set(id,node());return nodes
 $('schedule-filter').value='all';
 const pending=[],calls=[],toasts=[];
 const context=vm.createContext({$,el:(tag,className,text)=>Object.assign(node(),{textContent:text||''}),emptyCard:()=>node(),groupName:id=>id,
- stamp:()=> 'time',dateKey:()=> 'today',isDatabase:()=>context.state.runtime.mode==='database',supportsSchedules:()=>context.state.runtime.capabilities.scheduledSend,
+ stamp:()=> 'time',dateKey:()=> 'today',isDatabase:()=>context.state.runtime.mode==='database',supportsSchedules:()=>context.state.runtime.capabilities.scheduledSend,supportsScheduleWindows:()=>false,
  serviceAvailable:true,scheduleBusy:false,state:{account:'fixture',runtime:{mode:'database',capabilities:{scheduledSend:true}},jobs:[],groups:[],watchedGroups:[]},
  scheduleRenderKey:'',controls:()=>{},toast:(...args)=>toasts.push(args),poll:async()=>{},
  api:(url,body)=>{calls.push({url,body});return new Promise((resolve,reject)=>pending.push({resolve,reject}));}});

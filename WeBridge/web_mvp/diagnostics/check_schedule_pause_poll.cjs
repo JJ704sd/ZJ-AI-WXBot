@@ -22,7 +22,7 @@ function fixture(){
   resetDesktopSender:noop,resetHookSender:noop,supportsHandoffs:()=>true,
   sourceSignature:value=>JSON.stringify([value.runtime?.mode,value.runtime?.source?.id]),
   api:(url,body)=>new Promise((resolve,reject)=>requests.push({url,body,resolve,reject}))});
- context.isDatabase=()=>context.state.runtime.mode==='database';context.supportsSchedules=()=>true;
+ context.isDatabase=()=>context.state.runtime.mode==='database';context.supportsSchedules=()=>true;context.supportsScheduleWindows=()=>false;
  vm.runInContext(source.slice(source.indexOf('const scheduleActionsBusy='),source.indexOf('let environmentData=')),context);
  vm.runInContext('function renderSchedules(){renderWindowsSchedules();}',context);
  vm.runInContext(source.slice(source.indexOf('async function poll(){'),source.indexOf('async function loadTimerMembers()')),context);

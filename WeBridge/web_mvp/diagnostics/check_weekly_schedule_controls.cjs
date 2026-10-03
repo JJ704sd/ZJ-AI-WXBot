@@ -9,7 +9,7 @@ let database=true,hold=false,fail=false,release;
 const requests=[],messages=[];
 const context=vm.createContext({$,console,Date,crypto:{randomUUID:()=> 'fixture-request-id'},
  document:{querySelectorAll:selector=>selector.includes(':checked')?weekdays.filter(day=>day.checked):weekdays},
- isDatabase:()=>database,isDemo:()=>false,supportsSchedules:()=>true,online:true,
+ isDatabase:()=>database,isDemo:()=>false,supportsSchedules:()=>true,supportsScheduleWindows:()=>false,online:true,
  state:{account:'fixture',runtime:{capabilities:{canSend:true}},groups:[{id:'g',name:'Synthetic group'}],watchedGroups:['g']},selected:'g',scheduleRequestId:null,scheduleBusy:false,schedulePauseRequest:null,scheduleCreateRequest:null,scheduleRenderKey:'',
  toast:(message,error)=>messages.push({message,error}),api:async(path,body)=>{requests.push({path,body});if(hold)await new Promise(resolve=>release=resolve);if(fail)throw Error('Synthetic API failure');},
  poll:async()=>{},controls:()=>{$('create-schedule').disabled=context.scheduleBusy||!!context.schedulePauseRequest;},renderSchedules:()=>{},setView:()=>{},loadTimerMembers:()=>{},el:()=>node()});

@@ -7,7 +7,7 @@ const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,node());return nod
 get('schedule-filter').value='all';
 let release,calls=0;
 const context=vm.createContext({$,el:(tag,className,text)=>Object.assign(node(),{textContent:text||''}),emptyCard:()=>node(),groupName:id=>id,
- stamp:()=> 'time',dateKey:()=> 'today',isDatabase:()=>true,supportsSchedules:()=>true,serviceAvailable:true,scheduleBusy:false,
+ stamp:()=> 'time',dateKey:()=> 'today',isDatabase:()=>true,supportsSchedules:()=>true,supportsScheduleWindows:()=>false,serviceAvailable:true,scheduleBusy:false,
  state:{account:'fixture',runtime:{mode:'database'},jobs:[]},scheduleRenderKey:'',controls:()=>{},toast:()=>{},poll:async()=>{},
  api:async()=>{calls++;await new Promise(resolve=>release=resolve);}});
 function $(id){return get(id);}

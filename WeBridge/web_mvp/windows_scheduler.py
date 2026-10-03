@@ -9,7 +9,7 @@ import time
 
 from backend import BridgeError
 from database_adapter import has_blocking_warnings
-from windows_hook_sender import HookSendError
+from windows_hook_sender import HookSendError, ISSUES
 
 BEIJING = timezone(timedelta(hours=8))
 DAY_SECONDS = 86400
@@ -17,7 +17,7 @@ RESULTS = {'submitted_unconfirmed': '已调用微信发送入口，尚未确认�
            'server_accepted': '服务器已接受，尚未确认收件端送达',
            'unknown': '结果未知，不会自动重试', 'blocked': '发送被阻止',
            'not_submitted': '发送前检查未通过，未提交',
-           'expired': '发送已过期', 'missed': '超过计划时间 2 分钟，已跳过'}
+           'expired': '发送已过期', 'missed': '已超过本次计划的发送窗口，已跳过'}
 
 
 def _check_clock(clock):
@@ -111,7 +111,7 @@ class WindowsScheduler:
         runs = [{'due': r['due'], 'createdAt': r['created'], 'status': r['status'],
                  'label': RESULTS.get(r['status'], '处理结果待核对'), **json.loads(r['result'])} for r in rows]
         return {k: job[k] for k in ('id','group_id','targetName','text','mode','clock','at','enabled','state','issue','nextRun')} | {
-            'weekdays': _weekdays(job), 'mentions': [], 'runs': runs,
+            'weekdays': _weekdays(job), 'windowMinutes': job.get('windowMinutes', 2), 'mentions': [], 'runs': runs,
             'last_result': runs[0]['label'] if runs else '', 'timezone': 'Asia/Shanghai'}
 
     def list(self, account):
@@ -135,8 +135,12 @@ class WindowsScheduler:
         if data.get('mentionIds'): raise ValueError('Windows 定时发送目前只支持普通文本。')
         mode = data.get('mode', 'daily')
         if mode not in ('once','daily','weekly'): raise ValueError('请选择一次发送、每日发送或按星期发送。')
+        window = data.get('windowMinutes', 2)
+        if type(window) is not int or not 1<=window<=1439:
+            raise ValueError('发送窗口必须是 1 至 1439 分钟的整数。')
         spec = {'groupId':group, 'text':data.get('text'), 'mode':mode,
                 'clock':data.get('clock','') if mode!='once' else '', 'at':data.get('at','') if mode=='once' else ''}
+        if window != 2: spec['windowMinutes'] = window
         if mode=='weekly':
             weekdays = data.get('weekdays')
             if (not isinstance(weekdays, list) or not weekdays or
@@ -170,6 +174,7 @@ class WindowsScheduler:
                    'text':spec['text'], 'mode':mode, 'clock':spec['clock'], 'at':spec['at'], 'spec':spec,
                    'nextRun':due, 'enabled':True, 'state':'active', 'issue':'', 'binding':binding, 'native':native}
             if mode=='weekly': job['weekdays'] = spec['weekdays']
+            if window != 2: job['windowMinutes'] = window
             with closing(self._db()) as db, db: self._save(db, job)
             return self._view(job)
 
@@ -256,7 +261,8 @@ class WindowsScheduler:
                 if now < due: continue
                 due, earlier = _due_runs(job, now)
                 id = _run_id(job['id'], due)
-                missed = now-due > 120
+                deadline = due+job.get('windowMinutes', 2)*60
+                missed = now > deadline
                 with closing(self._db()) as db, db:
                     # Earlier runs and the final claim commit together before
                     # any submission. Existing unknown results stay untouched.
@@ -286,22 +292,28 @@ class WindowsScheduler:
                         if has_blocking_warnings(messages['warnings']):
                             status, result = 'not_submitted', {'issueCode':'snapshot_warning',
                                 'issue':'发送前消息副本存在解析警告，未调用发送入口；请检查副本，本次计划不会自动重试。'}
+                        elif self.clock() > deadline:
+                            status, result = 'missed', {'issueCode':'schedule_window_expired',
+                                'issue':ISSUES['schedule_window_expired']}
                         else:
                             # This opaque operation includes prepare, POST and result
                             # persistence. Its exceptions cannot prove no submission.
                             try:
                                 outcome = sender.send_automatic({**binding, 'targetId':job['group_id'], 'targetName':job['targetName'],
                                     'text':job['text'], 'idempotencyKey':'schedule_'+id},
-                                    expected_binding=job['native'], baseline_messages=messages['messages'])
+                                    expected_binding=job['native'], baseline_messages=messages['messages'], deadline=deadline)
                                 status = outcome['status']
-                                result = {k:outcome[k] for k in ('draftId','issue') if k in outcome}
+                                if status=='expired' and outcome['issueCode']=='schedule_window_expired': status = 'missed'
+                                result = {k:outcome[k] for k in ('draftId','issue','issueCode') if k in outcome}
                             except HookSendError:
                                 status, result = 'unknown', {'issue':'发送结果未确认，本次不自动重试。'}
                             except Exception as error:
                                 unexpected_error = error
                                 status, result = 'unknown', {'issue':'发送调用或结果记录发生非预期异常，结果未确认；本次不自动重试。'}
+                # Retain the next unprocessed occurrence when an operation spans
+                # later dates; the next tick must account for every elapsed run.
                 job['nextRun'] = _next_run(job, now) if job['mode']!='once' else None
-                if job['mode']=='once': job.update(enabled=False, state='missed' if missed else 'finished')
+                if job['mode']=='once': job.update(enabled=False, state='missed' if status=='missed' else 'finished')
                 if status not in ('missed','submitted_unconfirmed','server_accepted'):
                     job.update(enabled=False, state='paused', issue=(result['issue'] if status=='not_submitted' else
                         '本次发送被阻止或结果未知，请核对微信；不会重试本次计划。'))

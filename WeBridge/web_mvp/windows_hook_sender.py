@@ -53,6 +53,7 @@ ISSUES = {
     'not_submitted': 'Hook 桥确认尚未调用微信发送入口，本次请求已停止。',
     'outcome_unknown': '发送调用未返回可核对的结果；请检查微信和数据库记录，不会自动重试。',
     'hook_busy': '另一个 Hook 发送操作正在进行，请等待其返回。',
+    'schedule_window_expired': '已超过本次计划的发送窗口，未提交发送。',
 }
 
 
@@ -416,7 +417,7 @@ class WindowsHookSender:
         """Server-only session identity to freeze when a rule is explicitly enabled."""
         return self._probe(_source(source))
 
-    def send_automatic(self, data, *, expected_binding, baseline_messages):
+    def send_automatic(self, data, *, expected_binding, baseline_messages, deadline=None):
         """Server-only entry for an enabled, durably claimed reply rule.
 
         The rule owner validates the incoming event and authority before calling.
@@ -428,9 +429,9 @@ class WindowsHookSender:
         if json.loads(self._row(draft['draftId'])['binding']) != expected_binding:
             raise HookSendError('binding_changed')
         return self._submit({**data, 'draftId': draft['draftId'], 'textHash': draft['textHash']},
-                            baseline_messages=baseline_messages)
+                            baseline_messages=baseline_messages, deadline=deadline)
 
-    def _submit(self, data, *, baseline_messages=None):
+    def _submit(self, data, *, baseline_messages=None, deadline=None):
         with _send_guard(self.directory):
             row = self._row(data.get('draftId'))
             request, binding = json.loads(row['request']), json.loads(row['binding'])
@@ -439,6 +440,9 @@ class WindowsHookSender:
                 raise HookSendError('draft_changed', '确认内容与已准备的目标或正文不一致。')
             if row['status'] != 'prepared':
                 return self._view(row)
+            if deadline is not None and self.clock() > deadline:
+                return self._save_result(row['id'], 'expired', {'issueCode':'schedule_window_expired',
+                    'issue':ISSUES['schedule_window_expired']})
             if self.clock() >= row['expires']:
                 return self._save_result(row['id'], 'expired', {'issue': '确认已过期，未执行发送。', 'issueCode': 'expired'})
             try:
@@ -463,6 +467,11 @@ class WindowsHookSender:
                        'text': request['text'], 'targetId': request['targetId'], 'expectedBinding': binding}
             status, result = 'unknown', {'issueCode': 'outcome_unknown', 'issue': ISSUES['outcome_unknown']}
             correlated = False
+            # Preparation, probes and the durable claim can consume the window.
+            # Once POST begins, only its outcome can determine submission status.
+            if deadline is not None and self.clock() > deadline:
+                return self._save_result(row['id'], 'expired', {'issueCode':'schedule_window_expired',
+                    'issue':ISSUES['schedule_window_expired']})
             try:
                 outcome = self.transport('POST', '/v1/send-text', payload)
                 correlated = (isinstance(outcome, dict) and all(outcome.get(key) == payload[key] for key in
