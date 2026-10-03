@@ -37,6 +37,8 @@ class WindowsAutoReply:
             db.execute("UPDATE events SET status='unknown' WHERE status='attempted'")
         from human_handoffs import HumanHandoffs
         self.handoffs = HumanHandoffs(self)
+        from handoff_notifications import HandoffNotifications
+        self.notifications = HandoffNotifications(self)
 
     def _db(self):
         db = sqlite3.connect(self.path, timeout=10)
@@ -125,6 +127,8 @@ class WindowsAutoReply:
                         if page['complete']: break
                         cursor = page['cursor']
                 self._save(db, account, group, rule)
+                if not enabled or mode != 'handoff':
+                    self.notifications.pause_group(db, account, group, '转人工规则已暂停或切换，请重新核对通知配置。')
             return self.get(account, group)
 
     @staticmethod
@@ -148,7 +152,9 @@ class WindowsAutoReply:
 
     def _pause(self, account, group, rule, issue):
         rule.update(enabled=False, issue=issue)
-        with closing(self._db()) as db, db: self._save(db, account, group, rule)
+        with closing(self._db()) as db, db:
+            self._save(db, account, group, rule)
+            self.notifications.pause_group(db, account, group, issue)
 
     def pause_unwatched(self, account):
         # Called under source.lock + sync_lock by the subscriptions endpoint.
@@ -204,39 +210,46 @@ class WindowsAutoReply:
             for saved in rules:
                 rule = json.loads(saved['payload'])
                 if not rule.get('enabled'): continue
-                account, group = saved['account'], saved['group_id']
-                try:
-                    binding = self._binding(account, group)
-                    if binding != rule['binding']:
-                        raise ValueError('账号或数据源已变化，请重新核对并启用。')
-                    sender, evidence = None, None
-                    if rule['mode'] == 'reply':
-                        sender = self.sender_factory()
-                        if sender.automation_binding(binding) != rule['native']:
-                            raise ValueError('Hook 进程已变化，请重新核对并启用。')
-                        # This remains separate from pages of incoming messages.
-                        evidence = self._messages(account, group)
-                except (ValueError, BridgeError, OSError, sqlite3.Error):
-                    self._pause(account, group, rule, '数据源、群聊读取或 Hook 连接异常，规则已暂停，请核对后重新启用。')
+                sending = rule['mode'] == 'reply'
+                if sending and not self.engine.send_lock.acquire(blocking=False):
                     continue
-                observed = self.clock()
-                start, end = max(rule['activated'], observed-120), observed+5
-                cursor, reconciled = None, False
-                while rule['enabled']:
+                try:
+                    account, group = saved['account'], saved['group_id']
                     try:
-                        page = self._inbound(account, group, start, end, cursor)
+                        binding = self._binding(account, group)
+                        if binding != rule['binding']:
+                            raise ValueError('账号或数据源已变化，请重新核对并启用。')
+                        sender, evidence = None, None
+                        if rule['mode'] == 'reply':
+                            sender = self.sender_factory()
+                            if sender.automation_binding(binding) != rule['native']:
+                                raise ValueError('Hook 进程已变化，请重新核对并启用。')
+                            # This remains separate from pages of incoming messages.
+                            evidence = self._messages(account, group)
                     except (ValueError, BridgeError, OSError, sqlite3.Error):
-                        self._pause(account, group, rule, '消息增量读取异常，规则已暂停，请核对后重新启用。')
-                        break
-                    if not reconciled and page['cursor']['phase'] != 'revokes':
-                        with closing(self._db()) as db, db:
-                            self.handoffs.revoke(db, account, group, page['cursor']['revoked'], self.clock())
-                        reconciled = True
-                    for message in page['messages']:
-                        self._handle_message(account, group, rule, binding, sender, message, observed, evidence)
-                        if not rule['enabled']: break
-                    if page['complete']: break
-                    cursor = page['cursor']
+                        self._pause(account, group, rule, '数据源、群聊读取或 Hook 连接异常，规则已暂停，请核对后重新启用。')
+                        continue
+                    observed = self.clock()
+                    start, end = max(rule['activated'], observed-120), observed+5
+                    cursor, reconciled = None, False
+                    while rule['enabled']:
+                        try:
+                            page = self._inbound(account, group, start, end, cursor)
+                        except (ValueError, BridgeError, OSError, sqlite3.Error):
+                            self._pause(account, group, rule, '消息增量读取异常，规则已暂停，请核对后重新启用。')
+                            break
+                        if not reconciled and page['cursor']['phase'] != 'revokes':
+                            with closing(self._db()) as db, db:
+                                self.handoffs.revoke(db, account, group, page['cursor']['revoked'], self.clock())
+                            reconciled = True
+                        for message in page['messages']:
+                            self._handle_message(account, group, rule, binding, sender, message, observed, evidence)
+                            if not rule['enabled']: break
+                        if page['complete']: break
+                        cursor = page['cursor']
+                finally:
+                    if sending:
+                        self.engine.send_lock.release()
 
     def _handle_message(self, account, group, rule, binding, sender, message, observed, evidence):
         # Every page belongs to the same observed burst. Reading a later page
@@ -246,7 +259,7 @@ class WindowsAutoReply:
         if not self.eligible(message, account, rule['activated'], now): return
         if rule['mode'] == 'handoff':
             target = next(row for row in self.engine.group_list if row['id'] == group)
-            detail = {'decision': 'handoff', 'taskId': event, 'issue': '已创建本机待办，未通知负责人。'}
+            detail = {'decision': 'handoff', 'taskId': event, 'issue': '已创建本机待办，通知状态见待办详情。'}
             with closing(self._db()) as db, db:
                 if db.execute('SELECT 1 FROM baselines WHERE account=? AND group_id=? AND event_id=?',
                               (account, group, event)).fetchone(): return

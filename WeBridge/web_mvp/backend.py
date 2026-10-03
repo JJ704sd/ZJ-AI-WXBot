@@ -267,6 +267,8 @@ class Engine:
 
     def start(self):
         targets=(self.poll_loop,) if self.read_only else (self.poll_loop,self.send_loop,self.schedule_loop)
+        automatic=getattr(self,'windows_auto_reply',None)
+        if self.read_only and automatic:targets+=(automatic.notifications.run,)
         for target in targets:
             thread=threading.Thread(target=target,daemon=True);thread.start();self.threads.append(thread)
 

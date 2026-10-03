@@ -250,77 +250,82 @@ class WindowsScheduler:
                 # Once past this checkpoint, this job may finish before pause commits.
                 job = json.loads(row[0])
                 if not job['enabled']: continue
+                if not self.engine.send_lock.acquire(blocking=False):
+                    continue
                 try:
-                    binding = self._binding(job['account'], job['group_id'])
-                    sender = self.sender_factory()
-                    if binding != job['binding'] or sender.automation_binding(binding) != job['native']:
-                        raise ValueError('binding changed')
-                except (BridgeError, ValueError):
-                    job.update(enabled=False, state='paused', issue='账号、读取范围或 Hook 连接变化，请核对后恢复。')
-                    with closing(self._db()) as db, db: self._save(db, job)
-                    continue
-                now, due = self.clock(), job['nextRun']
-                if now < due: continue
-                due, earlier = _due_runs(job, now)
-                id = _run_id(job['id'], due)
-                deadline = due+job.get('windowMinutes', 2)*60
-                missed = now > deadline
-                with closing(self._db()) as db, db:
-                    # Earlier runs and the final claim commit together before
-                    # any submission. Existing unknown results stay untouched.
-                    db.executemany('INSERT OR IGNORE INTO runs VALUES (?,?,?,?,?,?)',
-                        ((_run_id(job['id'],previous),job['id'],previous,now,'missed','{}') for previous in earlier))
-                    claimed = db.execute('INSERT OR IGNORE INTO runs VALUES (?,?,?,?,?,?)',
-                        (id, job['id'], due, now, 'missed' if missed else 'attempted', '{}')).rowcount
-                # A previously claimed occurrence must never reach native code again.
-                if not claimed:
-                    job.update(enabled=False, state='paused', issue='本次计划已有处理记录，不会重复提交。')
-                    with closing(self._db()) as db, db: self._save(db, job)
-                    continue
-                status, result, unexpected_error = 'missed', {}, None
-                if not missed:
                     try:
-                        messages = self.engine.adapter.call('messages', account=job['account'], groupId=job['group_id'])
-                    except BridgeError:
-                        status, result = 'not_submitted', {'issueCode':'snapshot_read_failed',
-                            'issue':'发送前读取消息副本失败，未调用发送入口；本次计划不会自动重试。'}
-                    except Exception as error:
-                        # Preserve the known no-submission evidence, but propagate
-                        # programming/unexpected I/O errors after durably pausing.
-                        unexpected_error = error
-                        status, result = 'not_submitted', {'issueCode':'preflight_unexpected',
-                            'issue':'发送前检查发生非预期异常，未调用发送入口；任务已暂停，请检查后台错误。'}
-                    else:
-                        if has_blocking_warnings(messages['warnings']):
-                            status, result = 'not_submitted', {'issueCode':'snapshot_warning',
-                                'issue':'发送前消息副本存在解析警告，未调用发送入口；请检查副本，本次计划不会自动重试。'}
-                        elif self.clock() > deadline:
-                            status, result = 'missed', {'issueCode':'schedule_window_expired',
-                                'issue':ISSUES['schedule_window_expired']}
+                        binding = self._binding(job['account'], job['group_id'])
+                        sender = self.sender_factory()
+                        if binding != job['binding'] or sender.automation_binding(binding) != job['native']:
+                            raise ValueError('binding changed')
+                    except (BridgeError, ValueError):
+                        job.update(enabled=False, state='paused', issue='账号、读取范围或 Hook 连接变化，请核对后恢复。')
+                        with closing(self._db()) as db, db: self._save(db, job)
+                        continue
+                    now, due = self.clock(), job['nextRun']
+                    if now < due: continue
+                    due, earlier = _due_runs(job, now)
+                    id = _run_id(job['id'], due)
+                    deadline = due+job.get('windowMinutes', 2)*60
+                    missed = now > deadline
+                    with closing(self._db()) as db, db:
+                        # Earlier runs and the final claim commit together before
+                        # any submission. Existing unknown results stay untouched.
+                        db.executemany('INSERT OR IGNORE INTO runs VALUES (?,?,?,?,?,?)',
+                            ((_run_id(job['id'],previous),job['id'],previous,now,'missed','{}') for previous in earlier))
+                        claimed = db.execute('INSERT OR IGNORE INTO runs VALUES (?,?,?,?,?,?)',
+                            (id, job['id'], due, now, 'missed' if missed else 'attempted', '{}')).rowcount
+                    # A previously claimed occurrence must never reach native code again.
+                    if not claimed:
+                        job.update(enabled=False, state='paused', issue='本次计划已有处理记录，不会重复提交。')
+                        with closing(self._db()) as db, db: self._save(db, job)
+                        continue
+                    status, result, unexpected_error = 'missed', {}, None
+                    if not missed:
+                        try:
+                            messages = self.engine.adapter.call('messages', account=job['account'], groupId=job['group_id'])
+                        except BridgeError:
+                            status, result = 'not_submitted', {'issueCode':'snapshot_read_failed',
+                                'issue':'发送前读取消息副本失败，未调用发送入口；本次计划不会自动重试。'}
+                        except Exception as error:
+                            # Preserve the known no-submission evidence, but propagate
+                            # programming/unexpected I/O errors after durably pausing.
+                            unexpected_error = error
+                            status, result = 'not_submitted', {'issueCode':'preflight_unexpected',
+                                'issue':'发送前检查发生非预期异常，未调用发送入口；任务已暂停，请检查后台错误。'}
                         else:
-                            # This opaque operation includes prepare, POST and result
-                            # persistence. Its exceptions cannot prove no submission.
-                            try:
-                                outcome = sender.send_automatic({**binding, 'targetId':job['group_id'], 'targetName':job['targetName'],
-                                    'text':job['text'], 'idempotencyKey':'schedule_'+id},
-                                    expected_binding=job['native'], baseline_messages=messages['messages'], deadline=deadline)
-                                status = outcome['status']
-                                if status=='expired' and outcome['issueCode']=='schedule_window_expired': status = 'missed'
-                                result = {k:outcome[k] for k in ('draftId','issue','issueCode') if k in outcome}
-                            except HookSendError:
-                                status, result = 'unknown', {'issue':'发送结果未确认，本次不自动重试。'}
-                            except Exception as error:
-                                unexpected_error = error
-                                status, result = 'unknown', {'issue':'发送调用或结果记录发生非预期异常，结果未确认；本次不自动重试。'}
-                # Retain the next unprocessed occurrence when an operation spans
-                # later dates; the next tick must account for every elapsed run.
-                job['nextRun'] = _next_run(job, now) if job['mode']!='once' else None
-                if job['mode']=='once': job.update(enabled=False, state='missed' if status=='missed' else 'finished')
-                if status not in ('missed','submitted_unconfirmed','server_accepted'):
-                    job.update(enabled=False, state='paused', issue=(result['issue'] if status=='not_submitted' else
-                        '本次发送被阻止或结果未知，请核对微信；不会重试本次计划。'))
-                with closing(self._db()) as db, db:
-                    db.execute('UPDATE runs SET status=?,result=? WHERE id=?', (status,json.dumps(result,ensure_ascii=False),id))
-                    self._save(db, job)
-                if unexpected_error is not None:
-                    raise unexpected_error
+                            if has_blocking_warnings(messages['warnings']):
+                                status, result = 'not_submitted', {'issueCode':'snapshot_warning',
+                                    'issue':'发送前消息副本存在解析警告，未调用发送入口；请检查副本，本次计划不会自动重试。'}
+                            elif self.clock() > deadline:
+                                status, result = 'missed', {'issueCode':'schedule_window_expired',
+                                    'issue':ISSUES['schedule_window_expired']}
+                            else:
+                                # This opaque operation includes prepare, POST and result
+                                # persistence. Its exceptions cannot prove no submission.
+                                try:
+                                    outcome = sender.send_automatic({**binding, 'targetId':job['group_id'], 'targetName':job['targetName'],
+                                        'text':job['text'], 'idempotencyKey':'schedule_'+id},
+                                        expected_binding=job['native'], baseline_messages=messages['messages'], deadline=deadline)
+                                    status = outcome['status']
+                                    if status=='expired' and outcome['issueCode']=='schedule_window_expired': status = 'missed'
+                                    result = {k:outcome[k] for k in ('draftId','issue','issueCode') if k in outcome}
+                                except HookSendError:
+                                    status, result = 'unknown', {'issue':'发送结果未确认，本次不自动重试。'}
+                                except Exception as error:
+                                    unexpected_error = error
+                                    status, result = 'unknown', {'issue':'发送调用或结果记录发生非预期异常，结果未确认；本次不自动重试。'}
+                    # Retain the next unprocessed occurrence when an operation spans
+                    # later dates; the next tick must account for every elapsed run.
+                    job['nextRun'] = _next_run(job, now) if job['mode']!='once' else None
+                    if job['mode']=='once': job.update(enabled=False, state='missed' if status=='missed' else 'finished')
+                    if status not in ('missed','submitted_unconfirmed','server_accepted'):
+                        job.update(enabled=False, state='paused', issue=(result['issue'] if status=='not_submitted' else
+                            '本次发送被阻止或结果未知，请核对微信；不会重试本次计划。'))
+                    with closing(self._db()) as db, db:
+                        db.execute('UPDATE runs SET status=?,result=? WHERE id=?', (status,json.dumps(result,ensure_ascii=False),id))
+                        self._save(db, job)
+                    if unexpected_error is not None:
+                        raise unexpected_error
+                finally:
+                    self.engine.send_lock.release()

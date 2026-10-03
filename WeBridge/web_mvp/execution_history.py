@@ -39,7 +39,7 @@ LABELS = {
     'unknown': '结果未知，不自动重试', 'blocked': '发送被阻止', 'failed': '发送失败',
     'expired': '已过期', 'missed': '已错过，不补发', 'cancelled': '已取消',
     'cooldown_skipped': '回复间隔内已跳过', 'not_submitted': '未提交',
-    'human_pending': '已创建本机待办，未通知负责人',
+    'human_pending': '已创建本机待办，通知状态见待办详情',
     'queued': '等待发送', 'sending': '发送中', 'sent': '服务器已接受，收件端待确认',
 }
 PENDING = {'attempted', 'sending', 'unknown', 'submitted_unconfirmed', 'server_accepted',
@@ -132,7 +132,8 @@ def _sources(db, engine, hook_sender, source):
             FROM hook.hook_drafts d JOIN targets t ON t.id=json_extract(d.request,'$.targetId')
             WHERE json_extract(d.request,'$.account')=:account
               AND substr(coalesce(json_extract(d.request,'$.idempotencyKey'),''),1,6)!='reply_'
-              AND substr(coalesce(json_extract(d.request,'$.idempotencyKey'),''),1,9)!='schedule_'""")
+              AND substr(coalesce(json_extract(d.request,'$.idempotencyKey'),''),1,9)!='schedule_'
+              AND substr(coalesce(json_extract(d.request,'$.idempotencyKey'),''),1,8)!='handoff_'""")
     for kind, path in [('reply', runtime/'windows-auto-reply.sqlite'),
                        ('schedule', runtime/'windows-schedules.sqlite')]:
         if source not in ('all', kind) or not _attach(db, kind, path): continue

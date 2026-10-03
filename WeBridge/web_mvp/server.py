@@ -160,13 +160,15 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                         self.respond(templates.item(params.get('account'),params.get('id'),params.get('groupId','')))
                     else:self.respond(templates.list(params.get('account')))
                     return
-                if path in ('/api/handoffs','/api/handoffs/detail','/api/handoffs/routing'):
+                if path in ('/api/handoffs','/api/handoffs/detail','/api/handoffs/routing','/api/handoffs/notifications'):
                     automatic=getattr(engine,'windows_auto_reply',None)
                     if not engine.read_only or automatic is None:raise ValueError('人工待办仅适用于 Windows 数据库模式。')
                     if path.endswith('/detail'):
                         self.respond(automatic.handoffs.detail(params.get('account'),params.get('id')))
                     elif path.endswith('/routing'):
                         self.respond(automatic.handoffs.routing(params.get('account')))
+                    elif path.endswith('/notifications'):
+                        self.respond(automatic.notifications.configuration(params.get('account')))
                     else:
                         options={key:params[key] for key in ('status','groupId','limit','cursor','ownerFilter','owner') if key in params}
                         self.respond(automatic.handoffs.list(params.get('account'),**options))
@@ -274,7 +276,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     result={'messages':messages,'reply':engine.store.reply(account,group),'outbox':engine.store.outbox(account,group),'watching':watching}
                     if path=='/api/group':result.update(engine.adapter.call('members',account=account,groupId=group))
                     self.respond(result);return
-                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/handoff_ui.js':'handoff_ui.js','/handoff_routing_ui.js':'handoff_routing_ui.js','/schedule_template_ui.js':'schedule_template_ui.js','/app.css':'app.css'}
+                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/handoff_ui.js':'handoff_ui.js','/handoff_routing_ui.js':'handoff_routing_ui.js','/handoff_notification_ui.js':'handoff_notification_ui.js','/schedule_template_ui.js':'schedule_template_ui.js','/app.css':'app.css'}
                 if path.startswith('/vendor/pdfjs/'):
                     folder=(static/'vendor/pdfjs').resolve();target=(static/path.lstrip('/')).resolve()
                     if not target.is_relative_to(folder) or not target.is_file() or target.suffix not in ('.mjs','.bcmap','.pfb','.ttf','.wasm'):
@@ -307,11 +309,14 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     elif action=='delete':result=templates.delete(account,id,version)
                     else:result=getattr(templates,action)(account,id,version,data.get('groupId'),data.get('values'),data.get('overrideText'))
                     self.respond(result);return
-                if path in ('/api/handoffs/action','/api/handoffs/routing'):
+                if path in ('/api/handoffs/action','/api/handoffs/routing','/api/handoffs/notifications'):
                     automatic=getattr(engine,'windows_auto_reply',None)
                     if not engine.read_only or automatic is None:raise ValueError('人工待办仅适用于 Windows 数据库模式。')
                     if path.endswith('/routing'):
                         result=automatic.handoffs.set_routing(data.get('account'),data.get('groupId'),data.get('version'),data.get('owner'))
+                    elif path.endswith('/notifications'):
+                        result=automatic.notifications.configure(data.get('account'),data.get('groupId'),data.get('version'),
+                            data.get('routeVersion'),data.get('targetId'),data.get('enabled'))
                     else:
                         result=automatic.handoffs.action(data.get('account'),data.get('id'),data.get('version'),
                             data.get('action'),owner=data.get('owner',''),note=data.get('note',''))
@@ -327,7 +332,9 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                         if path.endswith('/start'):hook_manager.start()
                         else:
                             automatic=getattr(engine,'windows_auto_reply',None)
-                            if automatic:automatic.pause_all(sending_only=True)
+                            if automatic:
+                                automatic.pause_all(sending_only=True)
+                                automatic.notifications.pause_all('Hook 已手动断开，请连接后重新核对并启用通知。')
                             scheduler=getattr(engine,'windows_scheduler',None)
                             if scheduler:scheduler.pause_all('Hook 已手动断开，请连接后恢复任务。')
                             hook_manager.stop()
@@ -346,7 +353,10 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                             if draft.get('targetId')!=target['targetId']:
                                 raise ValueError('当前会话已变化，请重新准备发送内容。')
                             messages=engine.adapter.call('messages',account=binding['account'],groupId=target['targetId'])['messages']
-                            result=hook_sender.confirm(payload,baseline_messages=messages)
+                            if not engine.send_lock.acquire(blocking=False):
+                                raise ValueError('另一个发送操作正在进行，本次尚未提交，请稍后再确认。')
+                            try:result=hook_sender.confirm(payload,baseline_messages=messages)
+                            finally:engine.send_lock.release()
                         else:result=hook_sender.prepare(payload)
                         self.respond(result);return
                 if path in ('/api/windows/send/preview','/api/windows/send/stage','/api/windows/send/confirm'):
@@ -395,6 +405,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                         with database_service.lock:
                             watched=engine.set_watched(account,data.get('groupIds'))
                             with engine.sync_lock:automatic.pause_unwatched(account)
+                            automatic.notifications.pause_all('原群或收件会话已取消读取，请重新核对通知配置。',unwatched_account=account)
                             if scheduler:scheduler.pause_all('已取消读取收件会话，请重新勾选后恢复任务。',unwatched_account=account)
                         self.respond({'watchedGroups':watched});return
                     self.respond({'watchedGroups':engine.set_watched(account,data.get('groupIds'))});return
@@ -481,8 +492,9 @@ def main():
             try:server.serve_forever()
             except KeyboardInterrupt:pass
             finally:
+                engine.stop.set()
                 if hook_manager is not None:hook_manager.stop()
-                engine.stop.set();server.server_close()
+                server.server_close()
                 for thread in engine.threads:thread.join(timeout=2)
                 (directory/'server.pid').unlink(missing_ok=True)
     except RuntimeError as exc:

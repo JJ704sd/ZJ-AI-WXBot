@@ -5,7 +5,7 @@ let handoffOwnerDirty=false,handoffNoteDirty=false,handoffDetailId='',handoffAct
 const handoffStatuses={pending:'待领取',in_progress:'处理中',completed:'已完成'};
 const handoffActions={created:'创建待办',claim:'领取',release:'释放',complete:'完成',reopen:'重新打开',revoked:'原消息撤回'};
 function supportsHandoffs(){return isDatabase()&&state.runtime?.capabilities?.automaticReplies===true;}
-function handoffScopeKey(){return JSON.stringify([state.account,state.runtime?.mode,state.runtime?.source?.id,supportsHandoffRouting(),[...new Set(state.watchedGroups||[])].sort(),(state.groups||[]).map(group=>group.id).sort()]);}
+function handoffScopeKey(){return JSON.stringify([state.account,state.runtime?.mode,state.runtime?.source?.id,supportsHandoffRouting(),supportsHandoffNotifications(),[...new Set(state.watchedGroups||[])].sort(),(state.groups||[]).map(group=>group.id).sort()]);}
 function handoffStatus(row){return row.status==='pending'&&row.owner?'已分派 · 待领取':handoffStatuses[row.status];}
 function handoffPageControls(){
  $('handoff-prev').disabled=handoffLoading||!serviceAvailable||handoffPage===0;
@@ -21,6 +21,7 @@ function clearHandoffDetail(){
  ++handoffDetailVersion;++handoffActionVersion;handoffDetail=null;handoffDetailId='';handoffDetailLoading=false;handoffActionBusy=false;handoffOwnerDirty=false;handoffNoteDirty=false;
  $('handoff-detail-title').textContent='人工待办';$('handoff-history-note').textContent='';
  $('handoff-owner').value='';$('handoff-note').value='';$('handoff-detail-text').textContent='';$('handoff-detail-meta').textContent='';$('handoff-changes').replaceChildren();$('handoff-detail-message').textContent='';
+ $('handoff-notification-detail').replaceChildren();$('handoff-notification-detail').hidden=true;
 }
 function updateHandoffScope(){
  const scope=handoffScopeKey();
@@ -30,8 +31,9 @@ function updateHandoffScope(){
   for(const group of state.groups||[])if((state.watchedGroups||[]).includes(group.id)&&group.id.endsWith('@chatroom')){const option=el('option','',group.name);option.value=group.id;select.append(option);}
   select.value=(state.groups||[]).some(group=>group.id===chosen&&(state.watchedGroups||[]).includes(chosen))?chosen:'';
  }
- updateHandoffRoutingScope();
- $('handoff-notice').textContent='本机待办，未通知负责人。列表为已保存摘要；打开详情时核对最新副本中的撤回记录。任务操作不改变群规则，定时发送独立配置。'+(supportsHandoffRouting()?'默认负责人只分派新待办，仍需明确领取。':'');
+ updateHandoffRoutingScope();updateHandoffNotificationScope();
+ $('handoff-notice').textContent=(supportsHandoffNotifications()?'待办处理与负责人通知分别记录，请核对每条通知状态。':'本机待办，未通知负责人。')+'列表为已保存摘要；打开详情时核对最新副本中的撤回记录。任务操作不改变群规则，定时发送独立配置。'+(supportsHandoffRouting()?'默认负责人只分派新待办，仍需明确领取。':'');
+ $('handoff-detail-notice').textContent=supportsHandoffNotifications()?'领取、完成、撤回或其他待办变更会取消尚未尝试的通知；已经开始处理的通知无法撤回。任务操作不改变群规则。通知提交不等于负责人收到。':'本机待办，未通知负责人。请自行联系负责人；领取、完成或重新打开均不会发送微信消息，也不会切换群规则。定时发送独立配置。';
  handoffPageControls();handoffDetailControls();
 }
 function handoffText(record){return record.revoked?'原消息已撤回，原文不再显示。':record.trigger.text;}
@@ -43,6 +45,7 @@ function renderHandoffs(){
   heading.append(el('strong','',row.groupName),el('span','status-chip'+(row.status==='pending'?' off':''),handoffStatus(row)));
   if(row.revoked)heading.append(el('span','label-badge','已撤回'));
   card.append(heading,el('p','subtle',row.trigger.senderName+' · '+stamp(row.trigger.timestamp,{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})),el('p','handoff-preview',handoffText(row)),el('p','subtle',row.reason+' · 负责人：'+(row.owner||'未分派')));
+  if(supportsHandoffNotifications())card.append(el('p','handoff-notification-summary',handoffNotificationSummary(row.notification)));
   const open=el('button','button secondary','查看 / 处理');open.type='button';open.onclick=()=>openHandoffDetail(row.id);card.append(open);list.append(card);
  }
 }
@@ -70,6 +73,7 @@ function renderHandoffDetail(data,preserveDraft){
  $('handoff-detail-title').textContent=row.groupName+' · '+handoffStatus(row);
  $('handoff-detail-meta').textContent='发起人：'+row.trigger.senderName+' · '+stamp(row.trigger.timestamp,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})+' · '+row.reason+' · 负责人：'+(row.owner||'未分派')+' · 版本 '+row.version;
  $('handoff-detail-text').textContent=handoffText(row);$('handoff-truncated').hidden=row.revoked||!row.trigger.textTruncated;
+ renderHandoffNotificationDetail(row);
  if(!preserveDraft||!handoffOwnerDirty){$('handoff-owner').value=row.owner;handoffOwnerDirty=false;}
  if(!preserveDraft||!handoffNoteDirty){$('handoff-note').value=row.note;handoffNoteDirty=false;}
  const changes=$('handoff-changes');changes.replaceChildren();

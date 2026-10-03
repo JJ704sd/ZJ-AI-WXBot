@@ -37,7 +37,10 @@ class HandoffTests(unittest.TestCase):
         self.assertEqual(record, {'id': 'event-1', 'groupId': self.f.group,
             'groupName': '合成业务群', 'trigger': self.trigger, 'reason': '群规则要求人工处理',
             'owner': '', 'status': 'pending', 'createdAt': self.f.now,
-            'updatedAt': self.f.now, 'version': 1, 'note': '', 'revoked': False})
+            'updatedAt': self.f.now, 'version': 1, 'note': '', 'revoked': False,
+            'notification': {'status':'unassigned', 'issue':'未配置或未启用通知；不会补发旧待办。',
+                'targetId':'', 'targetName':'', 'createdAt':None, 'expiresAt':None, 'draftId':'',
+                'delivered':False, 'retryAllowed':False}})
         self.assertFalse(page['hasMore'])
         self.assertEqual(self.f.posts, [])
 
@@ -145,7 +148,7 @@ class HandoffTests(unittest.TestCase):
             self.assertEqual(db.execute('SELECT SUM(revoked) FROM handoffs').fetchone()[0], 0)
             self.queue.revoke(db, self.f.account, self.f.group, ['9001'], self.f.now+2)
         with closing(self.f.service._db()) as db:
-            records = {row['id']: self.queue._record(row) for row in db.execute('SELECT * FROM handoffs')}
+            records = {row['id']: self.queue._record(row,db) for row in db.execute('SELECT * FROM handoffs')}
             self.assertEqual(db.execute('SELECT COUNT(*) FROM handoff_changes').fetchone()[0], 4)
         self.assertTrue(records['event-1']['revoked'])
         self.assertFalse(records['other-account']['revoked'])

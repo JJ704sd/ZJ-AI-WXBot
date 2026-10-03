@@ -1,4 +1,4 @@
-"""Local human work queue; it never sends or notifies external recipients."""
+"""Local human work queue; approved notifications enter a separate durable outbox."""
 from contextlib import closing
 import json
 
@@ -36,12 +36,12 @@ class HumanHandoffs:
                 account TEXT NOT NULL, group_id TEXT NOT NULL, owner TEXT NOT NULL,
                 version INTEGER NOT NULL, updated REAL NOT NULL, PRIMARY KEY(account,group_id))''')
 
-    @staticmethod
-    def _record(row):
+    def _record(self, row, db):
         return {'id': row['id'], 'groupId': row['group_id'], 'groupName': row['group_name'],
             'trigger': json.loads(row['trigger']), 'reason': row['reason'], 'owner': row['owner'],
             'status': row['status'], 'createdAt': row['created'], 'updatedAt': row['updated'],
-            'version': row['version'], 'note': row['note'], 'revoked': bool(row['revoked'])}
+            'version': row['version'], 'note': row['note'], 'revoked': bool(row['revoked']),
+            'notification': self.owner.notifications.summary(row,db)}
 
     @staticmethod
     def _route(group, name, row):
@@ -85,6 +85,7 @@ class HumanHandoffs:
                 else:
                     db.execute('UPDATE handoff_routes SET owner=?,version=?,updated=? WHERE account=? AND group_id=?',
                         (owner,version+1,now,account,groupId))
+                service.notifications.pause_group(db,account,groupId,'默认负责人已变化，请重新核对私聊收件人并启用通知。')
                 return self._route(groupId,groups[groupId],{'owner':owner,'version':version+1,'updated':now})
 
     def enqueue(self, db, event, account, group, group_name, trigger, created):
@@ -96,6 +97,8 @@ class HumanHandoffs:
         if inserted:
             db.execute('INSERT INTO handoff_changes VALUES (?,?,?,?,?,?,?)',
                 (event, 1, 'created', 'pending', assigned, '', created))
+            task = db.execute('SELECT * FROM handoffs WHERE id=?', (event,)).fetchone()
+            self.owner.notifications.enqueue(db,task)
 
     def revoke(self, db, account, group, server_ids, now):
         rows = db.execute('''SELECT * FROM handoffs WHERE account=? AND group_id=? AND revoked=0
@@ -108,6 +111,7 @@ class HumanHandoffs:
                 (json.dumps(trigger, ensure_ascii=False), now, row['id']))
             db.execute('INSERT INTO handoff_changes VALUES (?,?,?,?,?,?,?)',
                 (row['id'], row['version']+1, 'revoked', row['status'], row['owner'], row['note'], now))
+            self.owner.notifications.cancel_task(db,row['id'],'原消息已撤回，未提交通知。')
 
     def detail(self, account, id):
         self._validate_id(id)
@@ -118,7 +122,7 @@ class HumanHandoffs:
                 row = self._task(db, account, id, groups)
             service._handoff_revocations(account, row['group_id'])
             with closing(service._db()) as db:
-                record = self._record(self._task(db, account, id, groups))
+                record = self._record(self._task(db, account, id, groups),db)
                 rows = db.execute('SELECT * FROM handoff_changes WHERE task_id=? ORDER BY version DESC LIMIT 101',
                     (id,)).fetchall()
             return {'record': record, 'changes': [
@@ -173,9 +177,10 @@ class HumanHandoffs:
                     UNION SELECT owner FROM handoffs
                     WHERE account=? AND group_id IN (SELECT value FROM json_each(?)) AND owner!=''
                     ORDER BY owner''', (account,visible,account,visible))]
+                records = [self._record(row,db) for row in rows[:size]]
             more = len(rows) > size
             rows = rows[:size]
-            return {'records': [self._record(row) for row in rows], 'hasMore': more,
+            return {'records': records, 'hasMore': more,
                 'nextCursor': _cursor_encode(scope, [rows[-1]['created'], rows[-1]['id']]) if more else '',
                 'limit': size, 'owners':owners}
 
@@ -215,7 +220,8 @@ class HumanHandoffs:
                     raise HandoffConflict('待办已被更新，请刷新后核对。')
                 db.execute('INSERT INTO handoff_changes VALUES (?,?,?,?,?,?,?)',
                     (id, version+1, action, state, assigned, note, now))
-                return self._record(self._task(db, account, id, groups))
+                service.notifications.cancel_task(db,id,'待办状态或负责人已变化，未提交通知。')
+                return self._record(self._task(db, account, id, groups),db)
 
     def _scope(self, account):
         engine = self.owner.engine

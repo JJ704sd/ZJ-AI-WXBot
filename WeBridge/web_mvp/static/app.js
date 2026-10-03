@@ -195,7 +195,7 @@ function controls(){
  const handoff=database&&$('reply-mode').value==='handoff';
  const replyUsable=database?available&&!!selected&&selected.endsWith('@chatroom')&&groupLoadState==='ready':usable;
  $('save-reply').disabled=!supportsReplies()||!replyUsable||replyBusy;
- $('reply-reason').textContent=database?(!selected?.endsWith('@chatroom')?'请选择群聊。':!(state.watchedGroups||[]).includes(selected)?'启用前请先勾选读取此群；已启用的规则可随时关闭。':handoff?'本机待办，未通知负责人。需保持自动更新副本；定时发送独立配置。':'启用后会自动发送固定文本；Hook 与自动更新副本需保持在线。'):reason;
+ $('reply-reason').textContent=database?(!selected?.endsWith('@chatroom')?'请选择群聊。':!(state.watchedGroups||[]).includes(selected)?'启用前请先勾选读取此群；已启用的规则可随时关闭。':handoff?(supportsHandoffNotifications()?'本机待办；负责人通知单独配置，状态见待办详情。需保持自动更新副本。':'本机待办，未通知负责人。需保持自动更新副本；定时发送独立配置。'):'启用后会自动发送固定文本；Hook 与自动更新副本需保持在线。'):reason;
  $('reply-enabled').disabled=!replyUsable;$('reply-mode').disabled=!replyUsable;$('reply-text').disabled=!selected||handoff;$('reply-cooldown').disabled=!selected||handoff;
  $('new-schedule').disabled=!available||(!database&&!canSend)||!(state.groups||[]).length||scheduleBusy||!!schedulePauseRequest;
  $('create-schedule').disabled=scheduleBusy||!!schedulePauseRequest;
@@ -270,9 +270,9 @@ async function selectGroup(id,{persistSelection=true}={}){
 }
 
 function renderReplyStatus(rule){
- const statuses={local_record_observed:'已观察到本地消息记录，尚未确认收件端送达',local_record_confirmed:'服务器已接受并匹配本地记录，尚未确认收件端送达',submitted_unconfirmed:'已调用发送，尚未确认送达',server_accepted:'服务器已接受，尚未确认收件端送达',unknown:'发送结果未知，不重试',blocked:'发送被阻止',expired:'发送已过期',cooldown_skipped:'间隔内的新 @ 已跳过',human_pending:'已创建本机待办，未通知负责人'};
+ const statuses={local_record_observed:'已观察到本地消息记录，尚未确认收件端送达',local_record_confirmed:'服务器已接受并匹配本地记录，尚未确认收件端送达',submitted_unconfirmed:'已调用发送，尚未确认送达',server_accepted:'服务器已接受，尚未确认收件端送达',unknown:'发送结果未知，不重试',blocked:'发送被阻止',expired:'发送已过期',cooldown_skipped:'间隔内的新 @ 已跳过',human_pending:supportsHandoffNotifications()?'已创建本机待办，通知状态见待办详情':'已创建本机待办，未通知负责人'};
  const last=rule.attempts?.[0];
- $('reply-saved-status').textContent=(rule.enabled?(isDemo()?'本机模拟规则已开启':isDatabase()?(rule.mode==='handoff'?'当前群人工待办已开启 · 本机待办，未通知负责人':'当前群自动回复已开启 · 发送固定文本'):'当前群自动回复已开启 · 回复时 @ 发送者'):isDatabase()?'当前群处理规则已关闭':'当前群自动回复已关闭')+(rule.issue?' · '+rule.issue:'')+(last?' · 最近：'+(statuses[last.status]||last.status):'');
+ $('reply-saved-status').textContent=(rule.enabled?(isDemo()?'本机模拟规则已开启':isDatabase()?(rule.mode==='handoff'?(supportsHandoffNotifications()?'当前群人工待办已开启 · 通知状态见待办详情':'当前群人工待办已开启 · 本机待办，未通知负责人'):'当前群自动回复已开启 · 发送固定文本'):'当前群自动回复已开启 · 回复时 @ 发送者'):isDatabase()?'当前群处理规则已关闭':'当前群自动回复已关闭')+(rule.issue?' · '+rule.issue:'')+(last?' · 最近：'+(statuses[last.status]||last.status):'');
 }
 function applyRule(rule){replyDirty=false;$('reply-mode').value=rule.mode||'reply';$('reply-enabled').checked=!!rule.enabled;$('reply-text').value=rule.text||'';$('reply-cooldown').value=String(rule.cooldown||30);renderReplyStatus(rule);}
 function renderMembers(){const container=$('mention-options');container.replaceChildren();const search=$('member-search').value.trim();for(const member of people.filter(x=>x.id!==state.selfId&&x.name.includes(search))){const label=el('label','member-option');const input=document.createElement('input');input.type='checkbox';input.checked=mentionIds.has(member.id);input.onchange=()=>{input.checked?mentionIds.add(member.id):mentionIds.delete(member.id);renderChips();saveDraft();};label.append(input,el('span','',member.name),el('small','',member.kind));container.append(label);}if(!container.children.length)container.append(el('div','empty compact','暂无可选成员'));renderChips();}
@@ -423,7 +423,7 @@ $('send-form').onsubmit=async event=>{
 
 $('reply-form').onsubmit=async event=>{
  event.preventDefault();if(replyBusy||$('save-reply').disabled)return;replyBusy=true;controls();const group=selected,account=state.account;
- try{const rule=await api('/api/reply',{account,groupId:group,enabled:$('reply-enabled').checked,text:$('reply-text').value,cooldown:Number($('reply-cooldown').value),...(isDatabase()?{mode:$('reply-mode').value}:{})});if(group===selected&&account===state.account)applyRule(rule);toast(isDemo()?'本机模拟规则已保存':rule.enabled?(isDatabase()?(rule.mode==='handoff'?'人工待办已开启，本机待办未通知负责人':'自动回复已开启，将在本群回复固定文本'):'自动回复已开启，将 @ 发送者后回复'):'规则已保存，自动回复关闭');}
+ try{const rule=await api('/api/reply',{account,groupId:group,enabled:$('reply-enabled').checked,text:$('reply-text').value,cooldown:Number($('reply-cooldown').value),...(isDatabase()?{mode:$('reply-mode').value}:{})});if(group===selected&&account===state.account)applyRule(rule);toast(isDemo()?'本机模拟规则已保存':rule.enabled?(isDatabase()?(rule.mode==='handoff'?(supportsHandoffNotifications()?'人工待办已开启，负责人通知单独配置':'人工待办已开启，本机待办未通知负责人'):'自动回复已开启，将在本群回复固定文本'):'自动回复已开启，将 @ 发送者后回复'):'规则已保存，自动回复关闭');}
  catch(error){toast(error.message,true);}finally{replyBusy=false;controls();}
 };
 

@@ -18,6 +18,7 @@ const ctx=vm.createContext({$,el:element,emptyCard:(title,body)=>element('empty'
 const run=code=>vm.runInContext(code,ctx);
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../static/handoff_ui.js'),'utf8'),ctx);
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../static/handoff_routing_ui.js'),'utf8'),ctx);
+vm.runInContext(fs.readFileSync(path.join(__dirname,'../static/handoff_notification_ui.js'),'utf8'),ctx);
 const record=(id='one',version=1,status='pending')=>({id,version,status,owner:status==='pending'?'':'旧负责人',note:'已有备注',groupId:'g',groupName:'合成群',reason:'真实 @ 本人',revoked:false,createdAt:1,updatedAt:2,trigger:{messageId:'m',serverId:'7',senderId:'p',senderName:'发起人',timestamp:1,text:'原始任务',textTruncated:false}});
 const page=(rows=[record()],cursor='')=>({records:rows,hasMore:!!cursor,nextCursor:cursor,limit:50});
 const detail=row=>({record:row,changes:[{version:row.version,action:'create',status:row.status,owner:row.owner,note:row.note,createdAt:1}],historyTruncated:false});

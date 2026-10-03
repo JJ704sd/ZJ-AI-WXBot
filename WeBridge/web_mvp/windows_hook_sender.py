@@ -422,11 +422,13 @@ class WindowsHookSender:
         """Server-only session identity to freeze when a rule is explicitly enabled."""
         return self._probe(_source(source))
 
-    def send_automatic(self, data, *, expected_binding, baseline_messages, deadline=None):
+    def send_automatic(self, data, *, expected_binding, baseline_messages, deadline=None, before_submit=None):
         """Server-only entry for an enabled, durably claimed reply rule.
 
         The rule owner validates the incoming event and authority before calling.
-        This is intentionally not exposed as an HTTP send endpoint.
+        before_submit(draft_id) may durably claim business authorization after
+        probes finish. Rejection prevents the native POST. This callback and
+        entry point are intentionally not exposed as an HTTP send endpoint.
         """
         if self.automation_binding(data) != expected_binding:
             raise HookSendError('binding_changed')
@@ -434,9 +436,9 @@ class WindowsHookSender:
         if json.loads(self._row(draft['draftId'])['binding']) != expected_binding:
             raise HookSendError('binding_changed')
         return self._submit({**data, 'draftId': draft['draftId'], 'textHash': draft['textHash']},
-                            baseline_messages=baseline_messages, deadline=deadline)
+                            baseline_messages=baseline_messages, deadline=deadline, before_submit=before_submit)
 
-    def _submit(self, data, *, baseline_messages=None, deadline=None):
+    def _submit(self, data, *, baseline_messages=None, deadline=None, before_submit=None):
         with _send_guard(self.directory):
             row = self._row(data.get('draftId'))
             request, binding = json.loads(row['request']), json.loads(row['binding'])
@@ -464,6 +466,16 @@ class WindowsHookSender:
                 evidence = {'baselineMessageIds': [message['id'] for message in baseline_messages
                     if isinstance(message, dict) and isinstance(message.get('id'), str)],
                     'submittedAtEpoch': self.clock()}
+            if deadline is not None and self.clock() > deadline:
+                return self._save_result(row['id'], 'expired', {'issueCode':'schedule_window_expired',
+                    'issue':ISSUES['schedule_window_expired']})
+            if before_submit is not None:
+                try:
+                    before_submit(row['id'])
+                except HookSendError as error:
+                    return self._save_result(row['id'], 'blocked', {'issueCode':error.code, 'issue':error.public_message})
+                except ValueError as error:
+                    return self._save_result(row['id'], 'blocked', {'issueCode':'submission_not_authorized', 'issue':str(error)})
             with closing(self._connect()) as database:
                 database.execute("UPDATE hook_drafts SET status='attempted',result=? WHERE id=? AND status='prepared'",
                                  (_json(evidence), row['id']))

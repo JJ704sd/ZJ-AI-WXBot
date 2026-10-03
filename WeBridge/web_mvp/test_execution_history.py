@@ -98,7 +98,7 @@ class HistoryTests(unittest.TestCase):
                 ('local-task','a','g',200,'human_pending',json.dumps(detail)))
         record=history(self.engine,self.hook)['records'][0]
         self.assertEqual(record['decision'],'handoff')
-        self.assertEqual(record['label'],'已创建本机待办，未通知负责人')
+        self.assertEqual(record['label'],'已创建本机待办，通知状态见待办详情')
         self.assertFalse(record['textUnavailable'])
         self.assertEqual(record['text'],'')
         self.assertIsNone(record['trigger'])

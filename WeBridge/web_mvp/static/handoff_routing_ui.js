@@ -63,7 +63,7 @@ async function saveHandoffRouting(){
  try{
   const result=await api('/api/handoffs/routing',{account:state.account,groupId:route.groupId,version:route.version,owner});if(!handoffRouteRequestCurrent(request))return;
   handoffRoutes=handoffRoutes.map(item=>item.groupId===result.groupId?result:item);selectHandoffRoute(result.groupId);
-  $('handoff-route-message').textContent=result.owner?'默认负责人已保存，只分派后续新待办，仍需点击领取。未通知负责人。':'默认负责人已清除，后续新待办进入未分派队列。已有任务保持原样。';
+  $('handoff-route-message').textContent=(result.owner?'默认负责人已保存，只分派后续新待办，仍需点击领取。':'默认负责人已清除，后续新待办进入未分派队列。已有任务保持原样。')+(supportsHandoffNotifications()?'负责人标签变化后自动通知会关闭，需重新核对接收私聊再启用。':'未通知负责人。');
   await loadHandoffs(true);
  }catch(error){if(handoffRouteRequestCurrent(request)){handoffRouteConflict=error.status===409;$('handoff-route-message').textContent=handoffRouteConflict?'配置已变化（409），草稿已保留。请先复制需要保留的内容，再点击“重新加载”读取最新配置。':error.message;}}
  finally{if(handoffRouteRequest===request){handoffRouteRequest=null;handoffRoutingControls();}}

@@ -90,6 +90,15 @@ class HookHttpTests(unittest.TestCase):
         self.assertEqual(self.request('POST','/api/windows/hook/confirm',self.payload())[0],400)
         self.sender.prepare.assert_not_called();self.sender.confirm.assert_not_called()
 
+    def test_notification_send_admission_does_not_consume_manual_confirmation(self):
+        with self.engine.send_lock:
+            code, result=self.request('POST','/api/windows/hook/confirm',self.payload())
+        self.assertEqual(code,400)
+        self.assertIn('尚未提交',result['error'])
+        self.sender.confirm.assert_not_called()
+        self.assertEqual(self.request('POST','/api/windows/hook/confirm',self.payload())[0],200)
+        self.sender.confirm.assert_called_once()
+
     def test_other_tab_selection_cannot_block_or_redirect_frozen_target(self):
         self.engine.selected='another-tab@chatroom'
         self.assertEqual(self.request('POST','/api/windows/hook/prepare',self.payload())[0],200)

@@ -6,7 +6,7 @@ const nodes=new Map(),$=id=>{if(!nodes.has(id))nodes.set(id,node());return nodes
 const pending=[],calls=[],checks=[];let refreshed=0;
 const ctx=vm.createContext({$,el:node,URLSearchParams,serviceAvailable:true,stamp:()=> 'time',handoffStatuses:{pending:'待领取',in_progress:'处理中',completed:'已完成'},
  state:{account:'a',runtime:{mode:'database',capabilities:{handoffRouting:true}},watchedGroups:['g1','g2']},
- isDatabase:()=>ctx.state.runtime.mode==='database',handoffScopeKey:()=>JSON.stringify([ctx.state.account,ctx.state.watchedGroups,ctx.state.runtime.mode,ctx.state.runtime.capabilities.handoffRouting]),
+ isDatabase:()=>ctx.state.runtime.mode==='database',supportsHandoffNotifications:()=>false,handoffScopeKey:()=>JSON.stringify([ctx.state.account,ctx.state.watchedGroups,ctx.state.runtime.mode,ctx.state.runtime.capabilities.handoffRouting]),
  resetHandoffPage:()=>{},loadHandoffs:async()=>{refreshed++;},api:(url,body)=>{calls.push({url,body});return new Promise((resolve,reject)=>pending.push({resolve,reject}));}});
 const run=code=>vm.runInContext(code,ctx);run(fs.readFileSync(path.join(__dirname,'../static/handoff_routing_ui.js'),'utf8'));
 const handoff=fs.readFileSync(path.join(__dirname,'../static/handoff_ui.js'),'utf8');run(handoff.slice(handoff.indexOf('function handoffStatus('),handoff.indexOf('function handoffPageControls(')));
