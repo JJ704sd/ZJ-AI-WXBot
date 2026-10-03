@@ -7,13 +7,13 @@ const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,node());return nod
 get('schedule-filter').value='all';
 let release,calls=0;
 const context=vm.createContext({$,el:(tag,className,text)=>Object.assign(node(),{textContent:text||''}),emptyCard:()=>node(),groupName:id=>id,
- stamp:()=> 'time',dateKey:()=> 'today',isDatabase:()=>true,serviceAvailable:true,
- state:{account:'fixture',jobs:[]},scheduleRenderKey:'',toast:()=>{},poll:async()=>{},
+ stamp:()=> 'time',dateKey:()=> 'today',isDatabase:()=>true,supportsSchedules:()=>true,serviceAvailable:true,scheduleBusy:false,
+ state:{account:'fixture',runtime:{mode:'database'},jobs:[]},scheduleRenderKey:'',controls:()=>{},toast:()=>{},poll:async()=>{},
  api:async()=>{calls++;await new Promise(resolve=>release=resolve);}});
 function $(id){return get(id);}
 vm.runInContext(source.slice(source.indexOf('const scheduleActionsBusy='),source.indexOf('let environmentData=')),context);
 vm.runInContext('function renderSchedules(){scheduleScope();renderWindowsSchedules();}',context);
-const job={id:'job',targetName:'测试群',text:'Hello',state:'active',enabled:true,mode:'daily',clock:'09:00',runs:[{status:'server_accepted',createdAt:1,label:'待确认'}]};
+const job={id:'job',group_id:'fixture@chatroom',targetName:'测试群',text:'Hello',state:'active',enabled:true,mode:'daily',clock:'09:00',runs:[{status:'server_accepted',createdAt:1,label:'待确认'}]};
 context.state.jobs=[job];
 vm.runInContext('scheduleScope();renderWindowsSchedules()',context);
 assert.equal(get('unknown-count').textContent,1);

@@ -341,6 +341,10 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     self.respond(engine.windows_auto_reply.configure(data.get('account'),data.get('groupId'),
                         data.get('enabled'),data.get('text',''),data.get('cooldown',30),mode=data.get('mode')));return
                 scheduler=getattr(engine,'windows_scheduler',None)
+                if path=='/api/jobs/pause-all':
+                    if not engine.read_only or scheduler is None:
+                        raise ValueError('批量暂停仅适用于 Windows 数据库模式。')
+                    self.respond(scheduler.pause_scope(data.get('account'),data.get('groupId','')));return
                 if engine.read_only and scheduler and path in ('/api/jobs','/api/jobs/cancel','/api/jobs/pause','/api/jobs/resume'):
                     if path=='/api/jobs':self.respond(scheduler.create(data),201)
                     else:self.respond(scheduler.action(data.get('account'),data.get('id'),path.rsplit('/',1)[1]))

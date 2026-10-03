@@ -10,10 +10,50 @@ let groupRenderKey='',scheduleRenderKey='',groupLoadState='idle';
 let serviceAvailable=false,serviceError='',groupFilter='all',currentView='workspace',sendBusy=false,replyBusy=false,scheduleBusy=false;
 let replyDirty=false;
 let scheduleRequestId=null;
-const scheduleActionsBusy=new Set();
+const scheduleActionsBusy=new Map();
+let scheduleAccountScope='',schedulePauseRequest=null,scheduleCreateRequest=null,schedulePauseFeedback='';
+function updateScheduleAccount(){
+ const scope=JSON.stringify([state.account,state.runtime?.mode]);if(scope===scheduleAccountScope)return;
+ scheduleAccountScope=scope;schedulePauseRequest=null;scheduleCreateRequest=null;scheduleBusy=false;scheduleActionsBusy.clear();schedulePauseFeedback='';
+ $('schedule-group-filter').value='';scheduleRenderKey='';
+}
+function renderSchedulePauseControls(){
+ updateScheduleAccount();
+ const visible=isDatabase()&&supportsSchedules(),select=$('schedule-group-filter'),group=select.value,jobs=state.jobs||[];
+ $('schedule-pause-controls').hidden=!visible;select.hidden=!visible;if(!visible)return;
+ const groups=new Map(jobs.map(job=>[job.group_id,job.targetName||groupName(job.group_id)]));
+ select.replaceChildren();const all=el('option','','全部会话');all.value='';select.append(all);
+ for(const [id,name] of groups){const option=el('option','',name);option.value=id;select.append(option);}
+ select.value=groups.has(group)?group:'';
+ const enabled=jobs.filter(job=>job.enabled&&(!select.value||job.group_id===select.value)).length;
+ $('schedule-pause-scope').textContent=(select.value?'本会话':'当前账号')+'共 '+enabled+' 个已启用任务；不受关键词和状态筛选影响。';
+ $('schedule-pause-all').textContent=schedulePauseRequest?'正在登记暂停…':select.value?'暂停本会话任务':'暂停全部定时任务';
+ $('schedule-pause-all').disabled=!serviceAvailable||!state.account||!!schedulePauseRequest||scheduleBusy||scheduleActionsBusy.size>0||enabled===0;
+ select.disabled=!!schedulePauseRequest;
+ $('schedule-pause-feedback').textContent=schedulePauseFeedback;
+}
+async function pauseSchedules(){
+ updateScheduleAccount();
+ if(!isDatabase()||!supportsSchedules()||!serviceAvailable||!state.account||schedulePauseRequest||scheduleBusy||scheduleActionsBusy.size)return;
+ const account=state.account,groupId=$('schedule-group-filter').value;
+ if(!(state.jobs||[]).some(job=>job.enabled&&(!groupId||job.group_id===groupId)))return;
+ const request={account,groupId},scope=groupId?$('schedule-group-filter').selectedOptions[0].textContent:'当前账号';
+ schedulePauseRequest=request;schedulePauseFeedback='正在登记暂停请求；当前已开始处理的任务仍可能提交。';scheduleRenderKey='';controls();renderSchedules();
+ try{
+  const result=await api('/api/jobs/pause-all',{account,groupId});
+  if(schedulePauseRequest!==request||state.account!==account)return;
+  state.jobs=result.jobs;schedulePauseFeedback=scope+'：本次暂停 '+result.pausedCount+' 个任务。已开始处理的一条仍可能提交，已提交内容不撤回。';
+ }catch(error){
+  if(schedulePauseRequest!==request||state.account!==account)return;
+  schedulePauseFeedback=scope+'：未确认暂停结果，请刷新核对。'+error.message;
+ }finally{
+  if(schedulePauseRequest===request){schedulePauseRequest=null;scheduleRenderKey='';controls();renderSchedules();}
+ }
+}
 function filteredSchedules(jobs){
  const query=$('schedule-search').value.trim().toLocaleLowerCase(),status=$('schedule-filter').value;
- return jobs.filter(job=>(status==='all'||(status==='active'?job.enabled:!job.enabled))&&
+ const group=isDatabase()?$('schedule-group-filter').value:'';
+ return jobs.filter(job=>(!group||job.group_id===group)&&(status==='all'||(status==='active'?job.enabled:!job.enabled))&&
   (!query||[job.targetName||groupName(job.group_id),job.text,job.issue,job.last_result].filter(Boolean).join(' ').toLocaleLowerCase().includes(query)));
 }
 function scheduleScope(){
@@ -23,12 +63,15 @@ function scheduleScope(){
 }
 $('schedule-search').oninput=()=>{scheduleRenderKey='';renderSchedules();};
 $('schedule-filter').onchange=()=>{scheduleRenderKey='';renderSchedules();};
+$('schedule-group-filter').onchange=()=>{scheduleRenderKey='';renderSchedules();};
+$('schedule-pause-all').onclick=pauseSchedules;
 function renderWindowsSchedules(){
+ renderSchedulePauseControls();
  const jobs=state.jobs||[],runs=jobs.flatMap(job=>job.runs||[]),active=jobs.filter(job=>job.enabled).length;
  $('job-count').textContent=active;$('active-jobs').textContent=active;
  $('today-sent').textContent=runs.filter(run=>['submitted_unconfirmed','server_accepted'].includes(run.status)&&dateKey(run.createdAt)===dateKey(Date.now()/1000)).length;
  $('unknown-count').textContent=runs.filter(run=>['unknown','submitted_unconfirmed','server_accepted','attempted'].includes(run.status)).length;
- const key=JSON.stringify([state.account,serviceAvailable,jobs,$('schedule-search').value,$('schedule-filter').value,[...scheduleActionsBusy]]);if(key===scheduleRenderKey)return;scheduleRenderKey=key;
+ const key=JSON.stringify([state.account,serviceAvailable,jobs,$('schedule-search').value,$('schedule-filter').value,$('schedule-group-filter').value,scheduleBusy,!!schedulePauseRequest,[...scheduleActionsBusy]]);if(key===scheduleRenderKey)return;scheduleRenderKey=key;
  const list=$('schedule-list');list.replaceChildren();
  if(!jobs.length){list.append(el('div','empty','暂无定时任务。可选择已勾选读取的个人或群聊，创建一次、每日或按星期重复的发送计划。'));return;}
  const states={active:'已启用',paused:'已暂停',cancelled:'已取消',finished:'已执行',missed:'已错过'};
@@ -42,13 +85,19 @@ function renderWindowsSchedules(){
   if(job.issue)info.append(el('div','',job.issue));
   if(job.runs?.length){const details=el('details'),summary=el('summary','',job.last_result);details.append(summary);for(const run of job.runs)details.append(el('p','',stamp(run.createdAt,{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})+' · '+run.label));info.append(details);}
   const actions=el('div','schedule-actions');
-  const add=(label,action)=>{const button=el('button','schedule-stop',label);button.type='button';button.disabled=!serviceAvailable||scheduleActionsBusy.has(job.id);button.onclick=async()=>{if(scheduleActionsBusy.has(job.id))return;const account=state.account;scheduleActionsBusy.add(job.id);scheduleRenderKey='';renderSchedules();try{await api('/api/jobs/'+action,{account,id:job.id});await poll();}catch(error){toast(error.message,true);}finally{scheduleActionsBusy.delete(job.id);scheduleRenderKey='';renderSchedules();}};actions.append(button);};
+  const add=(label,action)=>{const button=el('button','schedule-stop',label);button.type='button';button.disabled=!serviceAvailable||scheduleBusy||!!schedulePauseRequest||scheduleActionsBusy.has(job.id);button.onclick=async()=>{
+   if(!serviceAvailable||scheduleBusy||schedulePauseRequest||scheduleActionsBusy.has(job.id))return;
+   const account=state.account,request={account};scheduleActionsBusy.set(job.id,request);scheduleRenderKey='';controls();renderSchedules();
+   try{await api('/api/jobs/'+action,{account,id:job.id});if(scheduleActionsBusy.get(job.id)===request&&state.account===account)await poll();}
+   catch(error){if(scheduleActionsBusy.get(job.id)===request&&state.account===account)toast(error.message,true);}
+   finally{if(scheduleActionsBusy.get(job.id)===request){scheduleActionsBusy.delete(job.id);scheduleRenderKey='';controls();renderSchedules();}}
+  };actions.append(button);};
   if(job.enabled)add('暂停','pause');
   else if(job.state==='paused'&&(job.mode!=='once'||!job.runs.length))add('恢复','resume');
   if(!['cancelled','finished','missed'].includes(job.state))add('取消任务','cancel');
   row.append(time,content,info,actions);list.append(row);
  }
- if(!list.children.length)list.append(emptyCard('没有匹配的任务','更换关键词或状态筛选。','search'));
+ if(!list.children.length)list.append(emptyCard('没有匹配的任务','更换会话、关键词或状态筛选。','search'));
 }
 let environmentData=null,environmentBusy=false,environmentError='',environmentTime=null;
 const draftMemory=new Map();
@@ -113,6 +162,7 @@ function nameFor(id,list=people){return list.find(x=>x.id===id)?.name||id;}
 function stamp(seconds,options={hour:'2-digit',minute:'2-digit'}){return new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',...options}).format(new Date(seconds*1000));}
 function dateKey(seconds){return stamp(seconds,{year:'numeric',month:'2-digit',day:'2-digit'});}
 function controls(){
+ renderSchedulePauseControls();
  const database=isDatabase();
  $('message-history-limit').disabled=!selected||groupLoadState!=='ready';
  $('composer-controls').hidden=!supportsComposer()&&!supportsReplies();$('send-tab').hidden=!supportsComposer();$('reply-mode-field').hidden=!database;document.querySelector('[data-view="handoffs"]').hidden=!supportsHandoffs();$('mention-picker-label').hidden=database;$('mention-picker').hidden=database;$('mention-chips').hidden=database;$('hook-composer-feedback').hidden=!database;$('hook-composer-connection').hidden=!database;$('database-source-controls').hidden=!database||supportsComposer()||supportsReplies();$('database-panel').hidden=!database;document.querySelector('[data-view="schedules"]').hidden=!supportsSchedules();$('reply-tab').hidden=!supportsReplies();$('schedule-from-message').hidden=!supportsSchedules();
@@ -136,13 +186,14 @@ function controls(){
  $('send-reason').textContent=reason||(!$('message-text').value.trim()?'输入消息后即可'+(isDemo()?'模拟发送。':'发送。'):'');
  $('send-button').title=reason||'Ctrl + Enter 发送';
  $('message-text').disabled=!selected;
- $('schedule-from-message').disabled=!(database?available&&!!selected&&groupLoadState==='ready':usable)||scheduleBusy||!$('message-text').value.trim();
+ $('schedule-from-message').disabled=!(database?available&&!!selected&&groupLoadState==='ready':usable)||scheduleBusy||!!schedulePauseRequest||!$('message-text').value.trim();
  const handoff=database&&$('reply-mode').value==='handoff';
  const replyUsable=database?available&&!!selected&&selected.endsWith('@chatroom')&&groupLoadState==='ready':usable;
  $('save-reply').disabled=!supportsReplies()||!replyUsable||replyBusy;
  $('reply-reason').textContent=database?(!selected?.endsWith('@chatroom')?'请选择群聊。':!(state.watchedGroups||[]).includes(selected)?'启用前请先勾选读取此群；已启用的规则可随时关闭。':handoff?'本机待办，未通知负责人。需保持自动更新副本；定时发送独立配置。':'启用后会自动发送固定文本；Hook 与自动更新副本需保持在线。'):reason;
  $('reply-enabled').disabled=!replyUsable;$('reply-mode').disabled=!replyUsable;$('reply-text').disabled=!selected||handoff;$('reply-cooldown').disabled=!selected||handoff;
- $('new-schedule').disabled=!available||(!database&&!canSend)||!(state.groups||[]).length;
+ $('new-schedule').disabled=!available||(!database&&!canSend)||!(state.groups||[]).length||scheduleBusy||!!schedulePauseRequest;
+ $('create-schedule').disabled=scheduleBusy||!!schedulePauseRequest;
  $('group-info-button').disabled=!available||!selected;
  $('reading-button').disabled=!serviceAvailable||!online;
  $('send-target').textContent=selected?'发送到：'+groupName(selected):'选择会话后编辑消息；草稿在本次浏览器会话中保留。';
@@ -273,7 +324,7 @@ function updateViewTitle(){
  $('page-title').textContent=titles[currentView][0];$('page-subtitle').textContent=titles[currentView][1];
 }
 
-function renderSchedules(){scheduleScope();if(isDatabase())return renderWindowsSchedules();const jobs=state.jobs||[],out=state.outbox||[];const active=jobs.filter(x=>x.enabled).length;$('job-count').textContent=active;$('active-jobs').textContent=active;$('today-sent').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='sent'&&dateKey(x.created_at)===dateKey(Date.now()/1000)).length;$('unknown-count').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='unknown').length;const key=JSON.stringify([state.account,isDemo(),online,serviceAvailable,!!state.loggingOut,state.runtime?.capabilities,state.groups,jobs,$('schedule-search').value,$('schedule-filter').value,jobs.map(job=>memberCache.get(state.account+'|'+job.group_id)||[])]);if(key===scheduleRenderKey)return;scheduleRenderKey=key;const list=$('schedule-list');list.replaceChildren();if(!jobs.length){const empty=el('div','empty');const art=el('span');art.append(icon('clock'));empty.append(art,el('h3','','给每天的消息安排一个时间'),el('p','','创建任务，选择会话、成员与每日发送内容。'));list.append(empty);return;}
+function renderSchedules(){scheduleScope();if(isDatabase())return renderWindowsSchedules();renderSchedulePauseControls();const jobs=state.jobs||[],out=state.outbox||[];const active=jobs.filter(x=>x.enabled).length;$('job-count').textContent=active;$('active-jobs').textContent=active;$('today-sent').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='sent'&&dateKey(x.created_at)===dateKey(Date.now()/1000)).length;$('unknown-count').textContent=out.filter(x=>x.origin==='schedule'&&x.status==='unknown').length;const key=JSON.stringify([state.account,isDemo(),online,serviceAvailable,!!state.loggingOut,state.runtime?.capabilities,state.groups,jobs,$('schedule-search').value,$('schedule-filter').value,jobs.map(job=>memberCache.get(state.account+'|'+job.group_id)||[])]);if(key===scheduleRenderKey)return;scheduleRenderKey=key;const list=$('schedule-list');list.replaceChildren();if(!jobs.length){const empty=el('div','empty');const art=el('span');art.append(icon('clock'));empty.append(art,el('h3','','给每天的消息安排一个时间'),el('p','','创建任务，选择会话、成员与每日发送内容。'));list.append(empty);return;}
  for(const job of filteredSchedules(jobs)){const row=el('article','schedule-row');const clock=el('div','schedule-time',job.clock);clock.append(el('small','','每天 · 上海时间'));const content=el('div','schedule-content');content.append(el('strong','',groupName(job.group_id)),el('p','',job.text));if(job.mentions.length){const members=memberCache.get(state.account+'|'+job.group_id)||[];content.append(el('p','',job.mentions.map(id=>'@'+nameFor(id,members)).join(' ')));}const info=el('div','schedule-info');info.append(el('span','status-chip'+(job.enabled?'':' off'),job.enabled?(isDemo()?'模拟已启用':'已启用'):'已停用'));if(job.enabled&&job.nextRun)info.append(el('div','','下次 '+stamp(job.nextRun,{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})));if(job.last_result)info.append(el('div','',job.last_result));row.append(clock,content,info);if(job.enabled){const cancel=el('button','schedule-stop','停用');cancel.disabled=!serviceAvailable||!!state.loggingOut;cancel.title=!serviceAvailable?'本机服务未连接':state.loggingOut?'正在退出账号':'停用此每日任务';cancel.onclick=async()=>{try{await api('/api/jobs/cancel',{account:state.account,id:job.id});toast('任务已停用');await poll();}catch(error){toast(error.message,true);}};row.append(cancel);}list.append(row);}if(!list.children.length)list.append(emptyCard('没有匹配的任务','更换关键词或状态筛选。','search'));}
 function renderLogin(){
  if(isDatabase()){openDatabaseSettings();return;}
@@ -283,7 +334,9 @@ function renderLogin(){
 async function poll(){
  if(pollBusy)return;pollBusy=true;
  try{
-  const previous=state.account,previousSelected=selected,previousMode=state.runtime?.mode,previousSource=sourceSignature(state),previousRevision=state.runtime?.source?.revision,next=await api('/api/state');
+  const previous=state.account,previousSelected=selected,previousMode=state.runtime?.mode,previousSource=sourceSignature(state),previousRevision=state.runtime?.source?.revision,previousJobs=state.jobs,next=await api('/api/state');
+  // A completed pause can replace jobs while this older state request is in flight.
+  if(previous===next.account&&previousMode===next.runtime?.mode&&previousJobs!==state.jobs)next.jobs=state.jobs;
   const sourceChanged=next.runtime?.mode==='database'&&(previousMode!=='database'||previousSource!==sourceSignature(next));
   const snapshotChanged=next.runtime?.mode==='database'&&!sourceChanged&&previous===next.account&&previousRevision!==next.runtime?.source?.revision;
   const senderSourceChanged=previousMode!==next.runtime?.mode||previous!==next.account||state.runtime?.source?.id!==next.runtime?.source?.id;
@@ -332,7 +385,7 @@ function scheduleMode(){
  $('schedule-policy').textContent=database?'到时向所选会话发送上方文本。关闭网页仍可运行；微信和工作台后台需在线。重启或断线后任务暂停，需手动恢复；超过时间 2 分钟不补发，结果未知不重试。'+(weekly?'按勾选的星期重复，首次从下一个未来时间开始；法定节假日不自动调整。':once?'':'每日时间已过则从明天开始。'):'今天的时间已过，则从明天开始。任务会保存在本机，关闭网页后仍可执行；退出后台服务后暂停。';
 }
 function openSchedule(copyText=false){
- if(!supportsSchedules())return;if(!online){toast('请先连接数据源。',true);return;}
+ if(!supportsSchedules()||scheduleBusy||schedulePauseRequest)return;if(!online){toast('请先连接数据源。',true);return;}
  $('schedule-group').replaceChildren();
  const groups=(state.groups||[]).filter(group=>!isDatabase()||(state.watchedGroups||[]).includes(group.id));
  if(!groups.length){toast('请先勾选要读取和发送的会话。',true);return;}
@@ -368,12 +421,15 @@ $('reply-form').onsubmit=async event=>{
 for(const id of ['reply-enabled','reply-text','reply-cooldown','reply-mode'])$(id).addEventListener('input',()=>{replyDirty=true;controls();});
 
 $('schedule-form').onsubmit=async event=>{
- event.preventDefault();if(scheduleBusy||!supportsSchedules()||(!isDatabase()&&state.runtime?.capabilities?.canSend===false))return;
+ event.preventDefault();if(scheduleBusy||schedulePauseRequest||!supportsSchedules()||(!isDatabase()&&state.runtime?.capabilities?.canSend===false))return;
  const weekly=isDatabase()&&$('schedule-mode').value==='weekly',weekdays=weekly?[...document.querySelectorAll('#schedule-weekdays input:checked')].map(day=>Number(day.value)):[];
  if(weekly&&!weekdays.length){toast('请至少选择一个发送星期。',true);$('schedule-day-1').focus();return;}
- scheduleBusy=true;$('create-schedule').disabled=true;
- try{await api('/api/jobs',{account:state.account,groupId:$('schedule-group').value,text:$('schedule-text').value,mentionIds:isDatabase()?[]:[...$('schedule-members').selectedOptions].map(x=>x.value),clock:$('schedule-clock').value,...(isDatabase()?{mode:$('schedule-mode').value,at:$('schedule-at').value,requestId:scheduleRequestId}:{}),...(weekly?{weekdays}:{})});$('schedule-dialog').close();toast(isDemo()?'每日模拟任务已创建':'定时任务已创建并启用');await poll();setView('schedules');}
- catch(error){toast(error.message,true);}finally{scheduleBusy=false;$('create-schedule').disabled=false;controls();}
+ const account=state.account,request={account};scheduleCreateRequest=request;scheduleBusy=true;controls();renderSchedules();
+ try{await api('/api/jobs',{account,groupId:$('schedule-group').value,text:$('schedule-text').value,mentionIds:isDatabase()?[]:[...$('schedule-members').selectedOptions].map(x=>x.value),clock:$('schedule-clock').value,...(isDatabase()?{mode:$('schedule-mode').value,at:$('schedule-at').value,requestId:scheduleRequestId}:{}),...(weekly?{weekdays}:{})});
+  if(scheduleCreateRequest!==request||state.account!==account)return;
+  $('schedule-dialog').close();toast(isDemo()?'每日模拟任务已创建':'定时任务已创建并启用');await poll();if(scheduleCreateRequest===request&&state.account===account)setView('schedules');
+ }catch(error){if(scheduleCreateRequest===request&&state.account===account)toast(error.message,true);}
+ finally{if(scheduleCreateRequest===request){scheduleCreateRequest=null;scheduleBusy=false;scheduleRenderKey='';controls();renderSchedules();}}
 };
 
 $('schedule-group').onchange=()=>{if(!isDatabase())loadTimerMembers();};$('schedule-mode').onchange=scheduleMode;$('new-schedule').onclick=()=>openSchedule();$('schedule-from-message').onclick=()=>openSchedule(true);

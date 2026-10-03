@@ -77,6 +77,7 @@ def _run_id(job_id, due):
 class WindowsScheduler:
     def __init__(self, engine, source, sender_factory, *, clock=time.time):
         self.engine, self.source, self.sender_factory, self.clock = engine, source, sender_factory, clock
+        self._pause_requests = 0
         self.path = engine.store.path.parent/'windows-schedules.sqlite'
         with closing(self._db()) as db, db:
             db.executescript('''CREATE TABLE IF NOT EXISTS schedules(id TEXT PRIMARY KEY, account TEXT, payload TEXT);
@@ -196,6 +197,29 @@ class WindowsScheduler:
             with closing(self._db()) as db, db: self._save(db, job)
             return self._view(job)
 
+    def pause_scope(self, account, groupId=''):
+        if not isinstance(groupId, str) or len(groupId)>256:
+            raise ValueError('暂停会话范围无效。')
+        with self.engine.lock:
+            if not account or account != self.engine.account:
+                raise ValueError('账号已变化，请刷新页面。')
+            # Register before waiting for tick's source lock; concurrent pause
+            # requests must each keep the next job from starting until resolved.
+            self._pause_requests += 1
+        try:
+            with self.source.lock, self.engine.sync_lock, self.engine.lock:
+                if account != self.engine.account:
+                    raise ValueError('账号已变化，请刷新页面。')
+                with closing(self._db()) as db, db:
+                    paused = db.execute("""UPDATE schedules SET payload=json_set(payload,
+                        '$.enabled',json('false'),'$.state','paused','$.issue','已手动批量暂停。')
+                        WHERE account=? AND json_extract(payload,'$.enabled')=1
+                        AND (?='' OR json_extract(payload,'$.group_id')=?)""", (account,groupId,groupId)).rowcount
+                return {'pausedCount':paused, 'jobs':self.list(account)}
+        finally:
+            with self.engine.lock:
+                self._pause_requests -= 1
+
     def pause_all(self, reason='数据源或 Hook 连接异常，请核对后恢复任务。', *, unwatched_account=None):
         with self.source.lock, self.engine.sync_lock:
             with closing(self._db()) as db, db:
@@ -213,6 +237,10 @@ class WindowsScheduler:
             with closing(self._db()) as db:
                 saved = db.execute('SELECT payload FROM schedules ORDER BY rowid').fetchall()
             for row in saved:
+                with self.engine.lock:
+                    if self._pause_requests:
+                        return
+                # Once past this checkpoint, this job may finish before pause commits.
                 job = json.loads(row[0])
                 if not job['enabled']: continue
                 try:
