@@ -20,13 +20,45 @@ RESULTS = {'submitted_unconfirmed': '已调用微信发送入口，尚未确认�
            'expired': '发送已过期', 'missed': '超过计划时间 2 分钟，已跳过'}
 
 
-def next_daily(clock, now):
+def _check_clock(clock):
     if not isinstance(clock, str) or not re.fullmatch(r'(?:[01][0-9]|2[0-3]):[0-5][0-9]', clock):
         raise ValueError('请选择有效的北京时间 HH:MM。')
+
+
+def _next_recurring(clock, weekdays, now):
     hour, minute = map(int, clock.split(':'))
     due = datetime.fromtimestamp(now, BEIJING).replace(hour=hour, minute=minute, second=0, microsecond=0)
     if due.timestamp() <= now: due += timedelta(days=1)
+    due += timedelta(days=min((day-due.isoweekday()) % 7 for day in weekdays))
     return due.timestamp()
+
+
+def next_daily(clock, now):
+    _check_clock(clock)
+    return _next_recurring(clock, range(1, 8), now)
+
+
+def _weekdays(job):
+    return job['weekdays'] if job['mode']=='weekly' else list(range(1, 8)) if job['mode']=='daily' else []
+
+
+def _next_run(job, now):
+    return once_at(job['at'], now) if job['mode']=='once' else _next_recurring(job['clock'], _weekdays(job), now)
+
+
+def _due_runs(job, now):
+    first_due = job['nextRun']
+    if job['mode']=='once': return first_due, ()
+    weekdays = _weekdays(job)
+    first_weekday = datetime.fromtimestamp(first_due, BEIJING).isoweekday()
+    elapsed_days = int((now-first_due)//DAY_SECONDS)
+    last_weekday = (first_weekday-1+elapsed_days) % 7+1
+    elapsed_days -= min((last_weekday-day) % 7 for day in weekdays)
+    # The fixed Beijing offset allows arithmetic dates. Stream only selected
+    # weekdays so long offline gaps neither invent runs nor allocate a date list.
+    earlier = (first_due+day*DAY_SECONDS for day in range(elapsed_days)
+               if (first_weekday-1+day) % 7+1 in weekdays)
+    return first_due+elapsed_days*DAY_SECONDS, earlier
 
 
 def once_at(value, now):
@@ -78,7 +110,8 @@ class WindowsScheduler:
         runs = [{'due': r['due'], 'createdAt': r['created'], 'status': r['status'],
                  'label': RESULTS.get(r['status'], '处理结果待核对'), **json.loads(r['result'])} for r in rows]
         return {k: job[k] for k in ('id','group_id','targetName','text','mode','clock','at','enabled','state','issue','nextRun')} | {
-            'mentions': [], 'runs': runs, 'last_result': runs[0]['label'] if runs else '', 'timezone': 'Asia/Shanghai'}
+            'weekdays': _weekdays(job), 'mentions': [], 'runs': runs,
+            'last_result': runs[0]['label'] if runs else '', 'timezone': 'Asia/Shanghai'}
 
     def list(self, account):
         with closing(self._db()) as db:
@@ -100,9 +133,19 @@ class WindowsScheduler:
             raise ValueError('缺少有效的任务请求标识，请重新打开创建窗口。')
         if data.get('mentionIds'): raise ValueError('Windows 定时发送目前只支持普通文本。')
         mode = data.get('mode', 'daily')
-        if mode not in ('once','daily'): raise ValueError('请选择一次发送或每日发送。')
+        if mode not in ('once','daily','weekly'): raise ValueError('请选择一次发送、每日发送或按星期发送。')
         spec = {'groupId':group, 'text':data.get('text'), 'mode':mode,
-                'clock':data.get('clock','') if mode=='daily' else '', 'at':data.get('at','') if mode=='once' else ''}
+                'clock':data.get('clock','') if mode!='once' else '', 'at':data.get('at','') if mode=='once' else ''}
+        if mode=='weekly':
+            weekdays = data.get('weekdays')
+            if (not isinstance(weekdays, list) or not weekdays or
+                    any(type(day) is not int or not 1<=day<=7 for day in weekdays) or
+                    len(set(weekdays)) != len(weekdays)):
+                raise ValueError('请至少选择一个不重复的星期，星期一至日对应整数 1 至 7。')
+            spec['weekdays'] = sorted(weekdays)
+        elif 'weekdays' in data:
+            raise ValueError('只有按星期发送的任务可以指定星期。')
+        if mode!='once': _check_clock(spec['clock'])
         id = hashlib.sha256((str(account)+'|'+key).encode()).hexdigest()
         with self.source.lock, self.engine.sync_lock:
             if account != self.engine.account or not account: raise ValueError('账号已变化，请刷新页面。')
@@ -119,12 +162,13 @@ class WindowsScheduler:
             sender = self.sender_factory()
             target = next(row for row in self.engine.group_list if row['id']==group)
             sender._request({**binding, 'targetId':group, 'targetName':target['name'], 'text':spec['text'], 'idempotencyKey':id})
-            due = next_daily(spec['clock'], self.clock()) if mode=='daily' else once_at(spec['at'], self.clock())
+            due = _next_run(spec, self.clock())
             native = sender.automation_binding(binding)
             if not sender.supports_target(group): raise ValueError('Hook 不支持所选会话。')
             job = {'id':id, 'account':account, 'group_id':group, 'targetName':target['name'],
                    'text':spec['text'], 'mode':mode, 'clock':spec['clock'], 'at':spec['at'], 'spec':spec,
                    'nextRun':due, 'enabled':True, 'state':'active', 'issue':'', 'binding':binding, 'native':native}
+            if mode=='weekly': job['weekdays'] = spec['weekdays']
             with closing(self._db()) as db, db: self._save(db, job)
             return self._view(job)
 
@@ -147,7 +191,7 @@ class WindowsScheduler:
                 sender = self.sender_factory()
                 native = sender.automation_binding(binding)
                 if not sender.supports_target(job['group_id']): raise ValueError('Hook 不支持所选会话。')
-                due = next_daily(job['clock'], self.clock()) if job['mode']=='daily' else once_at(job['at'], self.clock())
+                due = _next_run(job, self.clock())
                 job.update(enabled=True, state='active', issue='', nextRun=due, native=native)
             with closing(self._db()) as db, db: self._save(db, job)
             return self._view(job)
@@ -182,19 +226,14 @@ class WindowsScheduler:
                     continue
                 now, due = self.clock(), job['nextRun']
                 if now < due: continue
-                first_due = due
-                elapsed_days = int((now-due)//DAY_SECONDS) if job['mode']=='daily' else 0
-                due += elapsed_days*DAY_SECONDS
+                due, earlier = _due_runs(job, now)
                 id = _run_id(job['id'], due)
                 missed = now-due > 120
                 with closing(self._db()) as db, db:
-                    # Beijing uses fixed UTC+8: every earlier occurrence is at
-                    # least one day late. Count arithmetically, then stream the
-                    # exact ledger rows without looping through send attempts or
-                    # materializing a potentially multi-year list in memory.
+                    # Earlier runs and the final claim commit together before
+                    # any submission. Existing unknown results stay untouched.
                     db.executemany('INSERT OR IGNORE INTO runs VALUES (?,?,?,?,?,?)',
-                        ((_run_id(job['id'],first_due+day*DAY_SECONDS),job['id'],
-                          first_due+day*DAY_SECONDS,now,'missed','{}') for day in range(elapsed_days)))
+                        ((_run_id(job['id'],previous),job['id'],previous,now,'missed','{}') for previous in earlier))
                     claimed = db.execute('INSERT OR IGNORE INTO runs VALUES (?,?,?,?,?,?)',
                         (id, job['id'], due, now, 'missed' if missed else 'attempted', '{}')).rowcount
                 # A previously claimed occurrence must never reach native code again.
@@ -233,7 +272,7 @@ class WindowsScheduler:
                             except Exception as error:
                                 unexpected_error = error
                                 status, result = 'unknown', {'issue':'发送调用或结果记录发生非预期异常，结果未确认；本次不自动重试。'}
-                job['nextRun'] = next_daily(job['clock'], now) if job['mode']=='daily' else None
+                job['nextRun'] = _next_run(job, now) if job['mode']!='once' else None
                 if job['mode']=='once': job.update(enabled=False, state='missed' if missed else 'finished')
                 if status not in ('missed','submitted_unconfirmed','server_accepted'):
                     job.update(enabled=False, state='paused', issue=(result['issue'] if status=='not_submitted' else

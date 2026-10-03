@@ -6,7 +6,7 @@ function node(){return {children:[],value:'',textContent:'',append(...items){thi
 const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,node());return nodes.get(id);};
 get('schedule-filter').value='all';
 let release,calls=0;
-const context=vm.createContext({$,el:()=>node(),emptyCard:()=>node(),groupName:id=>id,
+const context=vm.createContext({$,el:(tag,className,text)=>Object.assign(node(),{textContent:text||''}),emptyCard:()=>node(),groupName:id=>id,
  stamp:()=> 'time',dateKey:()=> 'today',isDatabase:()=>true,serviceAvailable:true,
  state:{account:'fixture',jobs:[]},scheduleRenderKey:'',toast:()=>{},poll:async()=>{},
  api:async()=>{calls++;await new Promise(resolve=>release=resolve);}});
@@ -31,5 +31,12 @@ get('schedule-filter').value='all';vm.runInContext('scheduleRenderKey="";renderW
  assert.ok(get('schedule-list').children[0].children[3].children.every(button=>button.disabled));
  release();await first;
  assert.ok(get('schedule-list').children[0].children[3].children.every(button=>!button.disabled));
- console.log('PASS: pending evidence, scope, search, state filter, action dedupe and recovery (synthetic only)');
+ context.state.jobs=[{...job,mode:'weekly',weekdays:[1,3,5],state:'paused',enabled:false}];
+ vm.runInContext('renderWindowsSchedules()',context);
+ const weekly=get('schedule-list').children[0];
+ assert.equal(weekly.children[0].children[0].textContent,'周一、周三、周五 · 北京时间');
+ assert.equal(weekly.children[3].children[0].textContent,'恢复');
+ const resumed=weekly.children[3].children[0].onclick();release();await resumed;
+ assert.equal(calls,2);
+ console.log('PASS: pending evidence, scope, search, state filter, action dedupe, weekly labels and resume (synthetic only)');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -30,11 +30,12 @@ function renderWindowsSchedules(){
  $('unknown-count').textContent=runs.filter(run=>['unknown','submitted_unconfirmed','server_accepted','attempted'].includes(run.status)).length;
  const key=JSON.stringify([state.account,serviceAvailable,jobs,$('schedule-search').value,$('schedule-filter').value,[...scheduleActionsBusy]]);if(key===scheduleRenderKey)return;scheduleRenderKey=key;
  const list=$('schedule-list');list.replaceChildren();
- if(!jobs.length){list.append(el('div','empty','暂无定时任务。可选择已勾选读取的个人或群聊，创建一次发送或每日计划。'));return;}
+ if(!jobs.length){list.append(el('div','empty','暂无定时任务。可选择已勾选读取的个人或群聊，创建一次、每日或按星期重复的发送计划。'));return;}
  const states={active:'已启用',paused:'已暂停',cancelled:'已取消',finished:'已执行',missed:'已错过'};
  for(const job of filteredSchedules(jobs)){
   const row=el('article','schedule-row'),time=el('div','schedule-time',job.mode==='once'?job.at.slice(11):job.clock);
-  time.append(el('small','',job.mode==='once'?job.at.slice(0,10)+' · 一次':'每天 · 北京时间'));
+  const frequency=job.mode==='weekly'?job.weekdays.map(day=>['周一','周二','周三','周四','周五','周六','周日'][day-1]).join('、'):'每天';
+  time.append(el('small','',job.mode==='once'?job.at.slice(0,10)+' · 一次':frequency+' · 北京时间'));
   const content=el('div','schedule-content');content.append(el('strong','',job.targetName),el('p','',job.text));
   const info=el('div','schedule-info');info.append(el('span','status-chip'+(job.enabled?'':' off'),states[job.state]||job.state));
   if(job.enabled&&job.nextRun)info.append(el('div','','下次 '+stamp(job.nextRun,{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})));
@@ -43,7 +44,7 @@ function renderWindowsSchedules(){
   const actions=el('div','schedule-actions');
   const add=(label,action)=>{const button=el('button','schedule-stop',label);button.type='button';button.disabled=!serviceAvailable||scheduleActionsBusy.has(job.id);button.onclick=async()=>{if(scheduleActionsBusy.has(job.id))return;const account=state.account;scheduleActionsBusy.add(job.id);scheduleRenderKey='';renderSchedules();try{await api('/api/jobs/'+action,{account,id:job.id});await poll();}catch(error){toast(error.message,true);}finally{scheduleActionsBusy.delete(job.id);scheduleRenderKey='';renderSchedules();}};actions.append(button);};
   if(job.enabled)add('暂停','pause');
-  else if(job.state==='paused'&&(job.mode==='daily'||!job.runs.length))add('恢复','resume');
+  else if(job.state==='paused'&&(job.mode!=='once'||!job.runs.length))add('恢复','resume');
   if(!['cancelled','finished','missed'].includes(job.state))add('取消任务','cancel');
   row.append(time,content,info,actions);list.append(row);
  }
@@ -150,7 +151,7 @@ function controls(){
  $('composer-note-title').textContent=database?'收发进度可见':'范围由你决定';$('composer-note').textContent=database?'接收读取本地数据库副本；发送后自动核对新增的本人消息记录。':'会话、提及成员与回复规则都独立配置。发送结果可在消息流中查看。';
  $('reply-description').textContent=database?(handoff?'真实 @ 本人的新消息进入人工待办，本规则不发送回复。重启或读取中断后需重新启用。':'仅在群里明确 @ 本人时，向同群发送固定文本，不含 @所有人。重启或断线后需重新启用。'):isDemo()?'演示规则仅在本机运行，用于体验配置流程，不会回复真实微信。':'收到直接 @ 你的新消息时，@ 发送者并回复固定话术。';
  document.querySelector('#reply-form .rule-flow span:last-child').textContent=database?(handoff?'本机人工待办':'固定文本'):'@ 对方 + 话术';
- $('schedule-mode-note').textContent=database?'一次 / 每日 · 北京时间':isDemo()?'仅本机模拟执行':'每天按时执行';
+ $('schedule-mode-note').textContent=database?'一次 / 每日 / 每周 · 北京时间':isDemo()?'仅本机模拟执行':'每天按时执行';
  document.querySelector('.schedules-panel h2').textContent=database?'定时发送计划':'每日发送计划';
  $('today-sent').parentElement.querySelector('small').textContent=database?'取每个任务最近 10 次执行记录':'取最近 100 条记录中的定时发送';
  $('schedule-from-message').textContent=database?'定时发送':'每天定时发送';
@@ -268,7 +269,7 @@ function setView(view){
  if(view==='handoffs')loadHandoffs();if(view==='executions')loadExecutionHistory();if(view==='schedules')renderSchedules();if(view==='environment'){loadEnvironment();if(isDatabase())loadDatabase();}
 }
 function updateViewTitle(){
- const titles={handoffs:['人工待办','整理真实 @ 消息，记录负责人和处理进度；本机待办不会自动通知负责人。'],executions:['执行记录','集中核对手动发送、自动回复和定时执行结果。提交和本地记录不代表收件端送达。'],workspace:['会话工作台',isDatabase()?'查看本机微信消息，向已选择读取的会话发送文本。'+databasePolicy():'查看群消息，管理发送计划与自动回复。'],schedules:['定时任务',isDatabase()?'向指定个人或群聊发送文本，支持一次发送和每日计划。':'管理每天的发送计划，查看每次执行结果。'],environment:[isDatabase()?'数据源与环境':'环境诊断',isDatabase()?'创建本地只读副本，检查来源与更新结果。':'从运行环境到桥接连接，逐项了解当前状态。']};
+ const titles={handoffs:['人工待办','整理真实 @ 消息，记录负责人和处理进度；本机待办不会自动通知负责人。'],executions:['执行记录','集中核对手动发送、自动回复和定时执行结果。提交和本地记录不代表收件端送达。'],workspace:['会话工作台',isDatabase()?'查看本机微信消息，向已选择读取的会话发送文本。'+databasePolicy():'查看群消息，管理发送计划与自动回复。'],schedules:['定时任务',isDatabase()?'向指定个人或群聊发送文本，支持一次、每日或按星期重复。':'管理每天的发送计划，查看每次执行结果。'],environment:[isDatabase()?'数据源与环境':'环境诊断',isDatabase()?'创建本地只读副本，检查来源与更新结果。':'从运行环境到桥接连接，逐项了解当前状态。']};
  $('page-title').textContent=titles[currentView][0];$('page-subtitle').textContent=titles[currentView][1];
 }
 
@@ -323,11 +324,12 @@ async function poll(){
 
 async function loadTimerMembers(){const group=$('schedule-group').value,account=state.account;$('schedule-members').replaceChildren();if(!group)return;try{let members=memberCache.get(account+'|'+group);if(!members){members=(await api(groupQuery('/api/group',group))).members;memberCache.set(account+'|'+group,members);}if(group!==$('schedule-group').value||account!==state.account)return;for(const member of members.filter(x=>x.id!==state.selfId)){const option=el('option','',member.name+' · '+member.kind);option.value=member.id;option.selected=group===selected&&mentionIds.has(member.id);$('schedule-members').append(option);}}catch(error){toast(error.message,true);}}
 function scheduleMode(){
- const database=isDatabase(),once=database&&$('schedule-mode').value==='once';
+ const database=isDatabase(),once=database&&$('schedule-mode').value==='once',weekly=database&&$('schedule-mode').value==='weekly';
  $('schedule-mode-field').hidden=!database;$('schedule-at-field').hidden=!once;$('schedule-at').required=once;
+ $('schedule-weekdays-field').hidden=!weekly;$('schedule-clock-label').textContent=weekly?'发送时间':'每天发送时间';
  $('schedule-clock-field').hidden=once;$('schedule-clock').required=!once;
  for(const id of ['schedule-members','schedule-members-label','schedule-mention-note'])$(id).hidden=database;
- $('schedule-policy').textContent=database?'到时向所选会话发送上方文本。关闭网页仍可运行；微信和工作台后台需在线。重启或断线后任务暂停，需手动恢复；超过时间 2 分钟不补发，结果未知不重试。每日时间已过则从明天开始。':'今天的时间已过，则从明天开始。任务会保存在本机，关闭网页后仍可执行；退出后台服务后暂停。';
+ $('schedule-policy').textContent=database?'到时向所选会话发送上方文本。关闭网页仍可运行；微信和工作台后台需在线。重启或断线后任务暂停，需手动恢复；超过时间 2 分钟不补发，结果未知不重试。'+(weekly?'按勾选的星期重复，首次从下一个未来时间开始；法定节假日不自动调整。':once?'':'每日时间已过则从明天开始。'):'今天的时间已过，则从明天开始。任务会保存在本机，关闭网页后仍可执行；退出后台服务后暂停。';
 }
 function openSchedule(copyText=false){
  if(!supportsSchedules())return;if(!online){toast('请先连接数据源。',true);return;}
@@ -336,6 +338,7 @@ function openSchedule(copyText=false){
  if(!groups.length){toast('请先勾选要读取和发送的会话。',true);return;}
  for(const group of groups){const option=el('option','',group.name+(isDatabase()?(group.id.endsWith('@chatroom')?' · 群聊':' · 个人会话'):''));option.value=group.id;option.selected=group.id===selected;$('schedule-group').append(option);}
  scheduleRequestId=crypto.randomUUID();$('schedule-mode').value='once';
+ for(const day of document.querySelectorAll('#schedule-weekdays input'))day.checked=Number(day.value)<=5;
  $('schedule-at').value=new Date(Date.now()+8*3600000+5*60000).toISOString().slice(0,16);
  $('schedule-text').value=copyText?$('message-text').value:'';
  $('schedule-dialog-title').textContent=isDatabase()?'新建定时发送任务':isDemo()?'新建每日模拟任务':'新建每日发送任务';
@@ -365,8 +368,11 @@ $('reply-form').onsubmit=async event=>{
 for(const id of ['reply-enabled','reply-text','reply-cooldown','reply-mode'])$(id).addEventListener('input',()=>{replyDirty=true;controls();});
 
 $('schedule-form').onsubmit=async event=>{
- event.preventDefault();if(scheduleBusy||!supportsSchedules()||(!isDatabase()&&state.runtime?.capabilities?.canSend===false))return;scheduleBusy=true;$('create-schedule').disabled=true;
- try{await api('/api/jobs',{account:state.account,groupId:$('schedule-group').value,text:$('schedule-text').value,mentionIds:isDatabase()?[]:[...$('schedule-members').selectedOptions].map(x=>x.value),clock:$('schedule-clock').value,...(isDatabase()?{mode:$('schedule-mode').value,at:$('schedule-at').value,requestId:scheduleRequestId}:{})});$('schedule-dialog').close();toast(isDemo()?'每日模拟任务已创建':'定时任务已创建并启用');await poll();setView('schedules');}
+ event.preventDefault();if(scheduleBusy||!supportsSchedules()||(!isDatabase()&&state.runtime?.capabilities?.canSend===false))return;
+ const weekly=isDatabase()&&$('schedule-mode').value==='weekly',weekdays=weekly?[...document.querySelectorAll('#schedule-weekdays input:checked')].map(day=>Number(day.value)):[];
+ if(weekly&&!weekdays.length){toast('请至少选择一个发送星期。',true);$('schedule-day-1').focus();return;}
+ scheduleBusy=true;$('create-schedule').disabled=true;
+ try{await api('/api/jobs',{account:state.account,groupId:$('schedule-group').value,text:$('schedule-text').value,mentionIds:isDatabase()?[]:[...$('schedule-members').selectedOptions].map(x=>x.value),clock:$('schedule-clock').value,...(isDatabase()?{mode:$('schedule-mode').value,at:$('schedule-at').value,requestId:scheduleRequestId}:{}),...(weekly?{weekdays}:{})});$('schedule-dialog').close();toast(isDemo()?'每日模拟任务已创建':'定时任务已创建并启用');await poll();setView('schedules');}
  catch(error){toast(error.message,true);}finally{scheduleBusy=false;$('create-schedule').disabled=false;controls();}
 };
 
