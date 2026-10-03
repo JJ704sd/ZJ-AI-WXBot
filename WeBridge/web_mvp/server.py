@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlsplit, quote
 
 from backend import Adapter, BridgeError, Engine, ROOT, Store
 from demo_backend import DemoAdapter, prepare_demo
+from human_handoffs import HandoffConflict
 from media_host import MediaCache, byte_range
 from runtime_support import ProcessLock, environment_report, runtime_summary
 
@@ -143,6 +144,15 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
             try:
                 if path=='/api/state':
                     self.respond({**engine.snapshot(),'login':login.snapshot(),'csrfToken':csrf,'runtime':runtime_summary(engine)});return
+                if path in ('/api/handoffs','/api/handoffs/detail'):
+                    automatic=getattr(engine,'windows_auto_reply',None)
+                    if not engine.read_only or automatic is None:raise ValueError('人工待办仅适用于 Windows 数据库模式。')
+                    if path.endswith('/detail'):
+                        self.respond(automatic.handoffs.detail(params.get('account'),params.get('id')))
+                    else:
+                        options={key:params[key] for key in ('status','groupId','limit','cursor') if key in params}
+                        self.respond(automatic.handoffs.list(params.get('account'),**options))
+                    return
                 if path=='/api/execution-history':
                     from execution_history import history
                     with database_service.lock if database_service is not None else nullcontext():
@@ -246,7 +256,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     result={'messages':messages,'reply':engine.store.reply(account,group),'outbox':engine.store.outbox(account,group),'watching':watching}
                     if path=='/api/group':result.update(engine.adapter.call('members',account=account,groupId=group))
                     self.respond(result);return
-                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/app.css':'app.css'}
+                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/handoff_ui.js':'handoff_ui.js','/app.css':'app.css'}
                 if path.startswith('/vendor/pdfjs/'):
                     folder=(static/'vendor/pdfjs').resolve();target=(static/path.lstrip('/')).resolve()
                     if not target.is_relative_to(folder) or not target.is_file() or target.suffix not in ('.mjs','.bcmap','.pfb','.ttf','.wasm'):
@@ -269,6 +279,11 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                 if not self.headers.get('Content-Type','').startswith('application/json'):raise ValueError('需要JSON请求。')
                 data=json.loads(self.rfile.read(length));path=urlsplit(self.path).path
                 if not isinstance(data,dict):raise ValueError('无效的JSON请求。')
+                if path=='/api/handoffs/action':
+                    automatic=getattr(engine,'windows_auto_reply',None)
+                    if not engine.read_only or automatic is None:raise ValueError('人工待办仅适用于 Windows 数据库模式。')
+                    self.respond(automatic.handoffs.action(data.get('account'),data.get('id'),data.get('version'),
+                        data.get('action'),owner=data.get('owner',''),note=data.get('note','')));return
                 if path in ('/api/database/configure','/api/database/refresh'):
                     if database_service is None:raise ValueError('请使用 Database 模式启动工作台。')
                     self.respond(database_service.configure(data) if path.endswith('/configure') else database_service.refresh(),202);return
@@ -280,7 +295,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                         if path.endswith('/start'):hook_manager.start()
                         else:
                             automatic=getattr(engine,'windows_auto_reply',None)
-                            if automatic:automatic.pause_all()
+                            if automatic:automatic.pause_all(sending_only=True)
                             scheduler=getattr(engine,'windows_scheduler',None)
                             if scheduler:scheduler.pause_all('Hook 已手动断开，请连接后恢复任务。')
                             hook_manager.stop()
@@ -324,7 +339,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     self.respond(preview_ocr(data.get('pid'),data.get('hwnd')));return
                 if engine.read_only and path=='/api/reply' and getattr(engine,'windows_auto_reply',None):
                     self.respond(engine.windows_auto_reply.configure(data.get('account'),data.get('groupId'),
-                        data.get('enabled'),data.get('text',''),data.get('cooldown',30)));return
+                        data.get('enabled'),data.get('text',''),data.get('cooldown',30),mode=data.get('mode')));return
                 scheduler=getattr(engine,'windows_scheduler',None)
                 if engine.read_only and scheduler and path in ('/api/jobs','/api/jobs/cancel','/api/jobs/pause','/api/jobs/resume'):
                     if path=='/api/jobs':self.respond(scheduler.create(data),201)
@@ -368,6 +383,8 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     id=engine.store.add_job(account,group,data.get('text',''),mentions,data.get('clock',''))
                     self.respond({'id':id},201);return
                 self.respond({'error':'Not found'},404)
+            except HandoffConflict as exc:
+                self.respond({'error':str(exc),'code':'handoff_conflict'},409)
             except (ValueError,KeyError,TypeError,BridgeError) as exc:
                 self.respond({'error':str(exc) if isinstance(exc,(ValueError,BridgeError)) else '请求字段无效。'},400)
             except Exception:self.respond({'error':'操作未完成，请刷新确认状态。'},500)

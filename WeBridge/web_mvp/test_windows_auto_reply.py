@@ -43,7 +43,7 @@ class AutoReplyTests(unittest.TestCase):
             return {'messages': [deepcopy(row) for row in self.rows
                                  if row['timestamp'] >= kwargs['start'] and
                                  (kwargs['end'] is None or row['timestamp'] <= kwargs['end'])],
-                    'warnings': self.warnings, 'cursor': None, 'complete': True}
+                    'warnings': self.warnings, 'cursor': {'phase': 'done', 'revoked': []}, 'complete': True}
         return {'messages':deepcopy(self.rows), 'warnings':self.warnings}
 
     def transport(self, method, path, payload=None):

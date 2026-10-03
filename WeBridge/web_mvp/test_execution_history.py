@@ -91,6 +91,20 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(record['decision'],'cooldown_skipped')
         self.assertNotIn('PRIVATE',json.dumps(result))
 
+    def test_handoff_event_is_not_a_missing_reply_or_delivery_claim(self):
+        detail={'decision':'handoff','taskId':'local-task','issue':'已创建本机待办，未通知负责人。'}
+        with closing(sqlite3.connect(self.root/'windows-auto-reply.sqlite')) as db, db:
+            db.execute('INSERT INTO events VALUES(?,?,?,?,?,?)',
+                ('local-task','a','g',200,'human_pending',json.dumps(detail)))
+        record=history(self.engine,self.hook)['records'][0]
+        self.assertEqual(record['decision'],'handoff')
+        self.assertEqual(record['label'],'已创建本机待办，未通知负责人')
+        self.assertFalse(record['textUnavailable'])
+        self.assertEqual(record['text'],'')
+        self.assertIsNone(record['trigger'])
+        self.assertFalse(record['pending'])
+        self.assertFalse(record['delivered'])
+
     def test_bounded_history_and_scope_revocation(self):
         for i in range(205):self.draft(str(i))
         result=history(self.engine,self.hook)

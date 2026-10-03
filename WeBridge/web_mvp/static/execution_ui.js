@@ -27,8 +27,9 @@ function renderExecutionHistory(){
   const card=el('article','execution-row'),heading=el('div','execution-heading');
   heading.append(el('strong','',row.targetName),el('span','status-chip'+(row.attention?' off':''),row.label));
   const sources={manual:'手动发送',reply:'自动回复',schedule:'定时任务'};
-  const body=el('p','execution-text',row.text|| (row.textUnavailable?'未保存本次回复正文快照':'无正文记录'));
-  card.append(heading,el('p','subtle',(sources[row.source]||row.source)+' · '+stamp(row.createdAt,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})+' · '+row.timeBasis),body);
+  const handoff=row.decision==='handoff';
+  const body=el('p','execution-text',handoff?'本条未发送回复，请到人工待办查看处理状态。':row.text|| (row.textUnavailable?'未保存本次回复正文快照':'无正文记录'));
+  card.append(heading,el('p','subtle',(handoff?'本机人工待办':sources[row.source]||row.source)+' · '+stamp(row.createdAt,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})+' · '+row.timeBasis),body);
   if(row.issue)card.append(el('p','execution-issue',row.issue));
   if(row.trigger){
    const trigger=row.trigger,context=el('details','execution-trigger');
