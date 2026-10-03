@@ -64,6 +64,18 @@ class HookSendError(ValueError):
         super().__init__(self.public_message)
 
 
+def validate_text(text, *, allow_empty=False):
+    """Validate plain text at input boundaries; drafts may explicitly allow emptiness."""
+    if (not isinstance(text, str) or (not allow_empty and not text.strip()) or len(text) > 2000 or
+            any(ord(c) < 32 and c not in '\n\t' or ord(c) == 127 for c in text)):
+        raise HookSendError('invalid_text', '请填写 1–2000 字符的纯文本消息。')
+    try:
+        if len(text.encode('utf-16-le')) // 2 > 2000 or len(text.encode('utf-8')) > 8000:
+            raise HookSendError('invalid_text', '纯文本消息最多 2000 字符。')
+    except UnicodeError:
+        raise HookSendError('invalid_text', '消息包含无效字符。') from None
+
+
 def _json(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
 
@@ -334,14 +346,7 @@ class WindowsHookSender:
     def _request(data):
         source = _source(data)
         text, key = data.get('text'), data.get('idempotencyKey')
-        if (not isinstance(text, str) or not text.strip() or len(text) > 2000 or
-                any(ord(c) < 32 and c not in '\n\t' or ord(c) == 127 for c in text)):
-            raise HookSendError('invalid_text', '请填写 1–2000 字符的纯文本消息。')
-        try:
-            if len(text.encode('utf-16-le')) // 2 > 2000 or len(text.encode('utf-8')) > 8000:
-                raise HookSendError('invalid_text', '纯文本消息最多 2000 字符。')
-        except UnicodeError:
-            raise HookSendError('invalid_text', '消息包含无效字符。') from None
+        validate_text(text)
         if not isinstance(key, str) or not re.fullmatch(r'[A-Za-z0-9_-]{16,100}', key):
             raise HookSendError('invalid_key', '缺少有效的一次性发送请求标识。')
         if (not isinstance(data.get('targetId'), str) or not re.fullmatch(r'[A-Za-z0-9_.@-]{1,256}', data['targetId']) or

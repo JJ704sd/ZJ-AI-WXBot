@@ -17,6 +17,7 @@ from demo_backend import DemoAdapter, prepare_demo
 from human_handoffs import HandoffConflict
 from media_host import MediaCache, byte_range
 from runtime_support import ProcessLock, environment_report, runtime_summary
+from schedule_templates import TemplateConflict
 
 
 class LoginFlow:
@@ -65,6 +66,15 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
     static=Path(__file__).parent/'static'
     media=media_cache or MediaCache(engine)
     hook_config_stamp=None
+    template_posts=('/api/schedule-templates/save','/api/schedule-templates/profile',
+                    '/api/schedule-templates/preview','/api/schedule-templates/delete')
+
+    def template_service():
+        scheduler=getattr(engine,'windows_scheduler',None)
+        templates=getattr(scheduler,'templates',None)
+        if getattr(engine.adapter,'mode','live')!='database' or templates is None:
+            raise ValueError('定时文本模板仅适用于 Windows 数据库模式。')
+        return templates
 
     def reload_hook_sender():
         nonlocal hook_sender,hook_config_stamp
@@ -144,6 +154,12 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
             try:
                 if path=='/api/state':
                     self.respond({**engine.snapshot(),'login':login.snapshot(),'csrfToken':csrf,'runtime':runtime_summary(engine)});return
+                if path in ('/api/schedule-templates','/api/schedule-templates/item'):
+                    templates=template_service()
+                    if path.endswith('/item'):
+                        self.respond(templates.item(params.get('account'),params.get('id'),params.get('groupId','')))
+                    else:self.respond(templates.list(params.get('account')))
+                    return
                 if path in ('/api/handoffs','/api/handoffs/detail'):
                     automatic=getattr(engine,'windows_auto_reply',None)
                     if not engine.read_only or automatic is None:raise ValueError('人工待办仅适用于 Windows 数据库模式。')
@@ -256,7 +272,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     result={'messages':messages,'reply':engine.store.reply(account,group),'outbox':engine.store.outbox(account,group),'watching':watching}
                     if path=='/api/group':result.update(engine.adapter.call('members',account=account,groupId=group))
                     self.respond(result);return
-                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/handoff_ui.js':'handoff_ui.js','/app.css':'app.css'}
+                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/handoff_ui.js':'handoff_ui.js','/schedule_template_ui.js':'schedule_template_ui.js','/app.css':'app.css'}
                 if path.startswith('/vendor/pdfjs/'):
                     folder=(static/'vendor/pdfjs').resolve();target=(static/path.lstrip('/')).resolve()
                     if not target.is_relative_to(folder) or not target.is_file() or target.suffix not in ('.mjs','.bcmap','.pfb','.ttf','.wasm'):
@@ -274,11 +290,21 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
             if self.headers.get('Origin') not in origins or self.headers.get('X-CSRF-Token')!=csrf:
                 self.respond({'error':'页面凭证已失效，请刷新页面。'},403);return
             try:
+                path=urlsplit(self.path).path
                 length=int(self.headers.get('Content-Length','0'))
-                if length<2 or length>32768:raise ValueError('请求大小无效。')
+                if length<2 or length>(262144 if path in template_posts else 32768):raise ValueError('请求大小无效。')
                 if not self.headers.get('Content-Type','').startswith('application/json'):raise ValueError('需要JSON请求。')
-                data=json.loads(self.rfile.read(length));path=urlsplit(self.path).path
+                data=json.loads(self.rfile.read(length))
                 if not isinstance(data,dict):raise ValueError('无效的JSON请求。')
+                if path in template_posts:
+                    templates=template_service()
+                    account,id,version=data.get('account'),data.get('id'),data.get('version')
+                    action=path.rsplit('/',1)[1]
+                    if action=='save':
+                        result=templates.save(account,id,version,data.get('name'),data.get('text'))
+                    elif action=='delete':result=templates.delete(account,id,version)
+                    else:result=getattr(templates,action)(account,id,version,data.get('groupId'),data.get('values'),data.get('overrideText'))
+                    self.respond(result);return
                 if path=='/api/handoffs/action':
                     automatic=getattr(engine,'windows_auto_reply',None)
                     if not engine.read_only or automatic is None:raise ValueError('人工待办仅适用于 Windows 数据库模式。')
@@ -387,6 +413,8 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     id=engine.store.add_job(account,group,data.get('text',''),mentions,data.get('clock',''))
                     self.respond({'id':id},201);return
                 self.respond({'error':'Not found'},404)
+            except TemplateConflict as exc:
+                self.respond({'error':str(exc),'code':'template_conflict'},409)
             except HandoffConflict as exc:
                 self.respond({'error':str(exc),'code':'handoff_conflict'},409)
             except (ValueError,KeyError,TypeError,BridgeError) as exc:

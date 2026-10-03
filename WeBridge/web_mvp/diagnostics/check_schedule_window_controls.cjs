@@ -11,7 +11,7 @@ const context=vm.createContext({$,console,Date,crypto:{randomUUID:()=> 'fixture-
  isDatabase:()=>context.state.runtime.mode==='database',isDemo:()=>false,supportsSchedules:()=>true,online:true,
  state:{account:'fixture',runtime:{mode:'database',capabilities:{canSend:true,scheduledSend:true,scheduleWindows:true}},groups:[{id:'g',name:'Synthetic group'}],watchedGroups:['g']},selected:'g',scheduleRequestId:null,scheduleBusy:false,schedulePauseRequest:null,scheduleCreateRequest:null,scheduleRenderKey:'',
  toast:(message,error)=>messages.push({message,error}),api:async(path,body)=>{requests.push({path,body});if(fail)throw Error('Synthetic API failure');},
- poll:async()=>{},controls:()=>{$('create-schedule').disabled=context.scheduleBusy||!!context.schedulePauseRequest;},renderSchedules:()=>{},setView:()=>{},loadTimerMembers:()=>{},el:()=>node()});
+ poll:async()=>{},controls:()=>{$('create-schedule').disabled=context.scheduleBusy||!!context.schedulePauseRequest;},resetScheduleTemplateFill:()=>{},renderSchedules:()=>{},setView:()=>{},loadTimerMembers:()=>{},el:()=>node()});
 vm.runInContext(source.slice(source.indexOf('function supportsSchedules()'),source.indexOf('function supportsReplies()')),context);
 vm.runInContext(source.slice(source.indexOf('function scheduleMode()'),source.indexOf("$('group-search').oninput")),context);
 vm.runInContext(source.slice(source.indexOf("$('schedule-form').onsubmit="),source.indexOf("$('schedule-group').onchange=")),context);

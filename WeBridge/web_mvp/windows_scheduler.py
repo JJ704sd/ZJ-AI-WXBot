@@ -9,6 +9,7 @@ import time
 
 from backend import BridgeError
 from database_adapter import has_blocking_warnings
+from schedule_templates import ScheduleTemplates
 from windows_hook_sender import HookSendError, ISSUES
 
 BEIJING = timezone(timedelta(hours=8))
@@ -88,6 +89,7 @@ class WindowsScheduler:
                     job.update(enabled=False, state='paused', issue='工作台已重启，请核对任务后恢复。')
                     self._save(db, job)
             db.execute("UPDATE runs SET status='unknown' WHERE status='attempted'")
+        self.templates = ScheduleTemplates(engine)
 
     def _db(self):
         db = sqlite3.connect(self.path, timeout=10)

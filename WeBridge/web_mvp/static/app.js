@@ -166,6 +166,7 @@ function nameFor(id,list=people){return list.find(x=>x.id===id)?.name||id;}
 function stamp(seconds,options={hour:'2-digit',minute:'2-digit'}){return new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',...options}).format(new Date(seconds*1000));}
 function dateKey(seconds){return stamp(seconds,{year:'numeric',month:'2-digit',day:'2-digit'});}
 function controls(){
+ updateScheduleTemplateScope();
  renderSchedulePauseControls();
  const database=isDatabase();
  $('message-history-limit').disabled=!selected||groupLoadState!=='ready';
@@ -401,6 +402,7 @@ function openSchedule(copyText=false){
  for(const day of document.querySelectorAll('#schedule-weekdays input'))day.checked=Number(day.value)<=5;
  $('schedule-at').value=new Date(Date.now()+8*3600000+5*60000).toISOString().slice(0,16);
  $('schedule-text').value=copyText?$('message-text').value:'';
+ resetScheduleTemplateFill();
  $('schedule-dialog-title').textContent=isDatabase()?'新建定时发送任务':isDemo()?'新建每日模拟任务':'新建每日发送任务';
  scheduleMode();$('schedule-dialog').showModal();if(!isDatabase())loadTimerMembers();
 }
