@@ -9,6 +9,14 @@ class HandoffConflict(ValueError):
     pass
 
 
+def _owner_label(value):
+    if not isinstance(value, str) or len(value)>80 or any(ch in value for ch in '\r\n\x00'):
+        raise ValueError('负责人须为不超过 80 字的单行文本。')
+    try: value.encode('utf-8')
+    except UnicodeError: raise ValueError('负责人包含无效字符。') from None
+    return value.strip()
+
+
 class HumanHandoffs:
     def __init__(self, owner):
         self.owner = owner
@@ -24,6 +32,9 @@ class HumanHandoffs:
                 status TEXT NOT NULL, owner TEXT NOT NULL, note TEXT NOT NULL,
                 created REAL NOT NULL, PRIMARY KEY(task_id,version))''')
             db.execute('CREATE INDEX IF NOT EXISTS handoff_scope ON handoffs(account,group_id,status,created DESC,id DESC)')
+            db.execute('''CREATE TABLE IF NOT EXISTS handoff_routes (
+                account TEXT NOT NULL, group_id TEXT NOT NULL, owner TEXT NOT NULL,
+                version INTEGER NOT NULL, updated REAL NOT NULL, PRIMARY KEY(account,group_id))''')
 
     @staticmethod
     def _record(row):
@@ -32,13 +43,59 @@ class HumanHandoffs:
             'status': row['status'], 'createdAt': row['created'], 'updatedAt': row['updated'],
             'version': row['version'], 'note': row['note'], 'revoked': bool(row['revoked'])}
 
+    @staticmethod
+    def _route(group, name, row):
+        return {'groupId':group, 'groupName':name, 'owner':row['owner'] if row is not None else '',
+            'version':row['version'] if row is not None else 0, 'updatedAt':row['updated'] if row is not None else None}
+
+    def _routing_groups(self, account):
+        scope = self._scope(account)
+        return {row['id']:row['name'] for row in self.owner.engine.group_list
+                if row['id'] in scope and row['id'].endswith('@chatroom')}
+
+    def routing(self, account):
+        service = self.owner
+        with service.source.lock, service.engine.sync_lock, service.engine.lock:
+            groups = self._routing_groups(account)
+            with closing(service._db()) as db:
+                saved = {row['group_id']:row for row in db.execute('''SELECT * FROM handoff_routes
+                    WHERE account=? AND group_id IN (SELECT value FROM json_each(?))''',
+                    (account,json.dumps(list(groups))))}
+            return {'routes':[self._route(group,name,saved.get(group)) for group,name in groups.items()]}
+
+    def set_routing(self, account, groupId, version, owner):
+        if not isinstance(groupId, str) or not 1<=len(groupId)<=256:
+            raise ValueError('默认负责人会话无效。')
+        if type(version) is not int or version<0:
+            raise ValueError('默认负责人版本无效，请刷新后操作。')
+        owner = _owner_label(owner)
+        service = self.owner
+        with service.source.lock, service.engine.sync_lock, service.engine.lock:
+            groups = self._routing_groups(account)
+            if groupId not in groups: raise ValueError('请先勾选读取当前群。')
+            with closing(service._db()) as db, db:
+                db.execute('BEGIN IMMEDIATE')
+                row = db.execute('SELECT * FROM handoff_routes WHERE account=? AND group_id=?', (account,groupId)).fetchone()
+                current = row['version'] if row is not None else 0
+                if current!=version: raise HandoffConflict('默认负责人已更新，请刷新后核对。')
+                if row is not None and row['owner']==owner: return self._route(groupId,groups[groupId],row)
+                now = service.clock()
+                if row is None:
+                    db.execute('INSERT INTO handoff_routes VALUES (?,?,?,?,?)', (account,groupId,owner,1,now))
+                else:
+                    db.execute('UPDATE handoff_routes SET owner=?,version=?,updated=? WHERE account=? AND group_id=?',
+                        (owner,version+1,now,account,groupId))
+                return self._route(groupId,groups[groupId],{'owner':owner,'version':version+1,'updated':now})
+
     def enqueue(self, db, event, account, group, group_name, trigger, created):
+        route = db.execute('SELECT owner FROM handoff_routes WHERE account=? AND group_id=?', (account,group)).fetchone()
+        assigned = route['owner'] if route is not None else ''
         inserted = db.execute('INSERT OR IGNORE INTO handoffs VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
             (event, account, group, group_name, json.dumps(trigger, ensure_ascii=False),
-             '群规则要求人工处理', '', 'pending', created, created, 1, '', 0)).rowcount
+             '群规则要求人工处理', assigned, 'pending', created, created, 1, '', 0)).rowcount
         if inserted:
             db.execute('INSERT INTO handoff_changes VALUES (?,?,?,?,?,?,?)',
-                (event, 1, 'created', 'pending', '', '', created))
+                (event, 1, 'created', 'pending', assigned, '', created))
 
     def revoke(self, db, account, group, server_ids, now):
         rows = db.execute('''SELECT * FROM handoffs WHERE account=? AND group_id=? AND revoked=0
@@ -69,9 +126,14 @@ class HumanHandoffs:
                  'owner': change['owner'], 'note': change['note'], 'createdAt': change['created']}
                 for change in rows[:100]], 'historyTruncated': len(rows) > 100}
 
-    def list(self, account, *, status='open', groupId='', limit=50, cursor=''):
+    def list(self, account, *, status='open', groupId='', limit=50, cursor='', ownerFilter='all', owner=''):
         if status not in ('open', 'pending', 'in_progress', 'completed', 'all'):
             raise ValueError('待办状态筛选无效。')
+        if ownerFilter not in ('all','unassigned','owner'):
+            raise ValueError('负责人筛选无效。')
+        owner = _owner_label(owner)
+        if ownerFilter=='owner' and not owner:
+            raise ValueError('请选择要筛选的负责人。')
         try: size = int(limit)
         except (ValueError, TypeError): raise ValueError('待办条数须为 1 至 200 的整数。') from None
         if str(size) != str(limit) or not 1 <= size <= 200:
@@ -87,6 +149,7 @@ class HumanHandoffs:
             watched = service.engine.store.rows('SELECT updated_at FROM subscriptions WHERE account=?', (account,))
             scope = _digest({'kind': 'handoffs', 'account': account, 'groups': sorted(groups),
                 'watched': watched, 'status': status, 'group': groupId, 'limit': size,
+                'ownerFilter':ownerFilter, 'owner':owner,
                 'store': str(service.engine.store.path.resolve())})
             position = _cursor_decode(cursor, scope)
             conditions = ['account=?', 'group_id IN (SELECT value FROM json_each(?))']
@@ -94,6 +157,9 @@ class HumanHandoffs:
             if status == 'open': conditions.append("status IN ('pending','in_progress')")
             elif status != 'all':
                 conditions.append('status=?'); args.append(status)
+            if ownerFilter=='unassigned': conditions.append("owner=''")
+            elif ownerFilter=='owner':
+                conditions.append('owner=?'); args.append(owner)
             if position:
                 created, id = position['last']
                 conditions.append('(created < ? OR (created = ? AND id < ?))')
@@ -101,11 +167,17 @@ class HumanHandoffs:
             with closing(service._db()) as db:
                 rows = db.execute('SELECT * FROM handoffs WHERE '+' AND '.join(conditions)+
                     ' ORDER BY created DESC,id DESC LIMIT ?', (*args, size+1)).fetchall()
+                visible = json.dumps(sorted(groups))
+                owners = [row['owner'] for row in db.execute('''SELECT owner FROM handoff_routes
+                    WHERE account=? AND group_id IN (SELECT value FROM json_each(?)) AND owner!=''
+                    UNION SELECT owner FROM handoffs
+                    WHERE account=? AND group_id IN (SELECT value FROM json_each(?)) AND owner!=''
+                    ORDER BY owner''', (account,visible,account,visible))]
             more = len(rows) > size
             rows = rows[:size]
             return {'records': [self._record(row) for row in rows], 'hasMore': more,
                 'nextCursor': _cursor_encode(scope, [rows[-1]['created'], rows[-1]['id']]) if more else '',
-                'limit': size}
+                'limit': size, 'owners':owners}
 
     def action(self, account, id, version, action, *, owner='', note=''):
         self._validate_id(id)
@@ -113,9 +185,7 @@ class HumanHandoffs:
             raise ValueError('待办版本无效，请刷新后操作。')
         if action not in ('claim', 'release', 'complete', 'reopen'):
             raise ValueError('待办操作无效。')
-        if not isinstance(owner, str) or len(owner) > 80 or any(ch in owner for ch in '\r\n\x00'):
-            raise ValueError('负责人须为不超过 80 字的单行文本。')
-        owner = owner.strip()
+        owner = _owner_label(owner)
         if action == 'claim' and not owner:
             raise ValueError('领取待办时请填写负责人。')
         if not isinstance(note, str) or len(note) > 2000:

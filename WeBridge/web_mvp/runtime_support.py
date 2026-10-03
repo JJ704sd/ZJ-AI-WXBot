@@ -68,6 +68,7 @@ def runtime_summary(engine):
                              'scheduleWindows':database and getattr(engine,'windows_scheduler',None) is not None,
                              'scheduleTemplates':database and getattr(getattr(engine,'windows_scheduler',None),'templates',None) is not None,
                              'automaticReplies':not database or getattr(engine,'windows_auto_reply',None) is not None,
+                             'handoffRouting':database and getattr(getattr(engine,'windows_auto_reply',None),'handoffs',None) is not None,
                              'mentions': bool(engine.self_id), 'supportsLiveSend': not demo and not database,
                              'liveSend': not demo and not database and bridge_ready,
                              'media': connected if database else not demo and bridge_ready,

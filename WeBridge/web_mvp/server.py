@@ -160,13 +160,15 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                         self.respond(templates.item(params.get('account'),params.get('id'),params.get('groupId','')))
                     else:self.respond(templates.list(params.get('account')))
                     return
-                if path in ('/api/handoffs','/api/handoffs/detail'):
+                if path in ('/api/handoffs','/api/handoffs/detail','/api/handoffs/routing'):
                     automatic=getattr(engine,'windows_auto_reply',None)
                     if not engine.read_only or automatic is None:raise ValueError('人工待办仅适用于 Windows 数据库模式。')
                     if path.endswith('/detail'):
                         self.respond(automatic.handoffs.detail(params.get('account'),params.get('id')))
+                    elif path.endswith('/routing'):
+                        self.respond(automatic.handoffs.routing(params.get('account')))
                     else:
-                        options={key:params[key] for key in ('status','groupId','limit','cursor') if key in params}
+                        options={key:params[key] for key in ('status','groupId','limit','cursor','ownerFilter','owner') if key in params}
                         self.respond(automatic.handoffs.list(params.get('account'),**options))
                     return
                 if path=='/api/execution-history':
@@ -272,7 +274,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     result={'messages':messages,'reply':engine.store.reply(account,group),'outbox':engine.store.outbox(account,group),'watching':watching}
                     if path=='/api/group':result.update(engine.adapter.call('members',account=account,groupId=group))
                     self.respond(result);return
-                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/handoff_ui.js':'handoff_ui.js','/schedule_template_ui.js':'schedule_template_ui.js','/app.css':'app.css'}
+                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/handoff_ui.js':'handoff_ui.js','/handoff_routing_ui.js':'handoff_routing_ui.js','/schedule_template_ui.js':'schedule_template_ui.js','/app.css':'app.css'}
                 if path.startswith('/vendor/pdfjs/'):
                     folder=(static/'vendor/pdfjs').resolve();target=(static/path.lstrip('/')).resolve()
                     if not target.is_relative_to(folder) or not target.is_file() or target.suffix not in ('.mjs','.bcmap','.pfb','.ttf','.wasm'):
@@ -305,11 +307,15 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     elif action=='delete':result=templates.delete(account,id,version)
                     else:result=getattr(templates,action)(account,id,version,data.get('groupId'),data.get('values'),data.get('overrideText'))
                     self.respond(result);return
-                if path=='/api/handoffs/action':
+                if path in ('/api/handoffs/action','/api/handoffs/routing'):
                     automatic=getattr(engine,'windows_auto_reply',None)
                     if not engine.read_only or automatic is None:raise ValueError('人工待办仅适用于 Windows 数据库模式。')
-                    self.respond(automatic.handoffs.action(data.get('account'),data.get('id'),data.get('version'),
-                        data.get('action'),owner=data.get('owner',''),note=data.get('note','')));return
+                    if path.endswith('/routing'):
+                        result=automatic.handoffs.set_routing(data.get('account'),data.get('groupId'),data.get('version'),data.get('owner'))
+                    else:
+                        result=automatic.handoffs.action(data.get('account'),data.get('id'),data.get('version'),
+                            data.get('action'),owner=data.get('owner',''),note=data.get('note',''))
+                    self.respond(result);return
                 if path in ('/api/database/configure','/api/database/refresh'):
                     if database_service is None:raise ValueError('请使用 Database 模式启动工作台。')
                     self.respond(database_service.configure(data) if path.endswith('/configure') else database_service.refresh(),202);return
