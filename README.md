@@ -12,7 +12,7 @@
 
 ## 当前评审材料
 
-- [企微 Hook 与 Agent 策略调研 第二版 本地落地修订（外部资料 2026-10-02）](./specs/wecom-hook-agent-research-2026-10-02.md)：本地基线更新至 `edeb7a4`，纳入入站分页、历史查询、审计及逐日漏账；单列在制人工待办，明确持久任务消费、影子编排、模型评测与发送迁移顺序。[本地续审](./evidence/research-current-state-audit.md) · [结构化证据](./evidence/wecom-hook-agent-research-2026-10-02.json)。本次为文档更新，保留已有产品修改；未新增实机或模型验收。
+- [企微 Hook 与 Agent 策略调研 第二版 本地落地修订（续审 2026-10-04）](./specs/wecom-hook-agent-research-2026-10-02.md)：基线更新至 `bfb073e`，纳入已提交待办、负责人通知、执行日／窗口和模板；区分内部批量预览与完整接入，复查 OpenClaw 工具中断、Hermes Bot Chat 及 Jev 语义评测边界。[本地续审](./evidence/research-current-state-audit.md) · [框架复核](./evidence/research-framework-refresh-2026-10-04.md) · [结构化证据](./evidence/wecom-hook-agent-research-2026-10-02.json)。本次为报告更新，实际收发与模型效果仍按各自证据验收。
 - [个微收发 v1.21 主文](./specs/个微收发_v1.21_技术评审修订版_2026-09-26.md)：业务与功能、候选资料、交付成本、项目证据和分阶段验收。
 - [v1.21 演讲稿](./specs/个微收发_v1.21_技术评审演讲稿_2026-09-26.md)：按主文章节顺序，约 8 分钟主讲及备查依据。
 - [v1.21 问题清单](./specs/个微收发_v1.21_技术评审问题清单_2026-09-26.md)：30 项检查、18 组答辩、验收与会议记录模板。
