@@ -67,6 +67,7 @@ def runtime_summary(engine):
                              'scheduledSend':not database or getattr(engine,'windows_scheduler',None) is not None,
                              'scheduleWindows':database and getattr(engine,'windows_scheduler',None) is not None,
                              'scheduleTemplates':database and getattr(getattr(engine,'windows_scheduler',None),'templates',None) is not None,
+                             'scheduleBatches':database and getattr(getattr(engine,'windows_scheduler',None),'batches',None) is not None,
                              'automaticReplies':not database or getattr(engine,'windows_auto_reply',None) is not None,
                              'handoffRouting':database and getattr(getattr(engine,'windows_auto_reply',None),'handoffs',None) is not None,
                              'handoffNotifications':database and getattr(getattr(engine,'windows_auto_reply',None),'notifications',None) is not None,

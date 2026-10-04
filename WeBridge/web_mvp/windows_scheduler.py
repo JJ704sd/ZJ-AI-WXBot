@@ -98,6 +98,15 @@ def _schedule_spec(data):
     return spec
 
 
+def _new_job(id, account, spec, target_name, binding, native, due):
+    job = {'id':id, 'account':account, 'group_id':spec['groupId'], 'targetName':target_name,
+           'text':spec['text'], 'mode':spec['mode'], 'clock':spec['clock'], 'at':spec['at'], 'spec':spec,
+           'nextRun':due, 'enabled':True, 'state':'active', 'issue':'', 'binding':binding, 'native':native}
+    if spec['mode']=='weekly': job['weekdays'] = spec['weekdays']
+    if 'windowMinutes' in spec: job['windowMinutes'] = spec['windowMinutes']
+    return job
+
+
 class WindowsScheduler:
     def __init__(self, engine, source, sender_factory, *, clock=time.time):
         self.engine, self.source, self.sender_factory, self.clock = engine, source, sender_factory, clock
@@ -139,7 +148,8 @@ class WindowsScheduler:
                  'label': RESULTS.get(r['status'], '处理结果待核对'), **json.loads(r['result'])} for r in rows]
         return {k: job[k] for k in ('id','group_id','targetName','text','mode','clock','at','enabled','state','issue','nextRun')} | {
             'weekdays': _weekdays(job), 'windowMinutes': job.get('windowMinutes', 2), 'mentions': [], 'runs': runs,
-            'last_result': runs[0]['label'] if runs else '', 'timezone': 'Asia/Shanghai'}
+            'last_result': runs[0]['label'] if runs else '', 'timezone': 'Asia/Shanghai'} | (
+            {'batchId':job['batchId']} if 'batchId' in job else {})
 
     def list(self, account):
         with closing(self._db()) as db:
@@ -160,7 +170,6 @@ class WindowsScheduler:
         if not isinstance(key, str) or not re.fullmatch(r'[A-Za-z0-9_-]{16,100}', key):
             raise ValueError('缺少有效的任务请求标识，请重新打开创建窗口。')
         spec = _schedule_spec(data)
-        mode, window = spec['mode'], spec.get('windowMinutes', 2)
         id = hashlib.sha256((str(account)+'|'+key).encode()).hexdigest()
         with self.source.lock, self.engine.sync_lock:
             if account != self.engine.account or not account: raise ValueError('账号已变化，请刷新页面。')
@@ -180,11 +189,7 @@ class WindowsScheduler:
             due = _next_run(spec, self.clock())
             native = sender.automation_binding(binding)
             if not sender.supports_target(group): raise ValueError('Hook 不支持所选会话。')
-            job = {'id':id, 'account':account, 'group_id':group, 'targetName':target['name'],
-                   'text':spec['text'], 'mode':mode, 'clock':spec['clock'], 'at':spec['at'], 'spec':spec,
-                   'nextRun':due, 'enabled':True, 'state':'active', 'issue':'', 'binding':binding, 'native':native}
-            if mode=='weekly': job['weekdays'] = spec['weekdays']
-            if window != 2: job['windowMinutes'] = window
+            job = _new_job(id, account, spec, target['name'], binding, native, due)
             with closing(self._db()) as db, db: self._save(db, job)
             return self._view(job)
 

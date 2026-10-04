@@ -81,18 +81,20 @@ async function loadScheduleTemplate(id,groupId=$('schedule-template-target').val
  catch(error){if(scheduleTemplateRequestCurrent(request))scheduleTemplateFailure(error);}
  finally{if(scheduleTemplateRequest===request){scheduleTemplateRequest=null;scheduleTemplateControls();}}
 }
-async function openScheduleTemplates(mode='manage'){
+async function openScheduleTemplates(mode='manage',target=null){
  updateScheduleTemplateScope();if(!supportsScheduleTemplates()||!state.account||!serviceAvailable)return;
  if(mode==='apply'&&(scheduleBusy||schedulePauseRequest||!$('schedule-dialog').open||!$('schedule-group').value))return;
  clearScheduleTemplateDialog();scheduleTemplateMode=mode;
  scheduleTemplateApplyContext=mode==='apply'?{account:state.account,groupId:$('schedule-group').value,requestId:scheduleRequestId,text:$('schedule-text').value}:null;
- const groupId=scheduleTemplateApplyContext?scheduleTemplateApplyContext.groupId:'';renderScheduleTemplateTargets(groupId);renderScheduleTemplateList();
+ const groupId=scheduleTemplateApplyContext?scheduleTemplateApplyContext.groupId:target?target.groupId:'';renderScheduleTemplateTargets(groupId);renderScheduleTemplateList();
  $('schedule-template-dialog-title').textContent=mode==='apply'?'从模板填入当前任务':'定时消息模板库';$('schedule-template-dialog').showModal();
  const request=beginScheduleTemplateRequest('read');$('schedule-template-message').textContent='正在读取模板库…';
  try{
   const data=await api('/api/schedule-templates?'+new URLSearchParams({account:state.account}));if(!scheduleTemplateRequestCurrent(request))return;
   scheduleTemplateRows=data.templates;renderScheduleTemplateList();scheduleTemplateRequest=null;
-  if(data.templates.length){$('schedule-template-select').value=data.templates[0].id;await loadScheduleTemplate(data.templates[0].id,groupId);}
+  const chosen=target?data.templates.find(row=>row.id===target.id):data.templates[0];
+  if(chosen){$('schedule-template-select').value=chosen.id;await loadScheduleTemplate(chosen.id,groupId);}
+  else if(target){$('schedule-template-message').textContent='此模板已删除，请关闭后重新选择模板。';scheduleTemplateControls();}
   else{$('schedule-template-message').textContent='暂无模板，点击“新建模板”开始。';scheduleTemplateControls();}
  }catch(error){if(scheduleTemplateRequestCurrent(request))scheduleTemplateFailure(error);}
  finally{if(scheduleTemplateRequest===request){scheduleTemplateRequest=null;scheduleTemplateControls();}}
@@ -112,6 +114,7 @@ async function mutateScheduleTemplate(action){
  const body={account:state.account,id:detail.id,version:detail.version,...(action==='save'?{name:$('schedule-template-name').value,text:$('schedule-template-body').value}:action==='profile'?{groupId,...profile}:{})};
  try{
   const result=await api('/api/schedule-templates/'+action,body);if(!scheduleTemplateRequestCurrent(request))return;
+  scheduleBatchTemplateChanged(detail.id);
   if(action==='delete'){scheduleTemplateRows=scheduleTemplateRows.filter(row=>row.id!==detail.id);renderScheduleTemplateList();clearScheduleTemplateDialog(true);$('schedule-template-message').textContent='模板已删除；已创建的定时任务保持原正文。';return;}
   const row={id:result.id,name:result.name,version:result.version,variables:result.variables,targetCount:result.targets.length};scheduleTemplateRows=scheduleTemplateRows.filter(item=>item.id!==row.id);scheduleTemplateRows.push(row);renderScheduleTemplateList(row.id);
   renderScheduleTemplateDetail(action==='save'?{...result,groupId}:result,action==='save'?profile:result.profile);

@@ -167,6 +167,7 @@ function stamp(seconds,options={hour:'2-digit',minute:'2-digit'}){return new Int
 function dateKey(seconds){return stamp(seconds,{year:'numeric',month:'2-digit',day:'2-digit'});}
 function controls(){
  updateScheduleTemplateScope();
+ updateScheduleBatchScope();
  renderSchedulePauseControls();
  const database=isDatabase();
  $('message-history-limit').disabled=!selected||groupLoadState!=='ready';

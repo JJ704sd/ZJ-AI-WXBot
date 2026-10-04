@@ -17,6 +17,7 @@ from demo_backend import DemoAdapter, prepare_demo
 from human_handoffs import HandoffConflict
 from media_host import MediaCache, byte_range
 from runtime_support import ProcessLock, environment_report, runtime_summary
+from schedule_batches import BatchConflict
 from schedule_templates import TemplateConflict
 
 
@@ -68,6 +69,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
     hook_config_stamp=None
     template_posts=('/api/schedule-templates/save','/api/schedule-templates/profile',
                     '/api/schedule-templates/preview','/api/schedule-templates/delete')
+    batch_posts=('/api/jobs/batch/preview','/api/jobs/batch')
 
     def template_service():
         scheduler=getattr(engine,'windows_scheduler',None)
@@ -276,7 +278,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     result={'messages':messages,'reply':engine.store.reply(account,group),'outbox':engine.store.outbox(account,group),'watching':watching}
                     if path=='/api/group':result.update(engine.adapter.call('members',account=account,groupId=group))
                     self.respond(result);return
-                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/handoff_ui.js':'handoff_ui.js','/handoff_routing_ui.js':'handoff_routing_ui.js','/handoff_notification_ui.js':'handoff_notification_ui.js','/schedule_template_ui.js':'schedule_template_ui.js','/app.css':'app.css'}
+                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/handoff_ui.js':'handoff_ui.js','/handoff_routing_ui.js':'handoff_routing_ui.js','/handoff_notification_ui.js':'handoff_notification_ui.js','/schedule_template_ui.js':'schedule_template_ui.js','/schedule_batch_ui.js':'schedule_batch_ui.js','/app.css':'app.css'}
                 if path.startswith('/vendor/pdfjs/'):
                     folder=(static/'vendor/pdfjs').resolve();target=(static/path.lstrip('/')).resolve()
                     if not target.is_relative_to(folder) or not target.is_file() or target.suffix not in ('.mjs','.bcmap','.pfb','.ttf','.wasm'):
@@ -296,7 +298,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
             try:
                 path=urlsplit(self.path).path
                 length=int(self.headers.get('Content-Length','0'))
-                if length<2 or length>(262144 if path in template_posts else 32768):raise ValueError('请求大小无效。')
+                if length<2 or length>(262144 if path in template_posts or path in batch_posts else 32768):raise ValueError('请求大小无效。')
                 if not self.headers.get('Content-Type','').startswith('application/json'):raise ValueError('需要JSON请求。')
                 data=json.loads(self.rfile.read(length))
                 if not isinstance(data,dict):raise ValueError('无效的JSON请求。')
@@ -383,6 +385,13 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     self.respond(engine.windows_auto_reply.configure(data.get('account'),data.get('groupId'),
                         data.get('enabled'),data.get('text',''),data.get('cooldown',30),mode=data.get('mode')));return
                 scheduler=getattr(engine,'windows_scheduler',None)
+                if path in batch_posts:
+                    batches=getattr(scheduler,'batches',None)
+                    if not engine.read_only or getattr(engine.adapter,'mode','live')!='database' or batches is None:
+                        raise ValueError('批量定时仅适用于 Windows 数据库模式。')
+                    if path.endswith('/preview'):self.respond(batches.preview(data))
+                    else:self.respond(batches.create(data),201)
+                    return
                 if path=='/api/jobs/pause-all':
                     if not engine.read_only or scheduler is None:
                         raise ValueError('批量暂停仅适用于 Windows 数据库模式。')
@@ -430,6 +439,8 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     id=engine.store.add_job(account,group,data.get('text',''),mentions,data.get('clock',''))
                     self.respond({'id':id},201);return
                 self.respond({'error':'Not found'},404)
+            except BatchConflict as exc:
+                self.respond({'error':str(exc),'code':'batch_conflict'},409)
             except TemplateConflict as exc:
                 self.respond({'error':str(exc),'code':'template_conflict'},409)
             except HandoffConflict as exc:
