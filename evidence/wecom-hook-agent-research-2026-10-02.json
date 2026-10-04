@@ -1,8 +1,8 @@
 {
   "research_date": "2026-10-02",
   "timezone": "Asia/Shanghai",
-  "repository_head": "bfb073e55fe14c20c71fd857ab0a56b24bdeae0e",
-  "scope": "Research report and evidence update at fixed local commit bfb073e; selected official framework recheck; report-only publication",
+  "repository_head": "bdafc8177a8600d110af2c0428af07be58f6450f",
+  "scope": "Report update for committed atomic schedule batch creation, idempotent receipt recovery, business occurrence uniqueness and configuration-vs-execution capacity; report-only publication",
   "report": "specs/wecom-hook-agent-research-2026-10-02.md",
   "previous_report_preserved": "specs/wecom-hook-agent-research-2026-10-01.md",
   "shared_conversation": {
@@ -16,6 +16,7 @@
     "source_status": "User-provided design input; framework claims independently checked"
   },
   "execution_boundaries": {
+    "scope": "Current report continuation at bdafc817; historical checks kept separately",
     "client_attached": false,
     "process_injected": false,
     "live_chats_read": false,
@@ -23,9 +24,9 @@
     "model_api_called": false,
     "framework_installed_or_run": false,
     "product_code_changed": false,
-    "git_fetch_commit_or_push_performed": false,
-    "local_synthetic_reproductions_run": true,
-    "selected_existing_tests_run": true,
+    "git_fetch_commit_or_push_performed": true,
+    "local_synthetic_reproductions_run": false,
+    "selected_existing_tests_run": false,
     "full_regression_run": false
   },
   "evidence_files": [
@@ -37,7 +38,8 @@
     "evidence/research-local-actions-2026-10-02.md",
     "evidence/research-local-poc-reuse-2026-10-02.md",
     "evidence/research-current-state-audit.md",
-    "evidence/research-framework-refresh-2026-10-04.md"
+    "evidence/research-framework-refresh-2026-10-04.md",
+    "evidence/research-batch-boundaries-2026-10-04.md"
   ],
   "source_snapshots": [
     {
@@ -322,7 +324,7 @@
     "repository_head": "626b123226f1c974b48a6dceaa1373fe81b724c4",
     "status": "Historical review before edeb7a4; see continuation_review for superseding current-state findings"
   },
-  "previous_repository_head": "edeb7a42886ba68b683c9fa06728a552911af248",
+  "previous_repository_head": "bfb073e55fe14c20c71fd857ab0a56b24bdeae0e",
   "prior_document_validation": {
     "independent_review": "Cost and Jev review, framework-source review, orchestration race review completed; findings incorporated",
     "budget_arithmetic": "PASS",
@@ -338,39 +340,38 @@
   "document_validation": {
     "status": "PASS",
     "date": "2026-10-04",
-    "scope": "Report artifact checks and fixed-source audit only; no product tests or live operations",
-    "markdown_files_checked": 11,
-    "local_markdown_links_checked": 87,
+    "scope": "Report artifacts and fixed-source audit only; product test counts attributed to existing execution records",
+    "local_markdown_links_checked": 101,
+    "markdown_files_checked": 12,
+    "fixed_source_snapshots_checked": 19,
     "encoding_and_code_fences": "PASS",
     "links_and_used_anchors": "PASS",
     "budget_and_probability_arithmetic": "PASS",
-    "fixed_source_snapshots_checked": 15,
     "historical_report_preserved": true,
     "product_files_edited_by_this_task": false,
     "independent_reviews": [
-      "Local committed capabilities and task/action boundaries",
-      "Official framework mechanism and pricing recheck"
+      "Committed batch API/UI/transaction and recovery audit",
+      "Business uniqueness, receipt evidence and capacity boundaries"
     ],
     "publication_scope": [
       "README.md",
       "specs/wecom-hook-agent-research-2026-10-02.md",
       "evidence/research-current-state-audit.md",
-      "evidence/research-frameworks-2026-10-02.md",
-      "evidence/research-framework-refresh-2026-10-04.md",
+      "evidence/research-batch-boundaries-2026-10-04.md",
       "evidence/wecom-hook-agent-research-2026-10-02.json"
     ],
     "not_proven": [
-      "live capture and delivery",
-      "outbound native mentions",
-      "Chinese semantic quality",
-      "real token savings",
-      "300-group capacity"
+      "real 300-group deadline execution",
+      "native outbound mentions",
+      "Chinese model quality",
+      "actual token savings",
+      "live delivery or read receipt"
     ]
   },
   "continuation_review": {
     "date": "2026-10-04",
-    "repository_head": "bfb073e55fe14c20c71fd857ab0a56b24bdeae0e",
-    "scope": "Fixed committed source, existing execution records and official framework documentation; only report artifacts edited",
+    "repository_head": "bdafc8177a8600d110af2c0428af07be58f6450f",
+    "scope": "Fixed committed batch source, existing execution records and test definitions; external core research retained from earlier same-day review",
     "source_snapshots": [
       {
         "path": "WeBridge/web_mvp/backend.py",
@@ -399,8 +400,8 @@
       },
       {
         "path": "WeBridge/web_mvp/windows_scheduler.py",
-        "head_git_blob": "f0d3713aa52bcd2248ac8d908661a3623d29f0ae",
-        "committed_content_sha256": "b5dc8ddb3d6985c778e3e2e77ac263cd1823076ce57d3e0b30813c8d2d414019"
+        "head_git_blob": "4741ec29b71ed9ae26e8e8615e05485e46fa54a5",
+        "committed_content_sha256": "d2c160050a867697b6f70cee75dfd2c4353f2f96932f5562902a2dfa9c595ddd"
       },
       {
         "path": "WeBridge/web_mvp/windows_hook_sender.py",
@@ -429,23 +430,43 @@
       },
       {
         "path": "WeBridge/web_mvp/schedule_batches.py",
-        "head_git_blob": "c7d214ef1086e6875d59e11edbc80e3e6ddc40fd",
-        "committed_content_sha256": "f9ed30d64d1ca0c45c2432cea21afd2dd8c8dc5827155904c53a57432af5b8bb"
+        "head_git_blob": "10a86f97ec995acb43c6ca2992c9979e92fd0b33",
+        "committed_content_sha256": "7ee9ae151f4aeb4da458f79d0c4a307f37930b4ab5963d0d4f05315524a65793"
       },
       {
         "path": "WeBridge/web_mvp/server.py",
-        "head_git_blob": "313ba332bec903fd4a516ebf2ce735e765ad4f42",
-        "committed_content_sha256": "e9e373c5915035ee15fa310d07ec06d9b31862409d8fae85362135672f6a704e"
+        "head_git_blob": "40ef5c6c1a5125a035ca568a50e4283d592b27fb",
+        "committed_content_sha256": "d7bb09b3b8c836013e34490352fed4cef48d16ad13a111af8923a1ea5e0c8459"
       },
       {
         "path": "WeBridge/web_mvp/runtime_support.py",
-        "head_git_blob": "207307081073ee3ef9f5363b7c53dfd1f02d932f",
-        "committed_content_sha256": "f606d9621d601ef38628b487fa2d9202e71d68b30eca1184e7d81f52c15df8eb"
+        "head_git_blob": "0eaecbc2eed20eb0836f75c9941c4efdf0e57a65",
+        "committed_content_sha256": "52aba1389405bfa99c9a68acf798e82d4687daa8253395242c32be22cb4ff8e3"
       },
       {
         "path": "WeBridge/web_mvp/static/index.html",
-        "head_git_blob": "6ff29b1061b1d71a5fe12042c9ad93d828469e2e",
-        "committed_content_sha256": "384120497577d379622f0e7dd6f6e9e4ee6241eafdbf6c7597d599ff6979066d"
+        "head_git_blob": "4a90a7ab2b198a1155fb162ad4f29118a83308dd",
+        "committed_content_sha256": "e00e0387f4a51d8054e89a51797b74a8d8374f0f69d004644bb6fef4600ee91e"
+      },
+      {
+        "path": "WeBridge/web_mvp/static/schedule_batch_ui.js",
+        "head_git_blob": "b033a23f53a9c8ff5ee7a263a432aa1320640926",
+        "committed_content_sha256": "81545d7ad63230724620cef2243fdb1cffe4f5c3e99a723ea54e32eb3add3ffe"
+      },
+      {
+        "path": "WeBridge/web_mvp/test_schedule_batch_acceptance.py",
+        "head_git_blob": "22b780cb2f678e42618e2077c4dda87b0576fc7c",
+        "committed_content_sha256": "8f787f10d08bb273eaa090a2e2b8f07f20889e0ff48e4e737bcbf09b614e5529"
+      },
+      {
+        "path": "WeBridge/web_mvp/test_schedule_batch_http.py",
+        "head_git_blob": "0671071f30622348091c6d25490536ca97a1c1e2",
+        "committed_content_sha256": "e4b50cd4039fab786943cf747895efa04ac43cd5e82350a628fb03cc2d0d49e3"
+      },
+      {
+        "path": "WeBridge/web_mvp/test_schedule_batches.py",
+        "head_git_blob": "53afd4fac5abab94112ad359f3eb242731b6f848",
+        "committed_content_sha256": "6b69efc4238c4ceba6a68ca21bb566ab9cf192d9ac2cf85186d3c8fe08097fcd"
       }
     ],
     "product_tests_rerun": false,
@@ -453,45 +474,41 @@
     "private_runtime_or_chats_read": false,
     "model_calls": 0,
     "real_messages_sent": 0,
-    "external_sources_refreshed": [
-      "OpenClaw queue/messages/steering",
-      "Hermes bot mode/delegation/wecom",
-      "TypeSafe models/primitives/confidence"
+    "external_sources_refreshed": false,
+    "batch_capabilities": [
+      "public preview/create API and UI capability",
+      "1-300 selected conversations",
+      "atomic schedules and receipt transaction",
+      "preview revalidation after unlocked capability probe",
+      "durable account/requestId receipt with exact request binding",
+      "replay returns current task states without reenabling"
     ],
-    "external_refresh_evidence": "evidence/research-framework-refresh-2026-10-04.md",
-    "committed_capability_updates": [
-      "human handoffs and scoped owner routing",
-      "approved private owner notifications with final version claim",
-      "independent notification worker",
-      "once/daily/weekly and configurable deadline windows",
-      "scoped schedule pause",
-      "frozen templates with per-conversation variables and overrides",
-      "internal batch preview only"
+    "batch_limits": [
+      "500 cumulative schedule records including cancelled/finished",
+      "exact active/paused specifications deduped; differing specifications may coexist",
+      "page attempt recovery is memory-only",
+      "configuration transaction is not native-send atomicity",
+      "300 synthetic configuration does not prove real concurrent deadline execution"
     ],
-    "remaining_gaps": [
-      "all-message durable task inbox",
-      "multi-party task correlation and pending replies",
-      "actual model shadow evaluation",
-      "cross-origin task-level action arbitration",
-      "outbound native mentions",
-      "live group and notification-recipient acceptance",
-      "300-group capacity"
-    ],
-    "batch_scope": "bfb073e includes internal preview and test definitions but no create method or public route/UI capability wiring; concurrent worktree development excluded from committed capability claims",
     "historical_suite_record": {
-      "document": "WeBridge/execution/workbench-handoff-notifications-2026-10-03.md",
-      "reported_passed": 493,
-      "rerun_by_this_review": false,
-      "not_latest_worktree_suite": true
+      "document": "WeBridge/execution/workbench-schedule-batches-2026-10-04.md",
+      "reported_python_passed": 516,
+      "reported_chrome_mock_checks": 161,
+      "rerun_by_this_review": false
     },
+    "proposed_business_contract": "source_id + group_id + inquiry_kind + planned_business_date maps a single approved daily inquiry intent; template and policy versions are metadata, not new intent keys; not yet implemented",
     "requirements_audit": {
       "research_directions": 5,
       "orchestration_modules": 9,
       "input_scenarios": 4,
-      "mapping": "report section 9.4"
+      "mapping": "report section 9.4",
+      "implementation_order_unchanged": "M1-M5"
     },
-    "recommended_next_step": "Extend durable task intake, reuse handoff/notification/template and final submission callback; script-based shadow orchestration before model evaluation and source-by-source send migration",
-    "evidence": "evidence/research-current-state-audit.md"
+    "recommended_next_step": "Durable task intake and scripted shadow orchestration; reuse batch confirmation and receipts, later add business occurrence arbitration and real model usage evaluation",
+    "evidence": [
+      "evidence/research-current-state-audit.md",
+      "evidence/research-batch-boundaries-2026-10-04.md"
+    ]
   },
   "review_history": [
     {
@@ -674,7 +691,181 @@
           "300-group capacity"
         ]
       }
+    },
+    {
+      "repository_head": "bfb073e55fe14c20c71fd857ab0a56b24bdeae0e",
+      "continuation_review": {
+        "date": "2026-10-04",
+        "repository_head": "bfb073e55fe14c20c71fd857ab0a56b24bdeae0e",
+        "scope": "Fixed committed source, existing execution records and official framework documentation; only report artifacts edited",
+        "source_snapshots": [
+          {
+            "path": "WeBridge/web_mvp/backend.py",
+            "head_git_blob": "14313dd7e82545b58deb8b4570a79699916d1a15",
+            "committed_content_sha256": "1486c1367e05d9a0ac8125e4ea8dd10e5e7b1c75e09f4e51f98348af2e3b94d3"
+          },
+          {
+            "path": "WeBridge/web_mvp/database_adapter.py",
+            "head_git_blob": "4ecb31deebadeebc220b7eb7ce772502e29b2ddb",
+            "committed_content_sha256": "4a1bd2cff21194a1128d7701a3abb3f1fe5df737834f00564161dab4deceb6d7"
+          },
+          {
+            "path": "WeBridge/web_mvp/inbound_messages.py",
+            "head_git_blob": "87a80d4f8addcfddebb3afbd242d5338dc6ec851",
+            "committed_content_sha256": "f7587e049514f895167862def77f7a97eb54a675107eef9010c7d512851ac9ba"
+          },
+          {
+            "path": "WeBridge/web_mvp/message_history.py",
+            "head_git_blob": "995b1813457abafc9ebe538d44aafa7b587b5837",
+            "committed_content_sha256": "4d7a3d57c7d60be3595892f8187e862e8aece509664688159556480d75182f7c"
+          },
+          {
+            "path": "WeBridge/web_mvp/windows_auto_reply.py",
+            "head_git_blob": "6f2400819f24f4d2a2e365ccb45b606cbbe14676",
+            "committed_content_sha256": "54bd482518fab94bbcdd98836e72bf4f58467096fcbccbe2e93c902fc90004ec"
+          },
+          {
+            "path": "WeBridge/web_mvp/windows_scheduler.py",
+            "head_git_blob": "f0d3713aa52bcd2248ac8d908661a3623d29f0ae",
+            "committed_content_sha256": "b5dc8ddb3d6985c778e3e2e77ac263cd1823076ce57d3e0b30813c8d2d414019"
+          },
+          {
+            "path": "WeBridge/web_mvp/windows_hook_sender.py",
+            "head_git_blob": "94f7966014ba5d768327f26ea914766bf6a668d7",
+            "committed_content_sha256": "1ec352f66e8fd01773a76178a3e53fcbcf3d534d9ec8c9306ef38d6b73f38201"
+          },
+          {
+            "path": "WeBridge/web_mvp/human_handoffs.py",
+            "head_git_blob": "5ddfb542d602bc4294ffc08c52eca6cff8e0fb1c",
+            "committed_content_sha256": "87e1a94819ffafaa8fcc380aafb16431ed1e561a3e9c62fe44c5ec25bf485d30"
+          },
+          {
+            "path": "WeBridge/web_mvp/handoff_notifications.py",
+            "head_git_blob": "035cda48780738bfb9c63ac8e568d5866f7fa70c",
+            "committed_content_sha256": "d97f4312ddacf79c2e708c1d1a8fd37cc1fb7557e5a4d9fae6b0882a12e9dee8"
+          },
+          {
+            "path": "WeBridge/web_mvp/execution_history.py",
+            "head_git_blob": "1fb66f9f4b50a078925bc1a856222e7b6f84e95d",
+            "committed_content_sha256": "834391175fbcda30301a0dedb350090527aecfddd8274b2bbc678a57b58960cb"
+          },
+          {
+            "path": "WeBridge/web_mvp/schedule_templates.py",
+            "head_git_blob": "a0505aa8b1dc2ad1155ffbd1b2f8e8d66a3c3128",
+            "committed_content_sha256": "7f1176d903e88dee22902f7f086193fccca7fbfbba4001ccd36c69052ff91417"
+          },
+          {
+            "path": "WeBridge/web_mvp/schedule_batches.py",
+            "head_git_blob": "c7d214ef1086e6875d59e11edbc80e3e6ddc40fd",
+            "committed_content_sha256": "f9ed30d64d1ca0c45c2432cea21afd2dd8c8dc5827155904c53a57432af5b8bb"
+          },
+          {
+            "path": "WeBridge/web_mvp/server.py",
+            "head_git_blob": "313ba332bec903fd4a516ebf2ce735e765ad4f42",
+            "committed_content_sha256": "e9e373c5915035ee15fa310d07ec06d9b31862409d8fae85362135672f6a704e"
+          },
+          {
+            "path": "WeBridge/web_mvp/runtime_support.py",
+            "head_git_blob": "207307081073ee3ef9f5363b7c53dfd1f02d932f",
+            "committed_content_sha256": "f606d9621d601ef38628b487fa2d9202e71d68b30eca1184e7d81f52c15df8eb"
+          },
+          {
+            "path": "WeBridge/web_mvp/static/index.html",
+            "head_git_blob": "6ff29b1061b1d71a5fe12042c9ad93d828469e2e",
+            "committed_content_sha256": "384120497577d379622f0e7dd6f6e9e4ee6241eafdbf6c7597d599ff6979066d"
+          }
+        ],
+        "product_tests_rerun": false,
+        "product_files_edited_by_this_task": false,
+        "private_runtime_or_chats_read": false,
+        "model_calls": 0,
+        "real_messages_sent": 0,
+        "external_sources_refreshed": [
+          "OpenClaw queue/messages/steering",
+          "Hermes bot mode/delegation/wecom",
+          "TypeSafe models/primitives/confidence"
+        ],
+        "external_refresh_evidence": "evidence/research-framework-refresh-2026-10-04.md",
+        "committed_capability_updates": [
+          "human handoffs and scoped owner routing",
+          "approved private owner notifications with final version claim",
+          "independent notification worker",
+          "once/daily/weekly and configurable deadline windows",
+          "scoped schedule pause",
+          "frozen templates with per-conversation variables and overrides",
+          "internal batch preview only"
+        ],
+        "remaining_gaps": [
+          "all-message durable task inbox",
+          "multi-party task correlation and pending replies",
+          "actual model shadow evaluation",
+          "cross-origin task-level action arbitration",
+          "outbound native mentions",
+          "live group and notification-recipient acceptance",
+          "300-group capacity"
+        ],
+        "batch_scope": "bfb073e includes internal preview and test definitions but no create method or public route/UI capability wiring; concurrent worktree development excluded from committed capability claims",
+        "historical_suite_record": {
+          "document": "WeBridge/execution/workbench-handoff-notifications-2026-10-03.md",
+          "reported_passed": 493,
+          "rerun_by_this_review": false,
+          "not_latest_worktree_suite": true
+        },
+        "requirements_audit": {
+          "research_directions": 5,
+          "orchestration_modules": 9,
+          "input_scenarios": 4,
+          "mapping": "report section 9.4"
+        },
+        "recommended_next_step": "Extend durable task intake, reuse handoff/notification/template and final submission callback; script-based shadow orchestration before model evaluation and source-by-source send migration",
+        "evidence": "evidence/research-current-state-audit.md"
+      },
+      "document_validation": {
+        "status": "PASS",
+        "date": "2026-10-04",
+        "scope": "Report artifact checks and fixed-source audit only; no product tests or live operations",
+        "markdown_files_checked": 11,
+        "local_markdown_links_checked": 87,
+        "encoding_and_code_fences": "PASS",
+        "links_and_used_anchors": "PASS",
+        "budget_and_probability_arithmetic": "PASS",
+        "fixed_source_snapshots_checked": 15,
+        "historical_report_preserved": true,
+        "product_files_edited_by_this_task": false,
+        "independent_reviews": [
+          "Local committed capabilities and task/action boundaries",
+          "Official framework mechanism and pricing recheck"
+        ],
+        "publication_scope": [
+          "README.md",
+          "specs/wecom-hook-agent-research-2026-10-02.md",
+          "evidence/research-current-state-audit.md",
+          "evidence/research-frameworks-2026-10-02.md",
+          "evidence/research-framework-refresh-2026-10-04.md",
+          "evidence/wecom-hook-agent-research-2026-10-02.json"
+        ],
+        "not_proven": [
+          "live capture and delivery",
+          "outbound native mentions",
+          "Chinese semantic quality",
+          "real token savings",
+          "300-group capacity"
+        ]
+      }
     }
   ],
-  "report_revision_date": "2026-10-04"
+  "report_revision_date": "2026-10-04",
+  "historical_execution_boundaries": {
+    "client_attached": false,
+    "process_injected": false,
+    "live_chats_read": false,
+    "message_sent": false,
+    "model_api_called": false,
+    "framework_installed_or_run": false,
+    "product_code_changed": false,
+    "git_fetch_commit_or_push_performed": false,
+    "local_synthetic_reproductions_run": true,
+    "selected_existing_tests_run": true,
+    "full_regression_run": false
+  }
 }

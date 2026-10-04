@@ -1,12 +1,12 @@
 # 调研报告本地现状续审
 
-续审日期：2026-10-04（北京时间）。固定代码基线：`bfb073e55fe14c20c71fd857ab0a56b24bdeae0e`。本记录替换此前基于 `edeb7a4` 工作树的当前状态说明；早期实验及摘要保存在结构化证据的历史复核项中。审查期间另有批量配置开发，以下“已实现”仅按固定提交判断，不等于正在运行的服务已加载代码。
+续审日期：2026-10-04（北京时间）。固定代码基线更新为 `bdafc8177a8600d110af2c0428af07be58f6450f`，已包含完整批量创建。早期 `edeb7a4`／`bfb073e` 的实验与复核保留在结构化证据历史项；下文按固定提交判断，不等于正在运行的服务已加载代码。
 
-本次核对源码、业务需求、已有测试定义及提交内的执行记录，复查官方框架资料，并更新报告。没有读取私有运行数据、真实聊天，未运行产品测试、模型、Hook 或消息发送。修改范围为报告、索引与研究证据；其他代码修改保留。
+本次核对新增批量创建源码、业务需求、已有测试定义及提交内的执行记录；官方框架资料沿用当日上一轮复核。没有读取私有运行数据、真实聊天，未运行产品测试、模型、Hook 或消息发送。修改范围为报告、索引与研究证据；其他代码修改保留。
 
 ## 1. 当前可复用能力
 
-下表文件相对 `WeBridge/web_mvp`，函数和行号指向固定基线。可用 `git show bfb073e:<路径>` 独立核对，避免套用后续工作树的行号。
+下表文件相对 `WeBridge/web_mvp`，函数和行号指向固定基线。可用 `git show bdafc817:<路径>` 独立核对，避免套用后续工作树的行号。
 
 | 能力 | 固定提交依据 | 尚不能推出的结论 |
 | --- | --- | --- |
@@ -19,9 +19,9 @@
 | 执行日与窗口 | `windows_scheduler.py:_schedule_spec/_due_runs/tick` | once／daily／weekly，1–1439 分钟窗口；冻结配置和提交截止不是原生 @ 或实际投递证明 |
 | 范围暂停 | `windows_scheduler.py:pause_scope` | 账号／会话定时暂停不覆盖自动回复与通知，正在处理的一条仍可能提交 |
 | 模板与覆盖 | `schedule_templates.py:preview/profile/render_saved` | 纯文本替换；任务保存正文快照，日期不逐期重算，文字 @ 不是真实提及 |
-| 批量预览 | `schedule_batches.py:preview` | 固定提交没有 `create`、HTTP 路由或页面能力接入；`canCreate` 不等于批量产品已完成 |
+| 批量创建 | `schedule_batches.py:preview/create/_receipt`；`server.py` batch 路由、`runtime_support.py` 能力 | 已有整批原子配置、摘要重验和持久回执；不是原子发送或全局业务每日一次 |
 
-[入站](../WeBridge/execution/workbench-inbound-2026-10-02.md)、[历史查询](../WeBridge/execution/workbench-history-2026-10-02.md)、[人工待办](../WeBridge/execution/workbench-handoffs-2026-10-03.md)、[负责人配置](../WeBridge/execution/workbench-handoff-routing-2026-10-03.md)、[通知](../WeBridge/execution/workbench-handoff-notifications-2026-10-03.md)、[执行日](../WeBridge/execution/workbench-weekly-schedules-2026-10-03.md)、[窗口](../WeBridge/execution/workbench-schedule-windows-2026-10-03.md)、[暂停](../WeBridge/execution/workbench-schedule-pause-2026-10-03.md)、[模板](../WeBridge/execution/workbench-schedule-templates-2026-10-03.md) 均保留各轮实际验证范围。
+[入站](../WeBridge/execution/workbench-inbound-2026-10-02.md)、[历史查询](../WeBridge/execution/workbench-history-2026-10-02.md)、[人工待办](../WeBridge/execution/workbench-handoffs-2026-10-03.md)、[负责人配置](../WeBridge/execution/workbench-handoff-routing-2026-10-03.md)、[通知](../WeBridge/execution/workbench-handoff-notifications-2026-10-03.md)、[执行日](../WeBridge/execution/workbench-weekly-schedules-2026-10-03.md)、[窗口](../WeBridge/execution/workbench-schedule-windows-2026-10-03.md)、[暂停](../WeBridge/execution/workbench-schedule-pause-2026-10-03.md)、[模板](../WeBridge/execution/workbench-schedule-templates-2026-10-03.md)、[批量创建](../WeBridge/execution/workbench-schedule-batches-2026-10-04.md) 均保留各轮实际验证范围。
 
 ## 2. 运行与发送边界
 
@@ -44,14 +44,14 @@
 | 模板 | 441 项通过 | 正文替换、版本及界面输入保护 |
 | 负责人配置 | 456 项通过 | 同名群按 ID 分派，未分派与旧任务保护 |
 | 通知 | 493 项通过，最后提示修改后另有 18 项专项复验 | 模拟 Hook 和浏览器 API，未向真实负责人发送 |
-| HEAD 内部批量预览 | 已核实预览测试定义 | 本次未执行，不能推出完整批量创建通过 |
+| 批量创建 | 当轮 516 项 Python 回归通过，161 项模拟 API 浏览器检查 | 包含 300 个合成会话配置及写入故障；本次未复跑，不证明真实规模发送 |
 
 真实混合群完整入站、原生 @、通知收件端、批准资料下语义质量和约 300 群容量仍按各自范围验收。上述产品缺口不阻碍本次报告与来源更新的交付。
 
 ## 4. 本次报告修改与后续重点
 
-主报告更新了固定基线、四类发送来源、独立通知线程、已提交日历／模板／待办能力，删除过时的“未提交待办／尚无通知／执行日窗口待建”。保留九模块、四类输入与 M0–M5 的需求对应关系；M3、M5 改为复用已实现资产，补多人任务状态和统一提交授权。
+主报告本轮更新批量创建实况，删除过时的“只有内部预览”。保留九模块、四类输入和 M1–M5 顺序，新增 [批量事务与业务边界](research-batch-boundaries-2026-10-04.md)：本机创建核对与发送 unknown 分开、跨批次执行日防重、累计容量和共同窗口验收。已有待办、通知及日历／模板结论保持。
 
-[框架复核](research-framework-refresh-2026-10-04.md) 修正 OpenClaw steering 首个／并行工具边界及 Hermes canonical Bot Chat 的 `/new` 语义；Jev 标价与中文限制仍成立，补入候选顺序置换评测。
+当日上一轮 [框架复核](research-framework-refresh-2026-10-04.md) 已修正 OpenClaw steering 首个／并行工具边界及 Hermes canonical Bot Chat 的 `/new` 语义；Jev 标价与中文限制仍成立，补入候选顺序置换评测。
 
 本次检查包含本地链接与 Markdown 结构、JSON 及预算／概率算术、代码基线、历史报告保留、独立只读审查和精确发布范围。结果写入 [结构化证据](wecom-hook-agent-research-2026-10-02.json) 的 `document_validation`。Git 发布后另通过远端引用与本次提交文件清单核对，避免把推送成功等同于运行服务已更新。
