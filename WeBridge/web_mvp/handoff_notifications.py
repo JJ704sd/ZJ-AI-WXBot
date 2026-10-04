@@ -7,7 +7,7 @@ import re
 import sqlite3
 
 from backend import BridgeError
-from database_adapter import has_blocking_warnings
+from database_adapter import GROUP_ID, has_blocking_warnings
 from human_handoffs import HandoffConflict
 from windows_hook_sender import HookSendError, validate_text
 
@@ -74,7 +74,7 @@ class HandoffNotifications:
         service = self.owner
         scope = service.handoffs._scope(account)
         groups = {row['id']:row['name'] for row in service.engine.group_list
-                  if row['id'] in scope and row['id'].endswith('@chatroom')}
+                  if row['id'] in scope and GROUP_ID.fullmatch(row['id']) is not None}
         recipients = {row['id']:row['name'] for row in service.engine.group_list
                       if row['id'] in scope and row['conversationKind'] == 'direct'
                       and row['id'] not in ('filehelper',service.engine.self_id)}

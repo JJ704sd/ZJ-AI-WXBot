@@ -2,6 +2,7 @@
 from contextlib import closing
 import json
 
+from database_adapter import GROUP_ID
 from execution_history import _cursor_decode, _cursor_encode, _digest
 
 
@@ -51,7 +52,7 @@ class HumanHandoffs:
     def _routing_groups(self, account):
         scope = self._scope(account)
         return {row['id']:row['name'] for row in self.owner.engine.group_list
-                if row['id'] in scope and row['id'].endswith('@chatroom')}
+                if row['id'] in scope and GROUP_ID.fullmatch(row['id']) is not None}
 
     def routing(self, account):
         service = self.owner
@@ -88,12 +89,12 @@ class HumanHandoffs:
                 service.notifications.pause_group(db,account,groupId,'默认负责人已变化，请重新核对私聊收件人并启用通知。')
                 return self._route(groupId,groups[groupId],{'owner':owner,'version':version+1,'updated':now})
 
-    def enqueue(self, db, event, account, group, group_name, trigger, created):
+    def enqueue(self, db, event, account, group, group_name, trigger, created, *, reason='群规则要求人工处理'):
         route = db.execute('SELECT owner FROM handoff_routes WHERE account=? AND group_id=?', (account,group)).fetchone()
         assigned = route['owner'] if route is not None else ''
         inserted = db.execute('INSERT OR IGNORE INTO handoffs VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
             (event, account, group, group_name, json.dumps(trigger, ensure_ascii=False),
-             '群规则要求人工处理', assigned, 'pending', created, created, 1, '', 0)).rowcount
+             reason, assigned, 'pending', created, created, 1, '', 0)).rowcount
         if inserted:
             db.execute('INSERT INTO handoff_changes VALUES (?,?,?,?,?,?,?)',
                 (event, 1, 'created', 'pending', assigned, '', created))
@@ -109,6 +110,9 @@ class HumanHandoffs:
             trigger.update(text='', textTruncated=False)
             db.execute('UPDATE handoffs SET trigger=?,revoked=1,updated=?,version=version+1 WHERE id=?',
                 (json.dumps(trigger, ensure_ascii=False), now, row['id']))
+            db.execute("""UPDATE events SET result=json_set(result,'$.trigger.text','',
+                '$.trigger.textTruncated',json('false')) WHERE id=? AND json_type(result,'$.trigger')='object'""",
+                (row['id'],))
             db.execute('INSERT INTO handoff_changes VALUES (?,?,?,?,?,?,?)',
                 (row['id'], row['version']+1, 'revoked', row['status'], row['owner'], row['note'], now))
             self.owner.notifications.cancel_task(db,row['id'],'原消息已撤回，未提交通知。')

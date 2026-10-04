@@ -14,7 +14,7 @@ class Clock extends Date {static now(){return now}}
 const ctx=vm.createContext({$,el:element,emptyCard:(title,body)=>element('empty','',title+' '+body),
  state:{account:'a',watchedGroups:['g'],runtime:{mode:'database',source:{id:'source-a'}}},
  document:{hidden:false},serviceAvailable:true,Date:Clock,JSON,URLSearchParams,
- isDemo:()=>false,stamp:()=> 'time',setView:()=>{},selectGroup:()=>{},
+ isDemo:()=>false,supportsApprovedReplies:()=>false,stamp:()=> 'time',setView:()=>{},selectGroup:()=>{},
  setTimeout(callback,delay){const id=++timerId;timers.set(id,{callback,delay});return id},clearTimeout(id){timers.delete(id)},
  api:url=>new Promise((resolve,reject)=>requests.push({url,resolve,reject}))});
 const run=code=>vm.runInContext(code,ctx);

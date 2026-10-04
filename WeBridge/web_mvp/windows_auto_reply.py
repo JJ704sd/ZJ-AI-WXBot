@@ -7,7 +7,7 @@ import time
 import uuid
 
 from backend import BridgeError
-from database_adapter import has_blocking_warnings
+from database_adapter import GROUP_ID, has_blocking_warnings
 
 
 class WindowsAutoReply:
@@ -29,6 +29,9 @@ class WindowsAutoReply:
                 migrated = 'mode' not in rule
                 if migrated:
                     rule['mode'] = 'reply'
+                if 'approvedCards' in rule or 'policyVersion' in rule:
+                    rule['policyVersion'] = rule.get('policyVersion',0)+1
+                    migrated = True
                 if rule.get('enabled'):
                     rule.update(enabled=False, issue='工作台已重启，请重新核对并启用规则。')
                     migrated = True
@@ -39,6 +42,8 @@ class WindowsAutoReply:
         self.handoffs = HumanHandoffs(self)
         from handoff_notifications import HandoffNotifications
         self.notifications = HandoffNotifications(self)
+        from approved_replies import ApprovedReplies
+        self.approved = ApprovedReplies(self)
 
     def _db(self):
         db = sqlite3.connect(self.path, timeout=10)
@@ -59,8 +64,11 @@ class WindowsAutoReply:
         rule = self._rule(account, group)
         with closing(self._db()) as db:
             rows = db.execute('SELECT created,status,result FROM events WHERE account=? AND group_id=? ORDER BY created DESC LIMIT 10', (account, group)).fetchall()
-        return {key: rule[key] for key in ('enabled', 'text', 'cooldown', 'issue', 'mode')} | {
+        result = {key: rule[key] for key in ('enabled', 'text', 'cooldown', 'issue', 'mode')} | {
             'attempts': [{'createdAt': row['created'], 'status': row['status'], **json.loads(row['result'])} for row in rows]}
+        if rule['mode']=='approved':
+            result.update(policyVersion=rule['policyVersion'],sendingPaused=rule['sendingPaused'])
+        return result
 
     def _binding(self, account, group):
         self.engine.validate(account, group)
@@ -68,7 +76,7 @@ class WindowsAutoReply:
         if (not config or not config.get('autoRefresh') or self.source.error or
                 not self.engine.self_id or config.get('selfId') != self.engine.self_id):
             raise ValueError('需要正常的自动更新数据库副本，且本人账号必须已确认。')
-        if not group.endswith('@chatroom') or group not in (self.engine.store.watched(account) or []):
+        if GROUP_ID.fullmatch(group) is None or group not in (self.engine.store.watched(account) or []):
             raise ValueError('仅支持已勾选读取的群聊。')
         return {'account': account, 'sourceId': account, 'selfId': self.engine.self_id, 'sourceRoot': config['sourceRoot']}
 
@@ -95,10 +103,15 @@ class WindowsAutoReply:
             # Older clients omit this field; preserving the configured mode
             # prevents an old page from silently restoring automatic sending.
             mode = rule['mode'] if mode is None else mode
-            if mode not in ('reply', 'handoff'):
+            if mode == 'approved' and enabled:
+                raise ValueError('请通过批准卡片配置重新核对并批准，旧规则入口不能启用批准回复。')
+            if mode not in ('reply', 'handoff', 'approved'):
                 raise ValueError('请选择固定回复或新 @ 转人工。')
             if not enabled:
-                rule.update(enabled=False, text=text[:2000], cooldown=cooldown, issue='', mode=mode)
+                if mode == 'approved':
+                    rule.update(enabled=False,issue='',sendingPaused=False)
+                else:
+                    rule.update(enabled=False, text=text[:2000], cooldown=cooldown, issue='', mode=mode)
             else:
                 if self.source.busy: raise ValueError('副本正在更新，请完成后启用。')
                 binding = self._binding(account, group)
@@ -111,9 +124,9 @@ class WindowsAutoReply:
                                      'text': text, 'idempotencyKey': uuid.uuid4().hex})
                     native = sender.automation_binding(binding)
                     if not sender.supports_target(group): raise ValueError('当前 Hook 桥不支持这个群聊。')
-                rule = {'enabled': True, 'text': text[:2000], 'cooldown': cooldown, 'issue': '', 'mode': mode,
-                        'activated': self.clock(), 'lastSent': 0,
-                        'binding': binding, 'native': native}
+                rule.update(enabled=True,text=text[:2000],cooldown=cooldown,issue='',mode=mode,
+                            activated=self.clock(),lastSent=0,binding=binding,native=native,sendingPaused=False)
+            rule['policyVersion'] = rule.get('policyVersion',0)+1
             with closing(self._db()) as db, db:
                 if enabled:
                     # The enable snapshot may already contain future-dated rows.
@@ -127,7 +140,7 @@ class WindowsAutoReply:
                         if page['complete']: break
                         cursor = page['cursor']
                 self._save(db, account, group, rule)
-                if not enabled or mode != 'handoff':
+                if not enabled or mode not in ('handoff','approved'):
                     self.notifications.pause_group(db, account, group, '转人工规则已暂停或切换，请重新核对通知配置。')
             return self.get(account, group)
 
@@ -151,7 +164,7 @@ class WindowsAutoReply:
                 'trigger': WindowsAutoReply._trigger(message)}
 
     def _pause(self, account, group, rule, issue):
-        rule.update(enabled=False, issue=issue)
+        rule.update(enabled=False, issue=issue,policyVersion=rule.get('policyVersion',0)+1)
         with closing(self._db()) as db, db:
             self._save(db, account, group, rule)
             self.notifications.pause_group(db, account, group, issue)
@@ -171,6 +184,10 @@ class WindowsAutoReply:
                 rows = db.execute('SELECT * FROM rules').fetchall()
             for row in rows:
                 rule = json.loads(row['payload'])
+                if rule['enabled'] and sending_only and rule['mode']=='approved':
+                    with closing(self._db()) as db, db:
+                        self.approved.pause_sending(db,row['account'],row['group_id'],rule)
+                    continue
                 if rule['enabled'] and (not sending_only or rule['mode'] == 'reply'):
                     issue = 'Hook 已断开，固定回复已暂停，请核对后重新启用。' if sending_only else '消息同步异常，规则已暂停，请核对后重新启用。'
                     self._pause(row['account'], row['group_id'], rule, issue)
@@ -209,7 +226,7 @@ class WindowsAutoReply:
                 rules = db.execute('SELECT * FROM rules').fetchall()
             for saved in rules:
                 rule = json.loads(saved['payload'])
-                if not rule.get('enabled'): continue
+                if not rule.get('enabled') or rule['mode']=='approved': continue
                 sending = rule['mode'] == 'reply'
                 if sending and not self.engine.send_lock.acquire(blocking=False):
                     continue
@@ -250,6 +267,7 @@ class WindowsAutoReply:
                 finally:
                     if sending:
                         self.engine.send_lock.release()
+        self.approved.tick()
 
     def _handle_message(self, account, group, rule, binding, sender, message, observed, evidence):
         # Every page belongs to the same observed burst. Reading a later page
@@ -295,7 +313,8 @@ class WindowsAutoReply:
                 detail.setdefault('issue', '发送未确认，不会自动重试；请查看微信。')
             rule['lastSent'] = now
             if status not in ('submitted_unconfirmed', 'server_accepted', 'local_record_confirmed', 'local_record_observed'):
-                rule.update(enabled=False, issue='发送被阻止或结果未知，规则已暂停；本条不会重发。')
+                rule.update(enabled=False,policyVersion=rule.get('policyVersion',0)+1,
+                            issue='发送被阻止或结果未知，规则已暂停；本条不会重发。')
             with closing(self._db()) as db, db:
                 db.execute('UPDATE events SET status=?,result=? WHERE id=?', (status, json.dumps(detail, ensure_ascii=False), event))
                 self._save(db, account, group, rule)

@@ -28,9 +28,20 @@ function renderExecutionHistory(){
   heading.append(el('strong','',row.targetName),el('span','status-chip'+(row.attention?' off':''),row.label));
   const sources={manual:'手动发送',reply:'自动回复',schedule:'定时任务'};
   const handoff=row.decision==='handoff';
-  const body=el('p','execution-text',handoff?'本条未发送回复，请到人工待办查看处理状态。':row.text|| (row.textUnavailable?'未保存本次回复正文快照':'无正文记录'));
+  const unknownSubmission=supportsApprovedReplies()&&row.approvedPolicy!==null&&row.reasonCode==='submission_unknown';
+  const body=el('p','execution-text',handoff?(unknownSubmission?'提交结果未知，请核对微信记录后处理，勿直接重发。':'本条未发送回复，请到人工待办查看处理状态。'):row.text|| (row.textUnavailable?'未保存本次回复正文快照':'无正文记录'));
   card.append(heading,el('p','subtle',(handoff?'本机人工待办':sources[row.source]||row.source)+' · '+stamp(row.createdAt,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})+' · '+row.timeBasis),body);
-  if(row.issue)card.append(el('p','execution-issue',row.issue));
+  if(supportsApprovedReplies()&&row.reasonCode)card.append(el('p','execution-issue','处理原因：'+row.reasonCode+(row.issue?' · '+row.issue:'')));
+  else if(row.issue)card.append(el('p','execution-issue',row.issue));
+  if(supportsApprovedReplies()&&row.approvedPolicy!==null){
+   const policy=row.approvedPolicy,evidence=el('details','execution-approved');evidence.append(el('summary','','批准依据 · 策略版本 '+policy.version));
+   if(policy.card!==null){
+    const approved=policy.card;evidence.append(el('p','',approved.name+' · 卡片 ID：'+approved.id),el('p','','资料：'+approved.sourceTitle+' · 版本 '+approved.sourceVersion));
+    evidence.append(el('h4','','当次完整问法'));for(const question of approved.questions)evidence.append(el('p','',question));
+    evidence.append(el('h4','','当次批准资料全文'),el('pre','approved-full-text',approved.sourceText),el('h4','','当次批准回复全文'),el('pre','approved-full-text',approved.replyText));
+   }else evidence.append(el('p','','本条没有采用批准卡片。'));
+   card.append(evidence);
+  }
   if(row.trigger){
    const trigger=row.trigger,context=el('details','execution-trigger');
    context.append(el('summary','',row.decision==='cooldown_skipped'?'触发消息 · 回复间隔内跳过':'触发消息 · 真实 @ 本人'));

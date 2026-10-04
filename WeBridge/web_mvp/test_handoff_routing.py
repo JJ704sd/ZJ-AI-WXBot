@@ -24,11 +24,12 @@ class HandoffRoutingTests(unittest.TestCase):
         f.engine.store.set_watched(f.account, [row['id'] for row in f.engine.group_list])
         self.assertEqual(self.queue.routing(f.account), {'routes':[
             {'groupId':f.group,'groupName':'同名群','owner':'','version':0,'updatedAt':None},
-            {'groupId':second,'groupName':'同名群','owner':'','version':0,'updatedAt':None}]})
+            {'groupId':second,'groupName':'同名群','owner':'','version':0,'updatedAt':None},
+            {'groupId':'synthetic@im.chatroom','groupName':'其他类型群','owner':'','version':0,'updatedAt':None}]})
         saved = self.queue.set_routing(f.account, f.group, 0, ' 张业务 ')
         self.assertEqual(saved, {'groupId':f.group,'groupName':'同名群','owner':'张业务','version':1,'updatedAt':f.now})
         self.assertEqual(self.queue.routing(f.account)['routes'][1]['owner'], '')
-        for group in ('filehelper','synthetic@im.chatroom','unknown@chatroom'):
+        for group in ('filehelper','unknown@chatroom'):
             with self.subTest(group=group), self.assertRaises(ValueError):
                 self.queue.set_routing(f.account, group, 0, '负责人')
         self.assertEqual(f.posts, [])

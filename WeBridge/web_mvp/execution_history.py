@@ -114,7 +114,8 @@ def _sources(db, engine, hook_sender, source):
         if _attach(db, 'state', engine.store.path):
             parts.append("""SELECT o.id,o.origin AS source,o.group_id AS targetId,
                 o.text,o.created_at AS createdAt,o.status,'' AS issue,
-                '执行记录时间' AS timeBasis,0 AS textUnavailable,'' AS decision,NULL AS trigger
+                '执行记录时间' AS timeBasis,0 AS textUnavailable,'' AS decision,NULL AS trigger,
+                '' AS reasonCode,NULL AS approvedPolicy
                 FROM state.outbox o JOIN targets t ON t.id=o.group_id
                 WHERE o.account=:account""")
         return parts
@@ -128,7 +129,7 @@ def _sources(db, engine, hook_sender, source):
             d.status,coalesce(json_extract(d.result,'$.issue'),'') AS issue,
             CASE WHEN json_extract(d.result,'$.submittedAtEpoch') IS NOT NULL
                 THEN '提交时间' ELSE '草稿准备时间' END AS timeBasis,0 AS textUnavailable,
-            '' AS decision,NULL AS trigger
+            '' AS decision,NULL AS trigger,'' AS reasonCode,NULL AS approvedPolicy
             FROM hook.hook_drafts d JOIN targets t ON t.id=json_extract(d.request,'$.targetId')
             WHERE json_extract(d.request,'$.account')=:account
               AND substr(coalesce(json_extract(d.request,'$.idempotencyKey'),''),1,6)!='reply_'
@@ -145,12 +146,19 @@ def _sources(db, engine, hook_sender, source):
             fields = ('messageId', 'serverId', 'senderId', 'senderName', 'timestamp', 'text', 'textTruncated')
             projection = ','.join(f"'{key}',json_extract(r.result,'$.trigger.{key}')" for key in fields)
             trigger = f"CASE WHEN json_type(r.result,'$.trigger')='object' THEN json_object({projection}) END"
+            reason = "coalesce(json_extract(r.result,'$.reasonCode'),'')"
+            card_fields = ('id','name','questions','sourceTitle','sourceVersion','sourceText','replyText')
+            card_projection = ','.join(f"'{key}',json_extract(r.result,'$.approvedPolicy.card.{key}')" for key in card_fields)
+            approved = ("CASE WHEN json_type(r.result,'$.approvedPolicy')='object' THEN json_object("
+                        "'version',json_extract(r.result,'$.approvedPolicy.version'),'card',"
+                        f"CASE WHEN json_type(r.result,'$.approvedPolicy.card')='object' THEN json_object({card_projection}) END) END")
         else:
             base = "schedule.runs r JOIN schedule.schedules s ON s.id=r.job_id JOIN targets t ON t.id=json_extract(s.payload,'$.group_id')"
             target, where = "json_extract(s.payload,'$.group_id')", 's.account=:account'
             # Schedule targets/text are frozen at creation; no rule is consulted.
             fallback = "coalesce(json_extract(s.payload,'$.text'),'')"
             decision, trigger = "''", 'NULL'
+            reason, approved = "''", 'NULL'
         if hook:
             base += f""" LEFT JOIN hook.hook_drafts d ON d.id=json_extract(r.result,'$.draftId')
                 AND json_extract(d.request,'$.account')=:account
@@ -163,7 +171,7 @@ def _sources(db, engine, hook_sender, source):
         parts.append(f"""SELECT '{kind}:'||r.id AS id,'{kind}' AS source,{target} AS targetId,
             {text} AS text,r.created AS createdAt,{status} AS status,{issue} AS issue,
             '执行记录时间' AS timeBasis,CASE WHEN {decision}!='handoff' AND {text}='' THEN 1 ELSE 0 END AS textUnavailable,
-            {decision} AS decision,{trigger} AS trigger
+            {decision} AS decision,{trigger} AS trigger,{reason} AS reasonCode,{approved} AS approvedPolicy
             FROM {base} WHERE {where}""")
     return parts
 
@@ -213,7 +221,10 @@ def history(engine, hook_sender=None, *, limit=LIMIT, query='', source='all',
         if query:
             filters.append("instr(casefold(r.text||char(10)||t.name||char(10)||r.targetId||char(10)||r.id||char(10)||r.issue"
                            "||char(10)||coalesce(json_extract(r.trigger,'$.text'),'')"
-                           "||char(10)||coalesce(json_extract(r.trigger,'$.senderName'),'')),:query)>0")
+                           "||char(10)||coalesce(json_extract(r.trigger,'$.senderName'),'')"
+                           "||char(10)||coalesce(json_extract(r.approvedPolicy,'$.card.name'),'')"
+                           "||char(10)||coalesce(json_extract(r.approvedPolicy,'$.card.sourceTitle'),'')"
+                           "||char(10)||coalesce(json_extract(r.approvedPolicy,'$.card.sourceVersion'),'')),:query)>0")
             args['query'] = query
         if start is not None:
             filters.append('r.createdAt>=:start'); args['start'] = start
@@ -231,6 +242,7 @@ def history(engine, hook_sender=None, *, limit=LIMIT, query='', source='all',
     more = len(records) > limit
     records = records[:limit]
     for row in records:
+        row['approvedPolicy'] = json.loads(row['approvedPolicy']) if row['approvedPolicy'] is not None else None
         row['trigger'] = json.loads(row['trigger']) if row['trigger'] is not None else None
         if row['trigger'] is not None:
             row['trigger']['textTruncated'] = bool(row['trigger']['textTruncated'])

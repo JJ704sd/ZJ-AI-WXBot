@@ -13,6 +13,7 @@ import time
 from urllib.parse import parse_qs, urlsplit, quote
 
 from backend import Adapter, BridgeError, Engine, ROOT, Store
+from approved_replies import ApprovedPolicyConflict
 from demo_backend import DemoAdapter, prepare_demo
 from human_handoffs import HandoffConflict
 from media_host import MediaCache, byte_range
@@ -70,6 +71,13 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
     template_posts=('/api/schedule-templates/save','/api/schedule-templates/profile',
                     '/api/schedule-templates/preview','/api/schedule-templates/delete')
     batch_posts=('/api/jobs/batch/preview','/api/jobs/batch')
+    policy_posts=('/api/reply/policy','/api/reply/policy/preview')
+
+    def approved_service():
+        service=getattr(getattr(engine,'windows_auto_reply',None),'approved',None)
+        if not engine.read_only or getattr(engine.adapter,'mode','live')!='database' or service is None:
+            raise ValueError('批准问答仅适用于 Windows 数据库模式。')
+        return service
 
     def template_service():
         scheduler=getattr(engine,'windows_scheduler',None)
@@ -156,6 +164,8 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
             try:
                 if path=='/api/state':
                     self.respond({**engine.snapshot(),'login':login.snapshot(),'csrfToken':csrf,'runtime':runtime_summary(engine)});return
+                if path=='/api/reply/policy':
+                    self.respond(approved_service().get(params.get('account'),params.get('groupId')));return
                 if path in ('/api/schedule-templates','/api/schedule-templates/item'):
                     templates=template_service()
                     if path.endswith('/item'):
@@ -278,7 +288,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     result={'messages':messages,'reply':engine.store.reply(account,group),'outbox':engine.store.outbox(account,group),'watching':watching}
                     if path=='/api/group':result.update(engine.adapter.call('members',account=account,groupId=group))
                     self.respond(result);return
-                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/handoff_ui.js':'handoff_ui.js','/handoff_routing_ui.js':'handoff_routing_ui.js','/handoff_notification_ui.js':'handoff_notification_ui.js','/schedule_template_ui.js':'schedule_template_ui.js','/schedule_batch_ui.js':'schedule_batch_ui.js','/app.css':'app.css'}
+                names={'/':'index.html','/app.js':'app.js','/rich_ui.js':'rich_ui.js','/sender_ui.js':'sender_ui.js','/hook_ui.js':'hook_ui.js','/execution_ui.js':'execution_ui.js','/message_history_ui.js':'message_history_ui.js','/handoff_ui.js':'handoff_ui.js','/handoff_routing_ui.js':'handoff_routing_ui.js','/handoff_notification_ui.js':'handoff_notification_ui.js','/approved_reply_ui.js':'approved_reply_ui.js','/schedule_template_ui.js':'schedule_template_ui.js','/schedule_batch_ui.js':'schedule_batch_ui.js','/app.css':'app.css'}
                 if path.startswith('/vendor/pdfjs/'):
                     folder=(static/'vendor/pdfjs').resolve();target=(static/path.lstrip('/')).resolve()
                     if not target.is_relative_to(folder) or not target.is_file() or target.suffix not in ('.mjs','.bcmap','.pfb','.ttf','.wasm'):
@@ -298,10 +308,14 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
             try:
                 path=urlsplit(self.path).path
                 length=int(self.headers.get('Content-Length','0'))
-                if length<2 or length>(262144 if path in template_posts or path in batch_posts else 32768):raise ValueError('请求大小无效。')
+                maximum=1048576 if path in policy_posts else 262144 if path in template_posts or path in batch_posts else 32768
+                if length<2 or length>maximum:raise ValueError('请求大小无效。')
                 if not self.headers.get('Content-Type','').startswith('application/json'):raise ValueError('需要JSON请求。')
                 data=json.loads(self.rfile.read(length))
                 if not isinstance(data,dict):raise ValueError('无效的JSON请求。')
+                if path in policy_posts:
+                    service=approved_service()
+                    self.respond(service.preview(data) if path.endswith('/preview') else service.configure(data));return
                 if path in template_posts:
                     templates=template_service()
                     account,id,version=data.get('account'),data.get('id'),data.get('version')
@@ -439,6 +453,8 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                     id=engine.store.add_job(account,group,data.get('text',''),mentions,data.get('clock',''))
                     self.respond({'id':id},201);return
                 self.respond({'error':'Not found'},404)
+            except ApprovedPolicyConflict as exc:
+                self.respond({'error':str(exc),'code':'policy_conflict'},409)
             except BatchConflict as exc:
                 self.respond({'error':str(exc),'code':'batch_conflict'},409)
             except TemplateConflict as exc:

@@ -69,6 +69,7 @@ def runtime_summary(engine):
                              'scheduleTemplates':database and getattr(getattr(engine,'windows_scheduler',None),'templates',None) is not None,
                              'scheduleBatches':database and getattr(getattr(engine,'windows_scheduler',None),'batches',None) is not None,
                              'automaticReplies':not database or getattr(engine,'windows_auto_reply',None) is not None,
+                             'approvedReplies':database and getattr(getattr(engine,'windows_auto_reply',None),'approved',None) is not None,
                              'handoffRouting':database and getattr(getattr(engine,'windows_auto_reply',None),'handoffs',None) is not None,
                              'handoffNotifications':database and getattr(getattr(engine,'windows_auto_reply',None),'notifications',None) is not None,
                              'mentions': bool(engine.self_id), 'supportsLiveSend': not demo and not database,
