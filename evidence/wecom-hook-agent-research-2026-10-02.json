@@ -2,7 +2,7 @@
   "research_date": "2026-10-02",
   "timezone": "Asia/Shanghai",
   "repository_head": "bdafc8177a8600d110af2c0428af07be58f6450f",
-  "scope": "Report update for committed atomic schedule batch creation, idempotent receipt recovery, business occurrence uniqueness and configuration-vs-execution capacity; report-only publication",
+  "scope": "Report-only approved-scene/material reply contract, deterministic card versus semantic retrieval routes, partial requests, temporal replay and fair zero-model baseline",
   "report": "specs/wecom-hook-agent-research-2026-10-02.md",
   "previous_report_preserved": "specs/wecom-hook-agent-research-2026-10-01.md",
   "shared_conversation": {
@@ -16,7 +16,7 @@
     "source_status": "User-provided design input; framework claims independently checked"
   },
   "execution_boundaries": {
-    "scope": "Current report continuation at bdafc817; historical checks kept separately",
+    "scope": "Approved-reply report continuation; fixed product baseline bdafc817 and uncommitted worktree observations kept separate",
     "client_attached": false,
     "process_injected": false,
     "live_chats_read": false,
@@ -39,7 +39,8 @@
     "evidence/research-local-poc-reuse-2026-10-02.md",
     "evidence/research-current-state-audit.md",
     "evidence/research-framework-refresh-2026-10-04.md",
-    "evidence/research-batch-boundaries-2026-10-04.md"
+    "evidence/research-batch-boundaries-2026-10-04.md",
+    "evidence/research-approved-replies-2026-10-04.md"
   ],
   "source_snapshots": [
     {
@@ -340,38 +341,42 @@
   "document_validation": {
     "status": "PASS",
     "date": "2026-10-04",
-    "scope": "Report artifacts and fixed-source audit only; product test counts attributed to existing execution records",
-    "local_markdown_links_checked": 101,
-    "markdown_files_checked": 12,
-    "fixed_source_snapshots_checked": 19,
-    "encoding_and_code_fences": "PASS",
-    "links_and_used_anchors": "PASS",
-    "budget_and_probability_arithmetic": "PASS",
-    "historical_report_preserved": true,
+    "scope": "Report artifacts and fixed-source audit only; WIP and proposed replay cases are not product acceptance results",
     "product_files_edited_by_this_task": false,
     "independent_reviews": [
-      "Committed batch API/UI/transaction and recovery audit",
-      "Business uniqueness, receipt evidence and capacity boundaries"
+      "Committed reply/handoff and uncommitted card boundary audit",
+      "Approved materials, partial requests and business scope audit",
+      "Official retrieval mechanism review"
     ],
     "publication_scope": [
       "README.md",
       "specs/wecom-hook-agent-research-2026-10-02.md",
       "evidence/research-current-state-audit.md",
-      "evidence/research-batch-boundaries-2026-10-04.md",
+      "evidence/research-approved-replies-2026-10-04.md",
       "evidence/wecom-hook-agent-research-2026-10-02.json"
     ],
     "not_proven": [
-      "real 300-group deadline execution",
-      "native outbound mentions",
-      "Chinese model quality",
+      "WIP approved-card product test results",
+      "Chinese semantic quality",
       "actual token savings",
-      "live delivery or read receipt"
-    ]
+      "real mixed-group replies or native mentions",
+      "unified human-takeover send barrier",
+      "real delivery or read receipts"
+    ],
+    "local_markdown_links_checked": 109,
+    "markdown_files_checked": 13,
+    "fixed_source_snapshots_checked": 21,
+    "encoding_and_code_fences": "PASS",
+    "links_and_used_anchors": "PASS",
+    "budget_and_probability_arithmetic": "PASS",
+    "historical_report_preserved": true,
+    "proposed_replay_cases_checked": 13,
+    "proposed_replay_cases_executed": 0
   },
   "continuation_review": {
     "date": "2026-10-04",
     "repository_head": "bdafc8177a8600d110af2c0428af07be58f6450f",
-    "scope": "Fixed committed batch source, existing execution records and test definitions; external core research retained from earlier same-day review",
+    "scope": "Fixed committed reply/handoff source and business contracts; uncommitted card source observed only; official retrieval documentation checked",
     "source_snapshots": [
       {
         "path": "WeBridge/web_mvp/backend.py",
@@ -467,6 +472,16 @@
         "path": "WeBridge/web_mvp/test_schedule_batches.py",
         "head_git_blob": "53afd4fac5abab94112ad359f3eb242731b6f848",
         "committed_content_sha256": "6b69efc4238c4ceba6a68ca21bb566ab9cf192d9ac2cf85186d3c8fe08097fcd"
+      },
+      {
+        "path": "specs/mixed-group-business-requirements-2026-09-21.md",
+        "head_git_blob": "e61b5af86f24ca9ebee3f4882ee186c8c6364be6",
+        "committed_content_sha256": "fee9e934e5dd95caa4b2d38927c492c42ffff6535bfe9bd3292888f3c4f91fc5"
+      },
+      {
+        "path": "specs/个微收发_v1.21_技术评审修订版_2026-09-26.md",
+        "head_git_blob": "7baf6f277547aa17d603e09011895abf17a73b73",
+        "committed_content_sha256": "f881b855c0d0f063a4a26705054d897691b5aba3aa2e18f120d724c663921d0a"
       }
     ],
     "product_tests_rerun": false,
@@ -474,7 +489,7 @@
     "private_runtime_or_chats_read": false,
     "model_calls": 0,
     "real_messages_sent": 0,
-    "external_sources_refreshed": false,
+    "external_sources_refreshed": true,
     "batch_capabilities": [
       "public preview/create API and UI capability",
       "1-300 selected conversations",
@@ -504,11 +519,82 @@
       "mapping": "report section 9.4",
       "implementation_order_unchanged": "M1-M5"
     },
-    "recommended_next_step": "Durable task intake and scripted shadow orchestration; reuse batch confirmation and receipts, later add business occurrence arbitration and real model usage evaluation",
+    "recommended_next_step": "Complete deterministic approved cards separately; persistent task intake and scripted shadow orchestration remain prerequisites for multi-message semantic behavior",
     "evidence": [
       "evidence/research-current-state-audit.md",
-      "evidence/research-batch-boundaries-2026-10-04.md"
-    ]
+      "evidence/research-batch-boundaries-2026-10-04.md",
+      "evidence/research-approved-replies-2026-10-04.md"
+    ],
+    "observed_repository_head": "6d38bbd724cfec76258a067238066bd0751e225d",
+    "external_refresh_scope": "Two dynamic official LangChain retrieval/vector store documentation pages; previous framework snapshots retained",
+    "uncommitted_observations": {
+      "observed_at": "2026-10-04T20:16:53+08:00",
+      "state": "Work in progress only; not a delivered or tested capability",
+      "files": [
+        {
+          "path": "WeBridge/web_mvp/approved_replies.py",
+          "sha256": "c8d468690cacf5a0cb91b487c798888f676b68b2557940fb86591a7e48ce7f95"
+        }
+      ],
+      "observed_contract": [
+        "maximum 20 cards per group",
+        "1-5 whole-message question variants per card",
+        "sourceTitle/sourceVersion/sourceText/replyText",
+        "CRLF and boundary whitespace normalization only",
+        "exact full-text match; not semantic retrieval"
+      ],
+      "related_test_definitions": "Existence only; not executed by this report task",
+      "not_published_by_this_task": true
+    },
+    "approved_reply_research": {
+      "committed_behavior": "Fixed text reply or independent handoff group mode; no committed semantic or approved-material routing",
+      "proposed_routes": [
+        "deterministic approved card",
+        "bounded semantic proposal and approved retrieval",
+        "human fallback"
+      ],
+      "proposed_contract": [
+        "request/subrequest identity",
+        "scene and policy version",
+        "approved material identity/version/actual evidence",
+        "task state and requirement version",
+        "input watermark",
+        "route and reason"
+      ],
+      "replay_cases": [
+        "AR01",
+        "AR02",
+        "AR03",
+        "AR04",
+        "AR05",
+        "AR06",
+        "AR07",
+        "AR08",
+        "AR09",
+        "AR10",
+        "AR11",
+        "AR12",
+        "AR13"
+      ],
+      "replay_cases_executed": 0,
+      "implementation_sequence": "M1-M5 unchanged; deterministic card feature can proceed independently",
+      "budget_arithmetic_changed": false,
+      "official_sources": [
+        {
+          "url": "https://docs.langchain.com/oss/python/deepagents/retrieval#rag-architectures",
+          "kind": "dynamic official documentation",
+          "checked_date": "2026-10-04",
+          "claim": "Retrieval before generation versus agent-directed retrieval; known and capped model-call maximum for two-step architecture"
+        },
+        {
+          "url": "https://docs.langchain.com/oss/python/integrations/vectorstores#metadata-filtering",
+          "kind": "dynamic official documentation",
+          "checked_date": "2026-10-04",
+          "claim": "Many vector stores support k and metadata filter; concrete backend semantics require verification"
+        }
+      ],
+      "evidence": "evidence/research-approved-replies-2026-10-04.md"
+    }
   },
   "review_history": [
     {
@@ -850,6 +936,182 @@
           "Chinese semantic quality",
           "real token savings",
           "300-group capacity"
+        ]
+      }
+    },
+    {
+      "repository_head": "bdafc8177a8600d110af2c0428af07be58f6450f",
+      "continuation_review": {
+        "date": "2026-10-04",
+        "repository_head": "bdafc8177a8600d110af2c0428af07be58f6450f",
+        "scope": "Fixed committed batch source, existing execution records and test definitions; external core research retained from earlier same-day review",
+        "source_snapshots": [
+          {
+            "path": "WeBridge/web_mvp/backend.py",
+            "head_git_blob": "14313dd7e82545b58deb8b4570a79699916d1a15",
+            "committed_content_sha256": "1486c1367e05d9a0ac8125e4ea8dd10e5e7b1c75e09f4e51f98348af2e3b94d3"
+          },
+          {
+            "path": "WeBridge/web_mvp/database_adapter.py",
+            "head_git_blob": "4ecb31deebadeebc220b7eb7ce772502e29b2ddb",
+            "committed_content_sha256": "4a1bd2cff21194a1128d7701a3abb3f1fe5df737834f00564161dab4deceb6d7"
+          },
+          {
+            "path": "WeBridge/web_mvp/inbound_messages.py",
+            "head_git_blob": "87a80d4f8addcfddebb3afbd242d5338dc6ec851",
+            "committed_content_sha256": "f7587e049514f895167862def77f7a97eb54a675107eef9010c7d512851ac9ba"
+          },
+          {
+            "path": "WeBridge/web_mvp/message_history.py",
+            "head_git_blob": "995b1813457abafc9ebe538d44aafa7b587b5837",
+            "committed_content_sha256": "4d7a3d57c7d60be3595892f8187e862e8aece509664688159556480d75182f7c"
+          },
+          {
+            "path": "WeBridge/web_mvp/windows_auto_reply.py",
+            "head_git_blob": "6f2400819f24f4d2a2e365ccb45b606cbbe14676",
+            "committed_content_sha256": "54bd482518fab94bbcdd98836e72bf4f58467096fcbccbe2e93c902fc90004ec"
+          },
+          {
+            "path": "WeBridge/web_mvp/windows_scheduler.py",
+            "head_git_blob": "4741ec29b71ed9ae26e8e8615e05485e46fa54a5",
+            "committed_content_sha256": "d2c160050a867697b6f70cee75dfd2c4353f2f96932f5562902a2dfa9c595ddd"
+          },
+          {
+            "path": "WeBridge/web_mvp/windows_hook_sender.py",
+            "head_git_blob": "94f7966014ba5d768327f26ea914766bf6a668d7",
+            "committed_content_sha256": "1ec352f66e8fd01773a76178a3e53fcbcf3d534d9ec8c9306ef38d6b73f38201"
+          },
+          {
+            "path": "WeBridge/web_mvp/human_handoffs.py",
+            "head_git_blob": "5ddfb542d602bc4294ffc08c52eca6cff8e0fb1c",
+            "committed_content_sha256": "87e1a94819ffafaa8fcc380aafb16431ed1e561a3e9c62fe44c5ec25bf485d30"
+          },
+          {
+            "path": "WeBridge/web_mvp/handoff_notifications.py",
+            "head_git_blob": "035cda48780738bfb9c63ac8e568d5866f7fa70c",
+            "committed_content_sha256": "d97f4312ddacf79c2e708c1d1a8fd37cc1fb7557e5a4d9fae6b0882a12e9dee8"
+          },
+          {
+            "path": "WeBridge/web_mvp/execution_history.py",
+            "head_git_blob": "1fb66f9f4b50a078925bc1a856222e7b6f84e95d",
+            "committed_content_sha256": "834391175fbcda30301a0dedb350090527aecfddd8274b2bbc678a57b58960cb"
+          },
+          {
+            "path": "WeBridge/web_mvp/schedule_templates.py",
+            "head_git_blob": "a0505aa8b1dc2ad1155ffbd1b2f8e8d66a3c3128",
+            "committed_content_sha256": "7f1176d903e88dee22902f7f086193fccca7fbfbba4001ccd36c69052ff91417"
+          },
+          {
+            "path": "WeBridge/web_mvp/schedule_batches.py",
+            "head_git_blob": "10a86f97ec995acb43c6ca2992c9979e92fd0b33",
+            "committed_content_sha256": "7ee9ae151f4aeb4da458f79d0c4a307f37930b4ab5963d0d4f05315524a65793"
+          },
+          {
+            "path": "WeBridge/web_mvp/server.py",
+            "head_git_blob": "40ef5c6c1a5125a035ca568a50e4283d592b27fb",
+            "committed_content_sha256": "d7bb09b3b8c836013e34490352fed4cef48d16ad13a111af8923a1ea5e0c8459"
+          },
+          {
+            "path": "WeBridge/web_mvp/runtime_support.py",
+            "head_git_blob": "0eaecbc2eed20eb0836f75c9941c4efdf0e57a65",
+            "committed_content_sha256": "52aba1389405bfa99c9a68acf798e82d4687daa8253395242c32be22cb4ff8e3"
+          },
+          {
+            "path": "WeBridge/web_mvp/static/index.html",
+            "head_git_blob": "4a90a7ab2b198a1155fb162ad4f29118a83308dd",
+            "committed_content_sha256": "e00e0387f4a51d8054e89a51797b74a8d8374f0f69d004644bb6fef4600ee91e"
+          },
+          {
+            "path": "WeBridge/web_mvp/static/schedule_batch_ui.js",
+            "head_git_blob": "b033a23f53a9c8ff5ee7a263a432aa1320640926",
+            "committed_content_sha256": "81545d7ad63230724620cef2243fdb1cffe4f5c3e99a723ea54e32eb3add3ffe"
+          },
+          {
+            "path": "WeBridge/web_mvp/test_schedule_batch_acceptance.py",
+            "head_git_blob": "22b780cb2f678e42618e2077c4dda87b0576fc7c",
+            "committed_content_sha256": "8f787f10d08bb273eaa090a2e2b8f07f20889e0ff48e4e737bcbf09b614e5529"
+          },
+          {
+            "path": "WeBridge/web_mvp/test_schedule_batch_http.py",
+            "head_git_blob": "0671071f30622348091c6d25490536ca97a1c1e2",
+            "committed_content_sha256": "e4b50cd4039fab786943cf747895efa04ac43cd5e82350a628fb03cc2d0d49e3"
+          },
+          {
+            "path": "WeBridge/web_mvp/test_schedule_batches.py",
+            "head_git_blob": "53afd4fac5abab94112ad359f3eb242731b6f848",
+            "committed_content_sha256": "6b69efc4238c4ceba6a68ca21bb566ab9cf192d9ac2cf85186d3c8fe08097fcd"
+          }
+        ],
+        "product_tests_rerun": false,
+        "product_files_edited_by_this_task": false,
+        "private_runtime_or_chats_read": false,
+        "model_calls": 0,
+        "real_messages_sent": 0,
+        "external_sources_refreshed": false,
+        "batch_capabilities": [
+          "public preview/create API and UI capability",
+          "1-300 selected conversations",
+          "atomic schedules and receipt transaction",
+          "preview revalidation after unlocked capability probe",
+          "durable account/requestId receipt with exact request binding",
+          "replay returns current task states without reenabling"
+        ],
+        "batch_limits": [
+          "500 cumulative schedule records including cancelled/finished",
+          "exact active/paused specifications deduped; differing specifications may coexist",
+          "page attempt recovery is memory-only",
+          "configuration transaction is not native-send atomicity",
+          "300 synthetic configuration does not prove real concurrent deadline execution"
+        ],
+        "historical_suite_record": {
+          "document": "WeBridge/execution/workbench-schedule-batches-2026-10-04.md",
+          "reported_python_passed": 516,
+          "reported_chrome_mock_checks": 161,
+          "rerun_by_this_review": false
+        },
+        "proposed_business_contract": "source_id + group_id + inquiry_kind + planned_business_date maps a single approved daily inquiry intent; template and policy versions are metadata, not new intent keys; not yet implemented",
+        "requirements_audit": {
+          "research_directions": 5,
+          "orchestration_modules": 9,
+          "input_scenarios": 4,
+          "mapping": "report section 9.4",
+          "implementation_order_unchanged": "M1-M5"
+        },
+        "recommended_next_step": "Durable task intake and scripted shadow orchestration; reuse batch confirmation and receipts, later add business occurrence arbitration and real model usage evaluation",
+        "evidence": [
+          "evidence/research-current-state-audit.md",
+          "evidence/research-batch-boundaries-2026-10-04.md"
+        ]
+      },
+      "document_validation": {
+        "status": "PASS",
+        "date": "2026-10-04",
+        "scope": "Report artifacts and fixed-source audit only; product test counts attributed to existing execution records",
+        "local_markdown_links_checked": 101,
+        "markdown_files_checked": 12,
+        "fixed_source_snapshots_checked": 19,
+        "encoding_and_code_fences": "PASS",
+        "links_and_used_anchors": "PASS",
+        "budget_and_probability_arithmetic": "PASS",
+        "historical_report_preserved": true,
+        "product_files_edited_by_this_task": false,
+        "independent_reviews": [
+          "Committed batch API/UI/transaction and recovery audit",
+          "Business uniqueness, receipt evidence and capacity boundaries"
+        ],
+        "publication_scope": [
+          "README.md",
+          "specs/wecom-hook-agent-research-2026-10-02.md",
+          "evidence/research-current-state-audit.md",
+          "evidence/research-batch-boundaries-2026-10-04.md",
+          "evidence/wecom-hook-agent-research-2026-10-02.json"
+        ],
+        "not_proven": [
+          "real 300-group deadline execution",
+          "native outbound mentions",
+          "Chinese model quality",
+          "actual token savings",
+          "live delivery or read receipt"
         ]
       }
     }

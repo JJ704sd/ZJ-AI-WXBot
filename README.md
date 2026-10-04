@@ -12,7 +12,7 @@
 
 ## 当前评审材料
 
-- [企微 Hook 与 Agent 策略调研 第二版 本地落地修订（续审 2026-10-04）](./specs/wecom-hook-agent-research-2026-10-02.md)：基线更新至 `bdafc817`，纳入完整批量定时创建及已有待办、通知、日历／模板；补清原子保存、创建幂等与逐期发送的边界，以及跨批次业务防重、历史容量和规模验收。[本地续审](./evidence/research-current-state-audit.md) · [批量边界](./evidence/research-batch-boundaries-2026-10-04.md) · [框架复核](./evidence/research-framework-refresh-2026-10-04.md) · [结构化证据](./evidence/wecom-hook-agent-research-2026-10-02.json)。本次为报告更新，实际收发与模型效果仍按各自证据验收。
+- [企微 Hook 与 Agent 策略调研 第二版 本地落地修订（续审 2026-10-04）](./specs/wecom-hook-agent-research-2026-10-02.md)：产品基线保持 `bdafc817`，保留批量创建、待办和通知结论；新增批准场景与资料回复契约，区分已提交固定回复、在制全文卡片与后续语义检索，补充版本／群范围、复合请求和零模型公平基线。[本地续审](./evidence/research-current-state-audit.md) · [批准回复](./evidence/research-approved-replies-2026-10-04.md) · [批量边界](./evidence/research-batch-boundaries-2026-10-04.md) · [框架复核](./evidence/research-framework-refresh-2026-10-04.md) · [结构化证据](./evidence/wecom-hook-agent-research-2026-10-02.json)。本次为报告更新，实际收发与模型效果仍按各自证据验收。
 - [个微收发 v1.21 主文](./specs/个微收发_v1.21_技术评审修订版_2026-09-26.md)：业务与功能、候选资料、交付成本、项目证据和分阶段验收。
 - [v1.21 演讲稿](./specs/个微收发_v1.21_技术评审演讲稿_2026-09-26.md)：按主文章节顺序，约 8 分钟主讲及备查依据。
 - [v1.21 问题清单](./specs/个微收发_v1.21_技术评审问题清单_2026-09-26.md)：30 项检查、18 组答辩、验收与会议记录模板。
