@@ -2,6 +2,7 @@
 import http.client
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import threading
@@ -15,6 +16,49 @@ if str(SCRIPTS) not in sys.path:
 spec = importlib.util.spec_from_file_location('hook_smoke_test_module', SCRIPTS / 'run_windows_hook_smoke.py')
 smoke = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(smoke)
+
+
+class SourceBindingTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.directory = Path(self.temporary.name)
+
+    def tearDown(self):
+        self.temporary.cleanup()
+
+    def configure(self, self_id, folder):
+        source = self.directory / folder / 'db_storage'
+        source.mkdir(parents=True, exist_ok=True)
+        (self.directory / 'database-config.json').write_text(json.dumps({
+            'config': {'selfId': self_id, 'sourceRoot': str(source)}}), encoding='utf-8')
+        return source
+
+    def test_selected_account_is_not_pinned_to_the_smoke_fixture(self):
+        for self_id, folder in (('wxid_fixture_one', 'wxid_fixture_one_559e'),
+                                ('wxid_fixture_two', 'wxid_fixture_two_a1b2'),
+                                ('wxid_fixture_three', 'wxid_fixture_three')):
+            with self.subTest(account=self_id):
+                source = self.configure(self_id, folder)
+                self.assertEqual(smoke.read_source(self.directory), {
+                    'selfId': self_id, 'sourceRoot': os.path.normcase(str(source.resolve()))})
+
+    def test_different_account_directory_is_rejected(self):
+        self.configure('wxid_fixture_one', 'wxid_fixture_two_559e')
+        with self.assertRaisesRegex(smoke.SmokeError, '^selected_account_changed$'):
+            smoke.read_source(self.directory)
+
+    def test_missing_identity_or_non_database_source_is_rejected(self):
+        for self_id, folder in (('', 'wxid_fixture_one_559e'),
+                                ('../wxid_fixture_one', 'wxid_fixture_one_559e')):
+            with self.subTest(account=self_id):
+                self.configure(self_id, folder)
+                with self.assertRaisesRegex(smoke.SmokeError, '^selected_account_changed$'):
+                    smoke.read_source(self.directory)
+        source = self.configure('wxid_fixture_one', 'wxid_fixture_one_559e')
+        (self.directory / 'database-config.json').write_text(json.dumps({
+            'config': {'selfId': 'wxid_fixture_one', 'sourceRoot': str(source.parent)}}), encoding='utf-8')
+        with self.assertRaisesRegex(smoke.SmokeError, '^selected_account_changed$'):
+            smoke.read_source(self.directory)
 
 
 class FakeNative:

@@ -113,6 +113,12 @@ try {
     Write-Host ('Mode: {0}; URL: http://127.0.0.1:{1}' -f $Mode, $Port)
     Write-Host ('Runtime: {0}' -f $RuntimeDir)
 
+    $identityCheckPath = Join-Path $rootDir 'scripts\check_runtime_identity.py'
+    & $runtimePython.Path @pythonPrefix $identityCheckPath --root $rootDir
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Runtime source identity check failed. Review the reported source locations; no service was started.'
+    }
+
     $listener = New-Object Net.Sockets.TcpListener([Net.IPAddress]::Loopback, $Port)
     try {
         $listener.ExclusiveAddressUse = $true

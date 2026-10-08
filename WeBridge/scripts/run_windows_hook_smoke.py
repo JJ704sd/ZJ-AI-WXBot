@@ -83,11 +83,20 @@ def bounded_call(function, timeout=8):
 def read_source(runtime_dir=RUNTIME):
     try:
         config = json.loads((Path(runtime_dir) / 'database-config.json').read_text(encoding='utf-8'))['config']
-        source = Path(config['sourceRoot']).resolve(strict=True)
-        # Same already selected source as the reviewed metadata preflight.
-        if config.get('selfId') != 'wxid_synthetic_self' or source.parent.name != 'wxid_synthetic_self_559e':
+        self_id = config.get('selfId')
+        if not isinstance(self_id, str) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,200}', self_id):
             raise ValueError()
-        return {'selfId': config['selfId'], 'sourceRoot': os.path.normcase(str(source))}
+        source = Path(config['sourceRoot'])
+        if not source.is_absolute():
+            raise ValueError()
+        source = source.resolve(strict=True)
+        # Bind the selected account directory, including its optional install suffix.
+        # NativeSession still verifies the unique owning process and pinned module.
+        account_folder = re.escape(self_id) + r'(?:_[0-9a-fA-F]{4})?'
+        if (not source.is_dir() or source.name.casefold() != 'db_storage' or
+                re.fullmatch(account_folder, source.parent.name) is None):
+            raise ValueError()
+        return {'selfId': self_id, 'sourceRoot': os.path.normcase(str(source))}
     except Exception:
         raise SmokeError('selected_account_changed') from None
 

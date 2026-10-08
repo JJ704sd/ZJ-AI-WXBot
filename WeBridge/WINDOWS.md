@@ -39,6 +39,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\start_web_mvp.
 
 Python 查找顺序为 `-Python`、`WECHAT_MVP_PYTHON`、项目 `.venv`、`py -3`、`python.exe`。启动器显示实际选中的解释器及版本；不要求管理员权限，不修改系统执行策略。端口占用时会拒绝启动，不终止已有进程。
 
+启动前自动执行 `scripts/check_runtime_identity.py`，检查运行源码中的固定账号、群 ID 和测试占位身份；检测到问题即停止启动，只报告文件和行号。检查只读取源码，不访问私有配置、密钥或微信进程。账号绑定与脱敏规则见 [项目指令](AGENTS.md)。
+
 ## 数据库副本接收
 
 在数据源设置中填写单账号 `db_storage` 的绝对路径、本人的实际 `wxid`（可留空，但不能用自定义微信号替代）及已授权密钥 JSON 的本地文件路径。也可选择已经解密的数据库副本，无需密钥。密钥只从文件读取，不在网页中填写其内容。
@@ -158,6 +160,9 @@ Live 的手动发送、定时发送、自动回复均可能产生真实消息；
 验证命令：
 
 ```powershell
+# 源码身份隔离与跨账号配置回归，无微信操作
+python scripts/check_runtime_identity.py
+python -m unittest web_mvp.test_runtime_identity web_mvp.test_windows_hook_smoke.SourceBindingTests
 python -m unittest discover -s web_mvp -p 'test_windows*.py' -v
 # 实际调用系统 OCR 识别自绘文字 / 空白图片，不截取桌面或微信
 python web_mvp/diagnostics/check_windows_ocr.py

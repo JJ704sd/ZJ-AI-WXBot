@@ -22,16 +22,16 @@ function updateHookSender(){
  if(isDatabase()&&serviceAvailable&&!hookBusy&&Date.now()>=hookNextStatusAt){hookNextStatusAt=Date.now()+15000;checkHookStatus(false);}
 }
 function updateHookControls(){
- const busy=!!hookBusy,ready=hookReady(),target=hookTargetAllowed(selected),locked=!!hookDraft||!!hookAttempt,changing=['starting','stopping'].includes(hookStatus?.bridgeState);
+ const busy=!!hookBusy,ready=hookReady(),target=hookTargetAllowed(selected),locked=!!hookDraft||!!hookAttempt,connecting=hookBusy==='start'||hookStatus?.bridgeState==='starting',disconnecting=hookBusy==='stop'||hookStatus?.bridgeState==='stopping',changing=connecting||disconnecting;
  $('hook-check').disabled=busy||!serviceAvailable;$('hook-check').textContent=hookBusy==='status'?'正在检查…':'检查 Hook 状态';
  $('hook-start').hidden=ready;$('hook-stop').hidden=!ready;
  $('hook-start').disabled=busy||changing||!serviceAvailable||!online||databaseBusy;$('hook-stop').disabled=busy||changing||!!hookDraft||!!hookAttempt&&!hookAttempt.stopped;
- $('hook-start').textContent=hookBusy==='start'||hookStatus?.bridgeState==='starting'?'正在连接…':'连接发送';$('hook-stop').textContent=hookBusy==='stop'||hookStatus?.bridgeState==='stopping'?'正在断开…':'断开发送';
- $('hook-composer-status').textContent=ready?'微信已连接':hookStatus?.bridgeState==='starting'?'正在连接 Windows 微信…':hookStatus?.bridgeState==='stopping'?'正在断开发送…':hookStatus?.issue||'发送尚未连接';
+ $('hook-start').textContent=connecting?'正在连接…':'连接发送';$('hook-stop').textContent=disconnecting?'正在断开…':'断开发送';
+ $('hook-composer-status').textContent=connecting?'正在连接 Windows 微信…':disconnecting?'正在断开发送…':ready?'微信已连接':hookStatus?.issue||'发送尚未连接';
  $('hook-composer-target').textContent=selected?'当前会话：'+groupName(selected)+' · '+(!hookTargetWatched(selected)?'请先勾选读取':!ready?'连接后检查发送能力':target?'可发送文本':'当前发送桥未开放此会话'):'选择左侧会话后编辑消息';
  $('hook-confirm').disabled=busy||databaseBusy||!ready||!hookDraft||!hookSameContext(hookDraft.context)||hookExpires(hookDraft?.expiresAt)<=Date.now();$('hook-cancel').disabled=busy;$('hook-next').disabled=busy;
  if(!isDatabase())return;
- const reason=!serviceAvailable?'本机服务未连接。':!online?'请先创建可读的数据库副本。':!selected?'选择左侧要收发消息的会话。':!hookTargetWatched(selected)?'请在“选择读取会话”中勾选当前会话。':!ready?(hookStatus?.issue||'点击“连接发送”连接这台电脑上的微信。'):!target?'当前发送桥未开放此会话，请在环境中重新检查连接能力。':databaseBusy?'正在更新数据库副本，请稍候。':groupLoadState!=='ready'?'正在读取当前会话，请稍候。':hookAttempt?'下方显示本次发送结果。':hookDraft?'核对下方目标和正文后确认发送。':!$('message-text').value.trim()?'输入文本后可核对并发送。':'';
+ const reason=!serviceAvailable?'本机服务未连接。':!online?'请先创建可读的数据库副本。':!selected?'选择左侧要收发消息的会话。':!hookTargetWatched(selected)?'请在“选择读取会话”中勾选当前会话。':connecting?'正在连接 Windows 微信，请稍候。':disconnecting?'正在断开发送，请稍候。':!ready?(hookStatus?.issue||'点击“连接发送”连接这台电脑上的微信。'):!target?'当前发送桥未开放此会话，请在环境中重新检查连接能力。':databaseBusy?'正在更新数据库副本，请稍候。':groupLoadState!=='ready'?'正在读取当前会话，请稍候。':hookAttempt?'下方显示本次发送结果。':hookDraft?'核对下方目标和正文后确认发送。':!$('message-text').value.trim()?'输入文本后可核对并发送。':'';
  $('send-reason').textContent=reason;$('send-button').disabled=busy||changing||databaseBusy||locked||!ready||!target||groupLoadState!=='ready'||!$('message-text').value.trim();$('send-label').textContent=hookBusy==='prepare'?'正在准备…':'核对并发送';$('send-button').title=reason||'Ctrl + Enter 核对消息';$('message-text').disabled=busy&&hookBusy!=='status'||locked||!hookTargetWatched(selected)||ready&&!target;
 }
 function showHookIssue(title,detail){$('hook-result').hidden=false;$('hook-result-title').textContent=title;$('hook-result-detail').textContent=detail||'';$('hook-result-evidence').textContent='';$('hook-next').hidden=true;}
