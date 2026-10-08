@@ -52,7 +52,7 @@
 另运行 5 个现有针对性测试，全部通过，耗时 0.689 秒：
 
 ```powershell
-# cwd: D:\ZJ-AI-WXBot\WeBridge\web_mvp
+# cwd: <LOCAL_WORKTREE>\WeBridge\web_mvp
 python -B -m unittest -v test_windows_auto_reply.AutoReplyTests.test_cross_shard_duplicate_server_id_and_cooldown_no_backlog test_windows_auto_reply.AutoReplyTests.test_timeout_is_durable_no_retry_even_reenable test_windows_auto_reply.AutoReplyTests.test_restart_disables_rules test_windows_auto_reply.AutoReplyTests.test_disconnect_pauses_and_no_catchup_on_recovery test_database_adapter.DatabaseAdapterTests.test_expanded_message_history_limit
 ```
 
