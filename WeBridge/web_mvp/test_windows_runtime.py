@@ -137,13 +137,18 @@ class DemoHttpTests(unittest.TestCase):
         self.thread.join()
         self.directory.cleanup()
 
-    def request(self, method, path, body=None, **headers):
+    def request(self, method, path, body=None, *, headers_only=False, **headers):
         if body is not None:
             headers = {'Origin': f'http://127.0.0.1:{self.port}', 'Content-Type': 'application/json',
                        'X-CSRF-Token': 'demo-test-token', **headers}
+        encoded=json.dumps(body) if body is not None else None
+        if headers_only:
+            # Exercise pre-body CSRF rejection without an unread body causing
+            # a Windows socket reset to obscure the HTTP response.
+            headers['Content-Length']=str(len(encoded.encode('utf-8')))
         connection = http.client.HTTPConnection('127.0.0.1', self.port, timeout=5)
         try:
-            connection.request(method, path, json.dumps(body) if body is not None else None, headers)
+            connection.request(method, path, None if headers_only else encoded, headers)
             response = connection.getresponse()
             return response.status, json.loads(response.read())
         finally:
@@ -173,7 +178,7 @@ class DemoHttpTests(unittest.TestCase):
 
     def test_demo_logout_login_and_send_preserve_csrf_boundary(self):
         payload = {'account': 'demo-account', 'groupId': 'demo-project@chatroom', 'text': '仅测试'}
-        self.assertEqual(self.request('POST', '/api/send', payload, **{'X-CSRF-Token': 'wrong'})[0], 403)
+        self.assertEqual(self.request('POST', '/api/send', payload, headers_only=True, **{'X-CSRF-Token': 'wrong'})[0], 403)
         self.assertEqual(self.request('POST', '/api/send', payload)[0], 202)
         self.assertEqual(self.request('POST', '/api/logout', {'account': 'demo-account'})[0], 200)
         self.assertEqual(self.request('POST', '/api/send', payload)[0], 400)

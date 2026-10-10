@@ -94,12 +94,12 @@ class HookScheduleDeadlineTests(unittest.TestCase):
     def test_post_late_outcome_is_never_reclassified_as_expired(self):
         for index,outcome in enumerate(('submitted', 'server_accepted', TimeoutError('synthetic late timeout'))):
             with self.subTest(outcome=outcome):
-                self.f.now, self.f.outcome = 1000, outcome
+                self.f.now, self.f.outcome = 1000+index*1000, outcome
                 def transport(method, path, payload=None):
-                    if method=='POST': self.f.now = 1200
+                    if method=='POST': self.f.now += 200
                     return self.f.transport(method, path, payload)
                 with patch.object(self.sender, 'transport', side_effect=transport):
-                    result = self.send(1060, idempotencyKey=f'synthetic-late-response-{index}')
+                    result = self.send(self.f.now+60, idempotencyKey=f'synthetic-late-response-{index}')
                 self.assertEqual(result['status'], ('submitted_unconfirmed','server_accepted','unknown')[index])
         self.assertEqual(len(self.posts()), 3)
 

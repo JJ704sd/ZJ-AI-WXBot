@@ -185,11 +185,11 @@ class HandoffNotifications:
     def pause_group(self, db, account, group, reason):
         self._pause(db,reason,account=account,group=group)
 
-    def pause_all(self, reason, unwatched_account=None):
+    def pause_all(self, reason, unwatched_account=None, *, account=None):
         watched = set(self.owner.engine.store.watched(unwatched_account) or []) if unwatched_account is not None else None
         with closing(self.owner._db()) as db, db:
             db.execute('BEGIN IMMEDIATE')
-            self._pause(db,reason,account=unwatched_account,watched=watched)
+            self._pause(db,reason,account=account if account is not None else unwatched_account,watched=watched)
 
     def summary(self, task, db):
         row = db.execute('SELECT * FROM handoff_notifications WHERE task_id=?', (task['id'],)).fetchone()

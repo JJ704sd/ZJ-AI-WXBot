@@ -130,6 +130,14 @@ class HandoffNotificationTests(unittest.TestCase):
         self.assertTrue(self.f.service.get(self.f.account,self.f.group)['enabled'])
         self.assertFalse(self.n.configuration(self.f.account)['configs'][0]['enabled'])
         self.n.tick();self.assertEqual(len(self.f.posts),1)
+        binding={'account':self.f.account,'sourceId':self.f.account,'selfId':self.f.source.config['selfId'],
+                 'sourceRoot':self.f.source.config['sourceRoot']}
+        self.assertTrue(self.f.sender.safety(binding)['paused'])
+        self.f.now+=86401
+        manual=self.f.sender.prepare({**binding,'targetId':PEER,'targetName':'合成私聊',
+            'text':'通知异常后的人工正文','idempotencyKey':'synthetic-notification-blocks-manual'})
+        self.assertEqual(self.f.sender.confirm({**binding,**manual,'targetConfirmed':True})['issueCode'],'account_paused')
+        self.assertEqual(len(self.f.posts),1)
         self.h.enqueue('after-fault')
         self.assertEqual(self.notification('after-fault')['status'],'not_configured')
 

@@ -56,6 +56,12 @@ class AutoReplyTests(unittest.TestCase):
         return {**{key:payload[key] for key in ('protocol','requestId','textHash','targetId')},
                 'binding':payload['expectedBinding'],'status':self.outcome}
 
+    def acknowledge_account(self):
+        source = {'account':self.account,'sourceId':self.account,'selfId':'self',
+                  'sourceRoot':self.source.config['sourceRoot']}
+        state = self.sender.safety(source)
+        self.sender.resume_safety(source,state['version'],True)
+
     def enable(self):
         return self.service.configure(self.account,self.group,True,'Hello，斯内特',30)
 
@@ -175,7 +181,9 @@ class AutoReplyTests(unittest.TestCase):
         self.enable();self.now+=1;self.rows=[self.message()];self.outcome='timeout'
         self.service.tick();self.assertEqual(len(self.posts),1)
         self.assertFalse(self.service.get(self.account,self.group)['enabled'])
-        self.service.tick();self.enable();self.now+=40;self.service.tick()
+        self.service.tick()
+        with self.assertRaises(ValueError):self.enable()
+        self.acknowledge_account();self.enable();self.now+=40;self.service.tick()
         self.assertEqual(len(self.posts),1)
 
     def test_restart_disables_rules(self):

@@ -240,11 +240,12 @@ class WindowsScheduler:
             with self.engine.lock:
                 self._pause_requests -= 1
 
-    def pause_all(self, reason='数据源或 Hook 连接异常，请核对后恢复任务。', *, unwatched_account=None):
+    def pause_all(self, reason='数据源或 Hook 连接异常，请核对后恢复任务。', *, unwatched_account=None, account=None):
         with self.source.lock, self.engine.sync_lock:
             with closing(self._db()) as db, db:
                 for row in db.execute('SELECT payload FROM schedules').fetchall():
                     job = json.loads(row[0])
+                    if account is not None and job['account']!=account:continue
                     if not job['enabled']: continue
                     if unwatched_account is not None and (job['account'] != unwatched_account or
                             job['group_id'] in (self.engine.store.watched(unwatched_account) or [])): continue

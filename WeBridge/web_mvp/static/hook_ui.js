@@ -1,15 +1,15 @@
 'use strict';
-let hookStatus=null,hookBusy='',hookDraft=null,hookAttempt=null,hookVersion=0,hookTimer=null,hookExpiryTimer=null,hookStatusTimer=null,hookNextStatusAt=0,hookScopeKey='';
+let hookStatus=null,hookBusy='',hookDraft=null,hookAttempt=null,hookVersion=0,hookTimer=null,hookExpiryTimer=null,hookStatusTimer=null,hookNextStatusAt=0,hookScopeKey='',hookSafetyVersion=null;
 const hookExpires=value=>typeof value==='number'?value*(value<1e12?1000:1):Date.parse(value||'');
 const hookTargetWatched=id=>(state.watchedGroups||[]).includes(id)&&(state.groups||[]).some(group=>group.id===id);
 const hookTargetAllowed=id=>hookTargetWatched(id)&&Array.isArray(hookStatus?.targetIds)&&hookStatus.targetIds.includes(id);
 const hookContext=()=>({account:state.account,groupId:selected,targetId:selected,sourceId:state.runtime?.source?.id});
 const hookSameContext=context=>context&&context.account===state.account&&context.groupId===selected&&context.sourceId===state.runtime?.source?.id&&hookTargetAllowed(context.groupId);
-function hookReady(){return isDatabase()&&serviceAvailable&&online&&hookStatus?.available===true&&hookStatus?.bridgeConfigured===true;}
+function hookReady(){return isDatabase()&&serviceAvailable&&online&&hookStatus?.available===true&&hookStatus?.bridgeConfigured===true&&hookStatus?.safety?.paused!==true;}
 function discardHookDraft(){++hookVersion;clearTimeout(hookExpiryTimer);hookDraft=null;$('hook-prepared').hidden=true;$('hook-bound-text').textContent='';updateHookControls();}
 function resetHookSender(){
  const uncertain=hookBusy==='confirm'||!!hookAttempt;discardHookDraft();clearTimeout(hookTimer);clearTimeout(hookStatusTimer);hookStatus=null;hookAttempt=null;hookNextStatusAt=0;
- $('hook-status-badge').textContent='尚未检查';$('hook-status-text').textContent='正在检查当前账号的发送连接。';$('hook-module-facts').replaceChildren();
+ $('hook-status-badge').textContent='尚未检查';$('hook-status-text').textContent='正在检查当前账号的发送连接。';$('hook-module-facts').replaceChildren();hookSafetyVersion=null;$('hook-safety').hidden=true;$('hook-safety-ack').checked=false;$('hook-safety-feedback').textContent='';
  $('hook-result').hidden=!uncertain;if(uncertain){$('hook-result-title').textContent='原账号的发送结果需核实';$('hook-result-detail').textContent='账号已变化，请在原账号的微信中核对发送结果。';$('hook-result-evidence').textContent='';$('hook-next').hidden=true;}
  updateHookControls();
 }
@@ -22,21 +22,23 @@ function updateHookSender(){
  if(isDatabase()&&serviceAvailable&&!hookBusy&&Date.now()>=hookNextStatusAt){hookNextStatusAt=Date.now()+15000;checkHookStatus(false);}
 }
 function updateHookControls(){
- const busy=!!hookBusy,ready=hookReady(),target=hookTargetAllowed(selected),locked=!!hookDraft||!!hookAttempt,connecting=hookBusy==='start'||hookStatus?.bridgeState==='starting',disconnecting=hookBusy==='stop'||hookStatus?.bridgeState==='stopping',changing=connecting||disconnecting;
+ const busy=!!hookBusy,limited=hookStatus?.safety?.retryAt*1000>Date.now(),ready=hookReady(),target=hookTargetAllowed(selected),locked=!!hookDraft||!!hookAttempt,connecting=hookBusy==='start'||hookStatus?.bridgeState==='starting',disconnecting=hookBusy==='stop'||hookStatus?.bridgeState==='stopping',changing=connecting||disconnecting;
  $('hook-check').disabled=busy||!serviceAvailable;$('hook-check').textContent=hookBusy==='status'?'正在检查…':'检查 Hook 状态';
- $('hook-start').hidden=ready;$('hook-stop').hidden=!ready;
+ const connected=hookStatus?.bridgeConfigured===true&&hookStatus?.bridgeState==='ready';
+ $('hook-start').hidden=connected;$('hook-stop').hidden=!connected;
  $('hook-start').disabled=busy||changing||!serviceAvailable||!online||databaseBusy;$('hook-stop').disabled=busy||changing||!!hookDraft||!!hookAttempt&&!hookAttempt.stopped;
  $('hook-start').textContent=connecting?'正在连接…':'连接发送';$('hook-stop').textContent=disconnecting?'正在断开…':'断开发送';
  $('hook-composer-status').textContent=connecting?'正在连接 Windows 微信…':disconnecting?'正在断开发送…':ready?'微信已连接':hookStatus?.issue||'发送尚未连接';
  $('hook-composer-target').textContent=selected?'当前会话：'+groupName(selected)+' · '+(!hookTargetWatched(selected)?'请先勾选读取':!ready?'连接后检查发送能力':target?'可发送文本':'当前发送桥未开放此会话'):'选择左侧会话后编辑消息';
- $('hook-confirm').disabled=busy||databaseBusy||!ready||!hookDraft||!hookSameContext(hookDraft.context)||hookExpires(hookDraft?.expiresAt)<=Date.now();$('hook-cancel').disabled=busy;$('hook-next').disabled=busy;
+ $('hook-confirm').disabled=busy||limited||databaseBusy||!ready||!hookDraft||!hookSameContext(hookDraft.context)||hookExpires(hookDraft?.expiresAt)<=Date.now();$('hook-cancel').disabled=busy;$('hook-next').disabled=busy;
+ updateHookSafetyControls();
  if(!isDatabase())return;
- const reason=!serviceAvailable?'本机服务未连接。':!online?'请先创建可读的数据库副本。':!selected?'选择左侧要收发消息的会话。':!hookTargetWatched(selected)?'请在“选择读取会话”中勾选当前会话。':connecting?'正在连接 Windows 微信，请稍候。':disconnecting?'正在断开发送，请稍候。':!ready?(hookStatus?.issue||'点击“连接发送”连接这台电脑上的微信。'):!target?'当前发送桥未开放此会话，请在环境中重新检查连接能力。':databaseBusy?'正在更新数据库副本，请稍候。':groupLoadState!=='ready'?'正在读取当前会话，请稍候。':hookAttempt?'下方显示本次发送结果。':hookDraft?'核对下方目标和正文后确认发送。':!$('message-text').value.trim()?'输入文本后可核对并发送。':'';
- $('send-reason').textContent=reason;$('send-button').disabled=busy||changing||databaseBusy||locked||!ready||!target||groupLoadState!=='ready'||!$('message-text').value.trim();$('send-label').textContent=hookBusy==='prepare'?'正在准备…':'核对并发送';$('send-button').title=reason||'Ctrl + Enter 核对消息';$('message-text').disabled=busy&&hookBusy!=='status'||locked||!hookTargetWatched(selected)||ready&&!target;
+ const reason=hookStatus?.safety?.paused?'当前账号全部发送已暂停，请到环境诊断核对后明确恢复。':limited?'已达到账号本地限制，请等待窗口结束后重新核对；不会自动补发。':!serviceAvailable?'本机服务未连接。':!online?'请先创建可读的数据库副本。':!selected?'选择左侧要收发消息的会话。':!hookTargetWatched(selected)?'请在“选择读取会话”中勾选当前会话。':connecting?'正在连接 Windows 微信，请稍候。':disconnecting?'正在断开发送，请稍候。':!ready?(hookStatus?.issue||'点击“连接发送”连接这台电脑上的微信。'):!target?'当前发送桥未开放此会话，请在环境中重新检查连接能力。':databaseBusy?'正在更新数据库副本，请稍候。':groupLoadState!=='ready'?'正在读取当前会话，请稍候。':hookAttempt?'下方显示本次发送结果。':hookDraft?'核对下方目标和正文后确认发送。':!$('message-text').value.trim()?'输入文本后可核对并发送。':'';
+ $('send-reason').textContent=reason;$('send-button').disabled=busy||limited||changing||databaseBusy||locked||!ready||!target||groupLoadState!=='ready'||!$('message-text').value.trim();$('send-label').textContent=hookBusy==='prepare'?'正在准备…':'核对并发送';$('send-button').title=reason||'Ctrl + Enter 核对消息';$('message-text').disabled=busy&&hookBusy!=='status'||locked||!hookTargetWatched(selected)||ready&&!target;
 }
 function showHookIssue(title,detail){$('hook-result').hidden=false;$('hook-result-title').textContent=title;$('hook-result-detail').textContent=detail||'';$('hook-result-evidence').textContent='';$('hook-next').hidden=true;}
 function renderHookStatus(data){
- hookStatus=data;const ready=hookReady();$('hook-status-badge').textContent=ready?'就绪':data.bridgeState==='starting'?'连接中':'未连接';
+ hookStatus=data;renderHookSafety(data.safety);const ready=hookReady();$('hook-status-badge').textContent=data.safety?.paused?'账号暂停':ready?'就绪':data.bridgeState==='starting'?'连接中':'未连接';
  $('hook-status-text').textContent=ready?'已连接当前账号；当前发送范围以工作台所选会话的状态为准。':data.issue||'到工作台点击“连接发送”以启用文本发送。';
  const facts=$('hook-module-facts');facts.replaceChildren();
  for(const [label,value,full] of [['微信模块版本',data.clientVersion||'未知'],['架构',data.arch||'未知'],['模块文件',data.moduleName||'未知'],['模块 SHA-256',data.moduleSha256?data.moduleSha256.slice(0,16)+'…':'未知',data.moduleSha256],['进程',data.processId?String(data.processId):'未知'],['本机 Hook 桥接',data.bridgeConfigured?'已配置':'未配置']]){const row=el('div','database-source-fact');row.append(el('small','',label));const text=el('span','',value);if(full)text.title=full;row.append(text);facts.append(row);}
@@ -106,3 +108,33 @@ $('hook-confirm').onclick=async()=>{
 };
 $('hook-next').onclick=()=>{if(hookBusy||!hookAttempt?.stopped)return;clearTimeout(hookTimer);if(hookAttempt.account===state.account&&hookAttempt.groupId===selected&&$('message-text').value===hookAttempt.text&&['local_record_observed','local_record_confirmed'].includes(hookAttempt.status)){$('message-text').value='';$('message-text').oninput();}hookAttempt=null;$('hook-result').hidden=true;updateHookControls();$('message-text').focus();};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)discardHookDraft();});window.addEventListener('pagehide',()=>{discardHookDraft();clearTimeout(hookTimer);clearTimeout(hookStatusTimer);});
+
+function updateHookSafetyControls(){
+ const safety=hookStatus?.safety,disabled=!!hookBusy||!serviceAvailable||!state.account||!safety;
+ $('hook-safety-save').disabled=disabled;$('hook-safety-pause').disabled=disabled||safety?.paused===true;
+ $('hook-safety-resume').disabled=disabled||safety?.paused!==true||!$('hook-safety-ack').checked;
+}
+function renderHookSafety(safety){
+ $('hook-safety').hidden=!safety;if(!safety)return;
+ const key=state.account+':'+safety.version;
+ if(hookSafetyVersion!==key){hookSafetyVersion=key;for(const [id,field] of [['interval','minimumIntervalSeconds'],['minute','perMinute'],['day','per24Hours'],['duplicate','duplicateWindowSeconds']])$('hook-safety-'+id).value=String(safety.limits[field]);$('hook-safety-ack').checked=false;}
+ $('hook-safety-state').textContent=(safety.paused?'账号全部发送已暂停。':'账号保护已启用。')+' 最近一分钟 '+safety.usage.minute+'/'+safety.limits.perMinute+'，最近 24 小时 '+safety.usage.last24Hours+'/'+safety.limits.per24Hours+'。'+(safety.unresolvedCount?'待人工核对 '+safety.unresolvedCount+' 条。':'');
+ $('hook-safety-recovery').hidden=!safety.paused;updateHookSafetyControls();
+}
+async function changeHookSafety(action){
+ if(hookBusy||!hookStatus?.safety)return;
+ const account=state.account,sourceId=state.runtime?.source?.id,version=hookStatus.safety.version;
+ const limits=Object.fromEntries([['interval','minimumIntervalSeconds'],['minute','perMinute'],['day','per24Hours'],['duplicate','duplicateWindowSeconds']].map(([id,key])=>[key,Number($('hook-safety-'+id).value)]));
+ const acknowledged=$('hook-safety-ack').checked;
+ if(action==='resume'&&!acknowledged)return;
+ discardHookDraft();hookBusy='safety';updateHookControls();$('hook-safety-feedback').textContent='正在保存当前账号的保护状态…';
+ try{const result=await api('/api/windows/hook/safety',{account,action,version,limits,confirmed:action==='configure',acknowledged});
+  if(account!==state.account||sourceId!==state.runtime?.source?.id)return;
+  hookStatus={...hookStatus,safety:result};renderHookSafety(result);$('hook-safety-feedback').textContent=action==='resume'?'账号已恢复新的发送；请分别核对自动规则，旧请求不会重发。':action==='pause'?'此账号全部发送已暂停。':'当前账号的统一限制已保存。';
+ }catch(error){if(account===state.account)$('hook-safety-feedback').textContent=error.message;}
+ finally{hookBusy='';updateHookControls();if(account===state.account&&sourceId===state.runtime?.source?.id)checkHookStatus(false);}
+}
+$('hook-safety-form').onsubmit=event=>{event.preventDefault();if(!$('hook-safety-save').disabled)changeHookSafety('configure');};
+$('hook-safety-pause').onclick=()=>{if(!$('hook-safety-pause').disabled)changeHookSafety('pause');};
+$('hook-safety-resume').onclick=()=>{if(!$('hook-safety-resume').disabled)changeHookSafety('resume');};
+$('hook-safety-ack').onchange=updateHookSafetyControls;

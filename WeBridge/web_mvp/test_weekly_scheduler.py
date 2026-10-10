@@ -144,6 +144,8 @@ class WeeklySchedulerTests(unittest.TestCase):
         self.f.outcome = 'timeout'
         self.scheduler.tick()
         self.assertEqual(self.runs(), [(job['nextRun'], 'unknown')])
+        with self.assertRaises(ValueError):self.scheduler.action(self.f.account, job['id'], 'resume')
+        self.f.acknowledge_account()
         resumed = self.scheduler.action(self.f.account, job['id'], 'resume')
         self.scheduler.tick()
         self.assertEqual(resumed['nextRun'], self.at('2026-10-05T10:01'))

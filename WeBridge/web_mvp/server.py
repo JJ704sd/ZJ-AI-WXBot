@@ -95,7 +95,7 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
         except FileNotFoundError:stamp='missing'
         if stamp!=hook_config_stamp:
             from windows_hook_sender import WindowsHookSender
-            hook_sender=WindowsHookSender.from_config(engine.store.path.parent/'hook-send',path)
+            hook_sender=WindowsHookSender.from_config(engine.store.path.parent/'hook-send',path,safety_directory=engine.store.path.parent)
             engine.hook_sender=hook_sender;hook_config_stamp=stamp
 
     def hook_status():
@@ -135,6 +135,14 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
             raise ValueError('发送目标与当前会话不一致。')
         target=next(row for row in engine.group_list if row['id']==group)
         return {'targetId':group,'targetName':target.get('name') or group}
+
+    def pause_hook_account(account):
+        automatic=getattr(engine,'windows_auto_reply',None)
+        if automatic:
+            automatic.pause_all(sending_only=True,account=account)
+            automatic.notifications.pause_all('账号发送已暂停，请核对后重新启用通知。',account=account)
+        scheduler=getattr(engine,'windows_scheduler',None)
+        if scheduler:scheduler.pause_all('账号发送已暂停，请核对后恢复任务。',account=account)
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self,fmt,*args):pass
@@ -207,6 +215,11 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                 if path=='/api/database':
                     if database_service is None:self.respond({'error':'请使用 Database 模式启动工作台。'},400);return
                     self.respond(database_service.snapshot());return
+                if path=='/api/windows/hook/safety':
+                    if hook_sender is None or database_service is None:raise ValueError('当前模式未启用账号发送保护。')
+                    with database_service.lock,engine.lock:
+                        if params.get('account',engine.account)!=engine.account:raise ValueError('账号已变化，请刷新页面。')
+                        reload_hook_sender();self.respond(hook_sender.safety(hook_binding()));return
                 if path=='/api/windows/hook/status':
                     if hook_sender is None or database_service is None:
                         self.respond({'available':False,'status':'unavailable','issue':'当前模式未启用 Windows Hook 发送。'});return
@@ -340,6 +353,27 @@ def make_handler(engine,login,csrf,port,media_cache=None,database_service=None,d
                 if path in ('/api/database/configure','/api/database/refresh'):
                     if database_service is None:raise ValueError('请使用 Database 模式启动工作台。')
                     self.respond(database_service.configure(data) if path.endswith('/configure') else database_service.refresh(),202);return
+                if path=='/api/windows/hook/safety':
+                    if hook_sender is None or database_service is None:raise ValueError('当前模式未启用账号发送保护。')
+                    with database_service.lock,engine.lock:
+                        if data.get('account')!=engine.account or not engine.account:raise ValueError('账号已变化，请刷新页面。')
+                        reload_hook_sender();binding=hook_binding();action=data.get('action');version=data.get('version')
+                        if action=='configure':
+                            if data.get('confirmed') is not True:raise ValueError('请明确核对账号和发送限制。')
+                            result=hook_sender.configure_safety(binding,data.get('limits'),version)
+                        elif action=='resume':
+                            if data.get('acknowledged') is not True:raise ValueError('请先核对微信中的未知结果，再明确确认恢复新的发送。')
+                            current=hook_sender.safety(binding)
+                            if type(version) is not int or current['version']!=version:raise ValueError('账号保护状态已变化，请刷新后重新核对。')
+                            if not current['paused']:raise ValueError('当前账号未暂停，不需要恢复。')
+                            # Disable old authorizations even if their worker has not observed the pause yet.
+                            pause_hook_account(engine.account)
+                            result=hook_sender.resume_safety(binding,version,True)
+                        elif action=='pause':
+                            result=hook_sender.pause_safety(binding,version)
+                            pause_hook_account(engine.account)
+                        else:raise ValueError('请选择保存限制、暂停或明确恢复。')
+                        self.respond(result);return
                 if path in ('/api/windows/hook/start','/api/windows/hook/stop'):
                     if hook_manager is None or database_service is None:raise ValueError('当前模式未启用本机发送管理。')
                     with database_service.lock:
@@ -496,16 +530,16 @@ def main():
             if args.mode=='database':
                 from windows_hook_sender import WindowsHookSender
                 from windows_hook_bridge import WindowsHookBridgeManager
-                hook_sender=WindowsHookSender.from_config(directory/'hook-send',directory/'hook-config.json')
+                hook_sender=WindowsHookSender.from_config(directory/'hook-send',directory/'hook-config.json',safety_directory=directory)
                 hook_manager=WindowsHookBridgeManager(directory)
             engine.hook_sender=hook_sender
             if args.mode=='database':
                 from windows_auto_reply import WindowsAutoReply
                 engine.windows_auto_reply=WindowsAutoReply(engine,database_service,
-                    lambda: WindowsHookSender.from_config(directory/'hook-send',directory/'hook-config.json'))
+                    lambda: WindowsHookSender.from_config(directory/'hook-send',directory/'hook-config.json',safety_directory=directory))
                 from windows_scheduler import WindowsScheduler
                 engine.windows_scheduler=WindowsScheduler(engine,database_service,
-                    lambda: WindowsHookSender.from_config(directory/'hook-send',directory/'hook-config.json'))
+                    lambda: WindowsHookSender.from_config(directory/'hook-send',directory/'hook-config.json',safety_directory=directory))
             login=LoginFlow(engine)
             if args.mode == 'database':
                 from windows_media import WindowsMediaCache

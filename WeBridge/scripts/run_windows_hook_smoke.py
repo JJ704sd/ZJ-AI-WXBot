@@ -27,6 +27,9 @@ from inspect_windows_hook_runtime import ROOT, HASH, CODE_RVAS, loaded_module_pa
 from analyze_windows_hook_send import Image
 from acquire_database_keys import AcquireError
 
+sys.path.insert(0, str(ROOT / 'web_mvp'))
+from hook_account_safety import HookAccountSafety, SafetyError
+
 PROTOCOL = 'webridge.windows-hook.v1'
 TARGET, TEXT = 'filehelper', 'WB-HOOK-0926'
 TEXT_HASH = hashlib.sha256(TEXT.encode('ascii')).hexdigest()
@@ -314,6 +317,7 @@ class SmokeBridge:
             database.execute('CREATE TABLE IF NOT EXISTS attempt (slot INTEGER PRIMARY KEY CHECK(slot=1), '
                              'request_hash TEXT NOT NULL, response TEXT NOT NULL)')
             database.commit()
+        self.safety = HookAccountSafety(self.directory)
 
     def connect(self):
         database = sqlite3.connect(self.path, timeout=2)
@@ -323,11 +327,13 @@ class SmokeBridge:
     def status(self):
         with closing(self.connect()) as database:
             consumed = database.execute('SELECT 1 FROM attempt WHERE slot=1').fetchone() is not None
-        return {'protocol': PROTOCOL, 'ready': not consumed and not self.native.detached and not self.native.invalidated,
+        safety = self.safety.status(self.binding)
+        return {'protocol': PROTOCOL, 'ready': not consumed and not self.native.detached and not self.native.invalidated
+                and not safety['paused'] and safety['retryAt'] is None,
                 'instanceId': self.binding['instanceId'], 'binding': self.binding,
                 'capabilities': {'sendText': True, 'idempotency': True},
                 'scope': {'targetId': TARGET, 'text': TEXT, 'maximumSubmissions': 1},
-                'attemptConsumed': consumed, 'delivered': False}
+                'attemptConsumed': consumed, 'delivered': False, 'safety': safety}
 
     def response(self, payload, status, attempted):
         return {'protocol': PROTOCOL, 'requestId': payload.get('requestId'), 'textHash': payload.get('textHash'),
@@ -352,20 +358,31 @@ class SmokeBridge:
                     self.native.revalidate()
                 except BaseException:
                     return self.response(payload, 'not_submitted', False)
-                unknown = self.response(payload, 'unknown', True)
-                database.execute('INSERT INTO attempt VALUES(1,?,?)', (digest, json.dumps(unknown)))
-                database.commit()  # Durable before native submit; never deleted/reset by this tool.
-                response = unknown
                 try:
-                    result = self.native.submit()
-                    if (result.get('state') == 'submitted_unconfirmed' and result.get('submissionAttempted') is True and
-                            result.get('nativeReturned') is True):
-                        response = self.response(payload, 'submitted', True)
-                except BaseException:
-                    pass  # Unknown includes timeout or post-dispatch disconnect. No replay.
-                database.execute('UPDATE attempt SET response=? WHERE slot=1', (json.dumps(response),))
-                database.commit()
-                return response
+                    self.safety.admit(self.binding,payload['requestId'],TARGET,TEXT_HASH)
+                except SafetyError as error:
+                    denied = {**self.response(payload,'not_submitted',False),'issueCode':error.code}
+                    database.execute('INSERT INTO attempt VALUES(1,?,?)',(digest,json.dumps(denied)))
+                    database.commit()
+                    return denied
+                response = self.response(payload,'unknown',True)
+                completed = False
+                try:
+                    database.execute('INSERT INTO attempt VALUES(1,?,?)', (digest, json.dumps(response)))
+                    database.commit()  # Durable before native submit; never deleted/reset by this tool.
+                    try:
+                        result = self.native.submit()
+                        if (result.get('state') == 'submitted_unconfirmed' and result.get('submissionAttempted') is True and
+                                result.get('nativeReturned') is True):
+                            response = self.response(payload,'submitted',True)
+                    except BaseException:
+                        pass  # Unknown includes timeout or post-dispatch disconnect. No replay.
+                    database.execute('UPDATE attempt SET response=? WHERE slot=1', (json.dumps(response),))
+                    database.commit()
+                    completed = True
+                    return response
+                finally:
+                    self.safety.finish(self.binding,payload['requestId'],response['status'] if completed else 'unknown')
 
 
 def handler_type(bridge, token, port, max_request_bytes=8192):

@@ -34,10 +34,10 @@ class ScheduleBatchHttpTests(unittest.TestCase):
             self.assertGreater(len(json.dumps(payload).encode('utf-8')),32768)
             self.assertEqual(self.preview(payload)[0],200)
             large={**self.batch.payload(),'padding':'x'*(256*1024)}
-            self.assertEqual(self.preview(large)[0],400)
-            self.assertEqual(self.create(large)[0],400)
+            self.assertEqual(self.preview(large,headers_only=True)[0],400)
+            self.assertEqual(self.create(large,headers_only=True)[0],400)
             old=self.http.data(padding='x'*33000)
-            self.assertEqual(self.http.request('POST','/api/jobs',old)[0],400)
+            self.assertEqual(self.http.request('POST','/api/jobs',old,headers_only=True)[0],400)
             template={'account':self.f.account,'id':self.batch.template_id,'version':self.batch.template['version'],
                       'name':'统一询价','text':'{{客户}}，请发送{{品类}}价格表。','padding':'x'*33000}
             self.assertEqual(self.http.request('POST','/api/schedule-templates/save',template)[0],200)

@@ -216,6 +216,8 @@ class ScheduleWindowTests(unittest.TestCase):
         self.assertFalse(result['enabled'])
         self.scheduler.tick()
         self.assertEqual(len(self.state.posts), 1)
+        with self.assertRaises(ValueError):self.scheduler.action(self.state.account, created['id'], 'resume')
+        self.state.acknowledge_account()
         self.scheduler.action(self.state.account, created['id'], 'resume')
         self.scheduler.tick()
         self.assertEqual(len(self.state.posts), 1)

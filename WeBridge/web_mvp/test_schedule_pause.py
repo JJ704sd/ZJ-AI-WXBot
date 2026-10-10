@@ -107,6 +107,7 @@ class SchedulePauseTests(unittest.TestCase):
         self.assertFalse(jobs[current['id']]['enabled'])
         self.assertFalse(jobs[queued['id']]['enabled'])
         self.assertTrue(jobs[other['id']]['enabled'])
+        self.state.now += 5
         self.scheduler.tick()
         self.assertEqual([post['targetId'] for post in self.state.posts], [self.state.group, 'filehelper'])
 
@@ -182,7 +183,7 @@ class SchedulePauseTests(unittest.TestCase):
         self.assertEqual(len(self.state.posts), 1)
 
     def test_database_failure_rolls_back_whole_batch_and_releases_pause(self):
-        first, second = self.create(1), self.create(2)
+        first, second = self.create(1), self.create(2,text='另一独立计划正文')
         before = self.saved()
         with closing(sqlite3.connect(self.scheduler.path)) as db, db:
             db.executescript(f"""CREATE TRIGGER fail_bulk_pause BEFORE UPDATE ON schedules
@@ -194,7 +195,12 @@ class SchedulePauseTests(unittest.TestCase):
         with closing(sqlite3.connect(self.scheduler.path)) as db, db:
             db.execute('DROP TRIGGER fail_bulk_pause')
         self.state.now = first['nextRun']
-        self.scheduler.tick()
+        original = self.state.transport
+        def spaced_transport(method,path,payload=None):
+            result=original(method,path,payload)
+            if method=='POST':self.state.now+=5
+            return result
+        with patch.object(self.state.sender,'transport',side_effect=spaced_transport):self.scheduler.tick()
         self.assertEqual(len(self.state.posts), 2)
 
     def test_account_change_during_wait_rejects_only_that_request(self):

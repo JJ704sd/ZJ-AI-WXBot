@@ -244,7 +244,9 @@ class SchedulerTests(unittest.TestCase):
 
     def test_unknown_daily_resume_schedules_only_next_day(self):
         job=self.scheduler.create(self.data(mode='daily',clock='10:01'));self.f.now=job['nextRun'];self.f.outcome='timeout'
-        self.scheduler.tick();self.scheduler.action(self.f.account,job['id'],'resume');self.scheduler.tick()
+        self.scheduler.tick()
+        with self.assertRaises(ValueError):self.scheduler.action(self.f.account,job['id'],'resume')
+        self.f.acknowledge_account();self.scheduler.action(self.f.account,job['id'],'resume');self.scheduler.tick()
         self.assertEqual(len(self.f.posts),1);self.assertEqual(self.job()['nextRun'],self.f.now+86400)
 
     def test_concurrent_ticks_claim_once(self):

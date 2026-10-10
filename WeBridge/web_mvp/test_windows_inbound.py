@@ -47,6 +47,12 @@ class InboundFixture:
         self.activate_snapshot(initial)
         self.engine.set_watched(self.account,[self.group])
 
+    def acknowledge_account(self):
+        source={'account':self.account,'sourceId':self.account,'selfId':self.source.config['selfId'],
+                'sourceRoot':self.source.config['sourceRoot']}
+        state=self.sender.safety(source)
+        self.sender.resume_safety(source,state['version'],True)
+
     def write_snapshot(self, revision, shards):
         """Build a fresh generation from {relative shard filename: raw row list}."""
         root=self.root/'snapshots'/revision
@@ -285,7 +291,9 @@ class WindowsInboundTests(unittest.TestCase):
         self.assertEqual(f.service.get(f.account,f.group)['attempts'][0]['status'],'unknown')
         f.service=f.new_service()
         self.assertFalse(f.service.get(f.account,f.group)['enabled'])
-        f.outcome='submitted';f.now+=31;f.enable()
+        f.outcome='submitted';f.now+=31
+        with self.assertRaises(ValueError):f.enable()
+        f.acknowledge_account();f.enable()
         copied=f.write_snapshot('unknown-reappears-after-restart',{
             'message/message_0.db':[message],
             'biz_message/biz_message_0.db':[{**message,'local':9}]})

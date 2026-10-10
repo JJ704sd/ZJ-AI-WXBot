@@ -77,6 +77,9 @@
     <section class="panel hook-sender-panel" id="hook-sender-panel" hidden>
       <div class="panel-heading"><div><span class="eyebrow">WINDOWS · HOOK 发送</span><h2>Hook 发送</h2><p class="subtle">连接本机微信后，向已选择读取且发送桥支持的会话发送文本。连接和发送操作位于工作台编辑区。</p></div><span class="label-badge" id="hook-status-badge">尚未检查</span></div>
       <div class="hook-sender-body"><div class="sender-detect-row"><button id="hook-check" class="button secondary" type="button">检查 Hook 状态</button><span id="hook-status-text" class="client-status" role="status">尚未检查模块版本与账号，发送保持关闭。</span></div><div class="hook-module-facts" id="hook-module-facts"></div>
+      <section id="hook-safety" class="hook-safety" hidden><h3>账号发送保护</h3><p id="hook-safety-state" role="status"></p><p class="subtle">手动、自动回复、定时与通知共同计数；这些是本地操作限制，不代表微信认可的安全频率。</p>
+      <form id="hook-safety-form"><div class="hook-safety-limits"><label>最小间隔（秒）<input id="hook-safety-interval" type="number" min="1" max="3600" required></label><label>每分钟最多<input id="hook-safety-minute" type="number" min="1" max="60" required></label><label>滚动 24 小时最多<input id="hook-safety-day" type="number" min="1" max="1000" required></label><label>相同会话与正文间隔（秒）<input id="hook-safety-duplicate" type="number" min="5" max="3600" required></label></div><button id="hook-safety-save" class="button secondary" type="submit">核对并保存限制</button></form>
+      <button id="hook-safety-pause" class="button secondary" type="button">暂停此账号全部发送</button><div id="hook-safety-recovery" hidden><label class="sender-confirmation"><input id="hook-safety-ack" type="checkbox">我已在微信核对未知结果，允许新的发送；原请求不会重发</label><button id="hook-safety-resume" class="button secondary" type="button" disabled>明确恢复账号发送</button><p class="subtle">需当前 Hook 绑定可核对。自动规则和定时任务仍需分别重新启用，不补发旧请求。</p></div><p id="hook-safety-feedback" role="status" aria-live="polite"></p></section>
       </div>
     </section>
     <section class="panel desktop-sender-panel" id="desktop-sender-panel" hidden>

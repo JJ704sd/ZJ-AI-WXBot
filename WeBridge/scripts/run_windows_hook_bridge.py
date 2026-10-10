@@ -19,11 +19,15 @@ from pathlib import Path
 import re
 import secrets
 import sqlite3
+import sys
 import threading
 import time
 
 from run_windows_hook_smoke import (NativeSession, SmokeError, CHECKS, CODE_RVAS,
     PROTOCOL, PROFILE, ROOT, RUNTIME, handler_type, public_failure)
+
+sys.path.insert(0, str(ROOT / 'web_mvp'))
+from hook_account_safety import HookAccountSafety, SafetyError
 
 SCRIPT = ROOT / 'execution/windows/native_send_text.js'
 TEXT_RVAS = {**CODE_RVAS, 'stringAssign': 0x3E150, 'releaseShared': 0x53120}
@@ -67,17 +71,19 @@ class TextNativeSession(NativeSession):
 
 
 class TextBridge:
-    def __init__(self, native, directory):
+    def __init__(self, native, directory, *, clock=None):
         self.native = native
         self.binding = dict(native.binding)
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
         self.path = self.directory / 'hook-bridge-attempts.sqlite'
         self.lock = threading.Lock()
+        self.safety = HookAccountSafety(self.directory, clock=clock)
         with closing(self.connect()) as database:
             database.execute('CREATE TABLE IF NOT EXISTS attempts ('
                 'request_id TEXT PRIMARY KEY, request_hash TEXT NOT NULL, response TEXT NOT NULL)')
             database.commit()
+        self.safety.recover_pending()
 
     def connect(self):
         database = sqlite3.connect(self.path, timeout=10)
@@ -131,10 +137,19 @@ class TextBridge:
                 self.native.revalidate()
             except Exception:
                 return self.response(payload, 'not_submitted', False)
+            try:
+                self.safety.admit(self.binding, payload['requestId'], payload['targetId'], payload['textHash'])
+            except SafetyError as error:
+                response = self.response(payload, 'not_submitted', False, issueCode=error.code)
+                database.execute('INSERT INTO attempts VALUES(?,?,?)',
+                                 (payload['requestId'], digest, json.dumps(response)))
+                database.commit()
+                return response
             response = self.response(payload, 'unknown', True)
             database.execute('INSERT INTO attempts VALUES(?,?,?)',
                              (payload['requestId'], digest, json.dumps(response)))
             database.commit()
+            completed = False
             try:
                 construction = self.native.construct(payload)
                 # A native GUID is useful for diagnostics. It is not a server ACK
@@ -154,9 +169,17 @@ class TextBridge:
                     self.native.invalidated = True
             except Exception:
                 self.native.invalidated = True
-            database.execute('UPDATE attempts SET response=? WHERE request_id=?',
-                             (json.dumps(response), payload['requestId']))
-            database.commit()
+            except BaseException:
+                self.native.invalidated = True
+                self.safety.finish(self.binding,payload['requestId'],'unknown')
+                raise
+            try:
+                database.execute('UPDATE attempts SET response=? WHERE request_id=?',
+                                 (json.dumps(response), payload['requestId']))
+                database.commit()
+                completed = True
+            finally:
+                self.safety.finish(self.binding, payload['requestId'], response['status'] if completed else 'unknown')
             return response
 
 

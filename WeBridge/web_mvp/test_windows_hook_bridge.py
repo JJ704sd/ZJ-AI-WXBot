@@ -56,7 +56,8 @@ class RepeatableBridgeTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.directory = Path(self.temporary.name)
         self.native = FakeNative()
-        self.bridge = bridge_module.TextBridge(self.native, self.directory)
+        self.now = 1000
+        self.bridge = bridge_module.TextBridge(self.native, self.directory, clock=lambda:self.now)
 
     def tearDown(self):
         self.temporary.cleanup()
@@ -68,6 +69,7 @@ class RepeatableBridgeTests(unittest.TestCase):
 
     def test_distinct_unicode_messages_submit_once_each_and_replay_only_reads(self):
         first = self.bridge.send(self.request())
+        self.now += 5
         second = self.bridge.send(self.request('b', '第二条\n文件助手'))
         self.assertEqual((first['status'], second['status']), ('submitted', 'submitted'))
         self.assertEqual(self.bridge.send(self.request()), first)
@@ -102,6 +104,7 @@ class RepeatableBridgeTests(unittest.TestCase):
         self.assertEqual(self.bridge.status()['scope']['targetPolicy'], 'selected_conversation')
         self.assertNotIn('targetId', self.bridge.status()['scope'])
         first = self.bridge.send(self.request(target='wxid_synthetic_one'))
+        self.now += 5
         second = self.bridge.send(self.request('b', target='12345678@chatroom'))
         self.assertEqual((first['status'], second['status']), ('submitted', 'submitted'))
         self.assertEqual(self.native.targets, ['wxid_synthetic_one', '12345678@chatroom'])

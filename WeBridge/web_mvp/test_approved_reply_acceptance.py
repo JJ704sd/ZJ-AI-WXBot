@@ -124,7 +124,9 @@ class ApprovedReplyAcceptanceTests(unittest.TestCase):
         f.service = f.new_service();f.engine.windows_auto_reply = f.service
         restarted = f.service.approved.get(f.account,f.group)
         self.assertFalse(restarted['enabled']);self.assertGreater(restarted['version'],current['version'])
-        f.outcome = 'submitted';f.now += 31;a.enable()
+        f.outcome = 'submitted';f.now += 31
+        with self.assertRaises(ValueError):a.enable()
+        f.acknowledge_account();a.enable()
         a.snapshot([original],duplicate=True);f.service.tick()
         self.assertEqual(len(f.posts),1)
         self.assertEqual(a.counts()[:2],(1,1))

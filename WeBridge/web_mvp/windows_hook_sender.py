@@ -35,12 +35,23 @@ import urllib.parse
 import urllib.request
 
 
+from hook_account_safety import HookAccountSafety, SafetyError
+
+
 PROTOCOL = 'webridge.windows-hook.v1'
 TTL_SECONDS = 120
 MAX_RESPONSE = 131072
 STATUS_TIMEOUT = 3
 SEND_TIMEOUT = 12
 ISSUES = {
+    'account_rate_limited': '已达到当前账号的本地频率、总量或重复正文限制；本次未发送，不会自动补发。',
+    'idempotency_conflict': '该请求标识已绑定其他目标或内容。',
+    'request_consumed': '该发送请求已有处理记录，不会重复提交。',
+    'safety_acknowledgement_required': '请先核对微信中的未知结果，再明确确认恢复新的发送。',
+    'account_not_paused': '当前账号未暂停，不需要恢复。',
+    'account_paused': '当前账号的全部发送已暂停，请核对未知结果后人工恢复。',
+    'invalid_safety_limits': '账号发送限制格式或范围无效。',
+    'safety_version_changed': '账号保护状态已变化，请刷新后重新核对。',
     'bridge_not_configured': '尚未配置经过适配的本机 Hook 桥，未启用发送。',
     'bridge_config_invalid': '本机 Hook 配置文件无效或不可读取，未启用发送。',
     'bridge_unavailable': '无法连接本机 Hook 桥，未执行发送。',
@@ -225,13 +236,14 @@ def _send_guard(directory):
 
 
 class WindowsHookSender:
-    def __init__(self, runtime_dir, *, endpoint=None, token=None, profiles=(), transport=None, clock=None):
+    def __init__(self, runtime_dir, *, endpoint=None, token=None, profiles=(), transport=None, clock=None, safety_directory=None):
         self.directory = Path(runtime_dir).resolve()
         self.directory.mkdir(parents=True, exist_ok=True)
         self.path = self.directory / 'windows-hook-send.sqlite'
         self.profiles = tuple(_profile(row) for row in profiles)
         self.transport = transport if transport is not None else LoopbackTransport(endpoint, token) if endpoint else None
         self.clock = clock or time.time
+        self.account_safety = HookAccountSafety(Path(safety_directory).resolve() if safety_directory else self.directory, clock=self.clock)
         self.configuration_error = None
         self.target_scope = {'targetId': 'filehelper'}
         with closing(self._connect()) as database:
@@ -240,9 +252,18 @@ class WindowsHookSender:
                 'binding TEXT NOT NULL, text_hash TEXT NOT NULL, expires REAL NOT NULL, '
                 'status TEXT NOT NULL, result TEXT NOT NULL)')
             database.commit()
+            legacy = database.execute("SELECT * FROM hook_drafts WHERE status IN ('attempted','unknown') OR "
+                "(expires>? AND status IN ('submitted_unconfirmed','server_accepted','local_record_observed','local_record_confirmed'))",
+                (self.clock()-86400,)).fetchall()
+        self.account_safety.import_legacy(legacy)
+        try:
+            with _send_guard(self.directory):
+                self.account_safety.recover_pending()
+        except HookSendError as error:
+            if error.code != 'hook_busy': raise
 
     @classmethod
-    def from_config(cls, runtime_dir, config_file):
+    def from_config(cls, runtime_dir, config_file, *, safety_directory=None):
         """Load a local operator-owned JSON file; never take this from the API.
 
         Shape: {"endpoint":"http://127.0.0.1:PORT", "tokenFile":"hook-token",
@@ -252,6 +273,8 @@ class WindowsHookSender:
         {clientVersion,arch,moduleName,moduleSha256} builds (or {"profiles": [...]}).
         Empty profiles are valid but cannot authorize a build. Missing config
         starts disconnected; invalid config fails closed with a fixed message.
+        safety_directory explicitly selects a shared ledger; credentials may live
+        elsewhere without requiring write access beside the configuration.
         """
         path = Path(config_file).resolve()
         def read_bounded(selected, limit):
@@ -262,7 +285,7 @@ class WindowsHookSender:
             return raw.decode('utf-8-sig')
         try:
             if not path.exists():
-                return cls(runtime_dir)
+                return cls(runtime_dir, safety_directory=safety_directory)
             config = json.loads(read_bounded(path, 65536))
             if (not isinstance(config, dict) or set(config) != {'endpoint', 'tokenFile', 'profilesFile'} or
                     any(not _string(value, 32768) for value in config.values())):
@@ -274,9 +297,9 @@ class WindowsHookSender:
                 profiles = profiles['profiles']
             if not isinstance(profiles, list) or len(profiles) > 64:
                 raise ValueError()
-            return cls(runtime_dir, endpoint=config['endpoint'], token=token, profiles=profiles)
+            return cls(runtime_dir, endpoint=config['endpoint'], token=token, profiles=profiles, safety_directory=safety_directory)
         except (OSError, ValueError, TypeError, UnicodeError):
-            instance = cls(runtime_dir)
+            instance = cls(runtime_dir, safety_directory=safety_directory)
             instance.configuration_error = 'bridge_config_invalid'
             return instance
 
@@ -285,6 +308,33 @@ class WindowsHookSender:
         database.row_factory = sqlite3.Row
         database.execute('PRAGMA synchronous=FULL')
         return database
+
+    def safety(self, source):
+        return self.account_safety.status(_source(source))
+
+    def configure_safety(self, source, limits, version):
+        try:
+            with _send_guard(self.directory):
+                return self.account_safety.configure(_source(source), limits, version)
+        except SafetyError as error:
+            raise HookSendError(error.code) from None
+
+    def pause_safety(self, source, version):
+        try:
+            with _send_guard(self.directory):
+                return self.account_safety.pause(_source(source), version)
+        except SafetyError as error:
+            raise HookSendError(error.code) from None
+
+    def resume_safety(self, source, version, acknowledged):
+        # Fresh binding and the send lock are required; reconnecting alone never resumes.
+        with _send_guard(self.directory):
+            source = _source(source)
+            self._probe(source)
+            try:
+                return self.account_safety.resume(source, version, acknowledged)
+            except SafetyError as error:
+                raise HookSendError(error.code) from None
 
     def _probe(self, source=None):
         if self.configuration_error:
@@ -327,6 +377,7 @@ class WindowsHookSender:
     def status(self, binding=None):
         result = {'supported': True, 'available': False, 'bridgeConfigured': self.transport is not None,
                   'protocol': PROTOCOL, 'transport': 'loopback-http', 'delivered': False, 'retryAllowed': False}
+        source = None
         try:
             source = _source(binding) if binding is not None else None
             native = self._probe(source)
@@ -340,6 +391,10 @@ class WindowsHookSender:
             if observed:
                 result.update(**{key: observed[key] for key in ('clientVersion', 'arch', 'moduleName', 'moduleSha256')}, processId=observed['pid'])
             result.update(issueCode=error.code, issue=error.public_message)
+        if source is not None:
+            result['safety'] = self.safety(source)
+            if result['safety']['paused']:
+                result.update(available=False, issueCode='account_paused', issue=ISSUES['account_paused'])
         return result
 
     @staticmethod
@@ -408,6 +463,7 @@ class WindowsHookSender:
         return self._view(row)
 
     def _save_result(self, draft_id, status, result):
+        self.account_safety.finish(json.loads(self._row(draft_id)['request']), draft_id, status)
         with closing(self._connect()) as database:
             database.execute('UPDATE hook_drafts SET status=?,result=? WHERE id=?', (status, _json(result), draft_id))
             database.commit()
@@ -420,7 +476,10 @@ class WindowsHookSender:
 
     def automation_binding(self, source):
         """Server-only session identity to freeze when a rule is explicitly enabled."""
-        return self._probe(_source(source))
+        source = _source(source)
+        if self.account_safety.status(source)['paused']:
+            raise HookSendError('account_paused')
+        return self._probe(source)
 
     def send_automatic(self, data, *, expected_binding, baseline_messages, deadline=None, before_submit=None):
         """Server-only entry for an enabled, durably claimed reply rule.
@@ -430,6 +489,12 @@ class WindowsHookSender:
         probes finish. Rejection prevents the native POST. This callback and
         entry point are intentionally not exposed as an HTTP send endpoint.
         """
+        request = self._request(data)
+        with closing(self._connect()) as database:
+            previous = database.execute('SELECT status FROM hook_drafts WHERE id=?',
+                                        (_hash(request['idempotencyKey'])[:32],)).fetchone()
+        if previous is not None and previous['status'] != 'prepared':
+            return self.prepare(data)  # Read consumed outcomes even while the account is paused.
         if self.automation_binding(data) != expected_binding:
             raise HookSendError('binding_changed')
         draft = self.prepare(data)
@@ -469,6 +534,10 @@ class WindowsHookSender:
             if deadline is not None and self.clock() > deadline:
                 return self._save_result(row['id'], 'expired', {'issueCode':'schedule_window_expired',
                     'issue':ISSUES['schedule_window_expired']})
+            try:
+                self.account_safety.check(request, row['id'], request['targetId'], row['text_hash'])
+            except SafetyError as error:
+                return self._save_result(row['id'], 'blocked', {'issueCode':error.code, 'issue':ISSUES[error.code]})
             if before_submit is not None:
                 try:
                     before_submit(row['id'])
@@ -476,6 +545,10 @@ class WindowsHookSender:
                     return self._save_result(row['id'], 'blocked', {'issueCode':error.code, 'issue':error.public_message})
                 except ValueError as error:
                     return self._save_result(row['id'], 'blocked', {'issueCode':'submission_not_authorized', 'issue':str(error)})
+            try:
+                self.account_safety.admit(request, row['id'], request['targetId'], row['text_hash'])
+            except SafetyError as error:
+                return self._save_result(row['id'], 'blocked', {'issueCode':error.code, 'issue':ISSUES[error.code]})
             with closing(self._connect()) as database:
                 database.execute("UPDATE hook_drafts SET status='attempted',result=? WHERE id=? AND status='prepared'",
                                  (_json(evidence), row['id']))
@@ -504,6 +577,9 @@ class WindowsHookSender:
                             'issue': '已取得匹配本次请求的服务器接受回执；尚未确认本地存档或收件端送达。'}
             except Exception:
                 pass
+            finally:
+                # Includes interruption and a failure persisting the final draft result.
+                self.account_safety.finish(request, row['id'], status)
             if correlated:
                 client_id = outcome.get('clientMessageId')
                 if _string(client_id, 128):

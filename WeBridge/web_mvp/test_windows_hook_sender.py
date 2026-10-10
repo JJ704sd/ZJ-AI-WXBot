@@ -143,6 +143,9 @@ class HookTests(unittest.TestCase):
         self.assertNotIn('TOKEN', json.dumps(result))
         self.sender.confirm(self.confirm_data(draft))
         self.assertEqual(sum(call[0] == 'POST' for call in self.calls), 1)
+        state = self.sender.safety(self.source)
+        self.sender.resume_safety(self.source, state['version'], True)
+        self.now += 31
         second = self.sender.prepare({**self.data, 'idempotencyKey': 'synthetic-hook-request-002'})
         self.outcome = KeyboardInterrupt()
         with self.assertRaises(KeyboardInterrupt): self.sender.confirm(self.confirm_data(second))
@@ -164,6 +167,9 @@ class HookTests(unittest.TestCase):
                 result = self.sender.confirm(self.confirm_data(draft))
                 self.assertEqual(result['status'], 'unknown')
                 self.assertFalse(result['serverAccepted'])
+                state = self.sender.safety(self.source)
+                self.sender.resume_safety(self.source, state['version'], True)
+                self.now += 61
 
     def test_submitted_and_proven_not_submitted_are_distinct(self):
         for index, (native, expected) in enumerate((('submitted', 'submitted_unconfirmed'), ('not_submitted', 'blocked'))):
@@ -212,6 +218,8 @@ class HookTests(unittest.TestCase):
         self.assertFalse(result['serverAccepted'])
         self.assertFalse(result['delivered'])
         self.assertNotIn('baselineMessageIds', result)
+        self.now += 31
+        second = message('second', '12', self.now)
         draft = self.sender.prepare({**self.data, 'idempotencyKey': 'synthetic-repeat-text-002'})
         self.sender.confirm(self.confirm_data(draft), baseline_messages=[old])
         self.assertEqual(lookup([old, first])['status'], 'submitted_unconfirmed')
@@ -284,6 +292,8 @@ class HookTests(unittest.TestCase):
         config = self.root / 'hook-config.json'
         config.write_text(json.dumps({'endpoint': endpoint, 'tokenFile': 'hook-token', 'profilesFile': 'profiles.json'}), encoding='utf-8')
         client = WindowsHookSender.from_config(self.root / 'http-test', config)
+        client.clock = lambda:self.now
+        client.account_safety.clock = client.clock
         self.assertTrue(client.status(self.source)['available'])
         draft = client.prepare(self.data)
         result = client.confirm(self.confirm_data(draft))
@@ -300,6 +310,7 @@ class HookTests(unittest.TestCase):
 
         # Simulate process interruption after a real POST returned. The durable
         # attempted row must survive and prohibit another native invocation.
+        self.now += 31
         crash_draft = client.prepare({**self.data, 'idempotencyKey': 'synthetic-real-http-crash'})
         actual = client.transport
         def interrupted(method, path, payload=None):

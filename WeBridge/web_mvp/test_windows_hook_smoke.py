@@ -99,6 +99,48 @@ class SmokeTests(unittest.TestCase):
             'textHash': smoke.TEXT_HASH, 'text': smoke.TEXT, 'targetId': smoke.TARGET,
             'expectedBinding': self.native.binding}
 
+    def test_smoke_respects_shared_account_pause_before_native_submission(self):
+        from hook_account_safety import HookAccountSafety
+        safety=HookAccountSafety(self.directory)
+        safety.pause(self.native.binding,safety.status(self.native.binding)['version'])
+        result=self.bridge.send(self.request())
+        self.assertEqual((result['status'],result['issueCode']),('not_submitted','account_paused'))
+        self.assertEqual(self.native.submissions,0)
+
+    def test_smoke_unknown_pauses_general_text_bridge_on_same_account(self):
+        from hook_account_safety import HookAccountSafety, SafetyError
+        self.native.submit_error=True
+        result=self.bridge.send(self.request())
+        self.assertEqual(result['status'],'unknown')
+        safety=HookAccountSafety(self.directory)
+        self.assertTrue(safety.status(self.native.binding)['paused'])
+        with self.assertRaisesRegex(SafetyError,'account_paused'):
+            safety.admit(self.native.binding,'b'*32,'another-target','another-hash')
+
+    def test_smoke_budget_is_shared_with_an_independent_sender(self):
+        from hook_account_safety import HookAccountSafety
+        safety=HookAccountSafety(self.directory)
+        safety.admit(self.native.binding,'b'*32,'another-target','another-hash')
+        safety.finish(self.native.binding,'b'*32,'submitted')
+        result=self.bridge.send(self.request())
+        self.assertEqual((result['status'],result['issueCode']),('not_submitted','account_rate_limited'))
+        self.assertEqual(self.native.submissions,0)
+
+    def test_legacy_smoke_unknown_initializes_account_pause(self):
+        self.native.submit_error=True
+        self.bridge.send(self.request())
+        self.bridge.safety.path.unlink()
+        restarted=smoke.SmokeBridge(FakeNative(),self.directory)
+        self.assertTrue(restarted.safety.status(self.native.binding)['paused'])
+
+    def test_old_smoke_unknown_blocks_general_bridge_before_diagnostic_restart(self):
+        from hook_account_safety import HookAccountSafety
+        self.native.submit_error=True
+        self.bridge.send(self.request())
+        self.bridge.safety.path.unlink()
+        safety=HookAccountSafety(self.directory)
+        self.assertTrue(safety.status(self.native.binding)['paused'])
+
     def test_success_is_submitted_without_delivery_claim(self):
         result = self.bridge.send(self.request())
         self.assertEqual(result['status'], 'submitted')

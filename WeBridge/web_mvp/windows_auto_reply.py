@@ -178,11 +178,12 @@ class WindowsAutoReply:
             if rule.get('enabled') and row['group_id'] not in (self.engine.store.watched(account) or []):
                 self._pause(account, row['group_id'], rule, '已取消群聊读取，规则已关闭。')
 
-    def pause_all(self, *, sending_only=False):
+    def pause_all(self, *, sending_only=False, account=None):
         with self.source.lock, self.engine.sync_lock:
             with closing(self._db()) as db:
                 rows = db.execute('SELECT * FROM rules').fetchall()
             for row in rows:
+                if account is not None and row['account'] != account:continue
                 rule = json.loads(row['payload'])
                 if rule['enabled'] and sending_only and rule['mode']=='approved':
                     with closing(self._db()) as db, db:

@@ -40,12 +40,17 @@ class WeeklyScheduleHttpTests(unittest.TestCase):
         self.thread.join(timeout=5)
         self.assertFalse(self.thread.is_alive())
 
-    def request(self, method, path, payload=None, **overrides):
+    def request(self, method, path, payload=None, *, headers_only=False, **overrides):
         headers = {'Origin': f'http://127.0.0.1:{self.port}', 'Content-Type': 'application/json',
                    'X-CSRF-Token': 'synthetic-csrf'}
         headers.update(overrides)
+        body=json.dumps(payload) if payload is not None else None
+        if headers_only:
+            # Test early Content-Length rejection without unread upload bytes
+            # causing a Windows TCP reset to hide the HTTP error response.
+            headers['Content-Length']=str(len(body.encode('utf-8')))
         with closing(http.client.HTTPConnection('127.0.0.1', self.port, timeout=5)) as connection:
-            connection.request(method, path, json.dumps(payload) if payload is not None else None, headers)
+            connection.request(method, path, None if headers_only else body, headers)
             response = connection.getresponse()
             return response.status, json.loads(response.read())
 
