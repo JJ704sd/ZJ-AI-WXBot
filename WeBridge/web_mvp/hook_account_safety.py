@@ -122,7 +122,7 @@ class HookAccountSafety:
             db.execute('UPDATE accounts SET version=?,payload=? WHERE account_key=?',
                        (version+1, json.dumps(state), key))
 
-    def _check(self, db, key, request_id, content):
+    def _check(self, db, key, request_id, content, expected_version=None):
         version, state = self._account(db, key)
         previous = db.execute('SELECT * FROM submissions WHERE id=?', (request_id,)).fetchone()
         if previous and (previous['account_key'] != key or previous['content_key'] != content):
@@ -133,6 +133,8 @@ class HookAccountSafety:
             self._pause(db, key, version, state, unfinished['id'])
             return 'account_paused'
         if state['paused']: return 'account_paused'
+        if expected_version is not None and (type(expected_version) is not int or expected_version != version):
+            return 'safety_policy_changed'
         if previous: return None if previous['status']=='attempted' else 'request_consumed'
         view = self._view(db, key, version, state)
         if view['retryAt'] is not None: return 'account_rate_limited'
@@ -141,18 +143,18 @@ class HookAccountSafety:
             self.clock()-state['limits']['duplicateWindowSeconds'])).fetchone()
         return 'account_rate_limited' if duplicate else None
 
-    def check(self, source, request_id, target, text_hash):
+    def check(self, source, request_id, target, text_hash, *, expected_version=None):
         key, content = account_key(source), content_key(target, text_hash)
         with closing(self._db()) as db, db:
             db.execute('BEGIN IMMEDIATE')
-            error = self._check(db, key, request_id, content)
+            error = self._check(db, key, request_id, content, expected_version)
         if error: raise SafetyError(error)
 
-    def admit(self, source, request_id, target, text_hash):
+    def admit(self, source, request_id, target, text_hash, *, expected_version=None):
         key, content = account_key(source), content_key(target, text_hash)
         with closing(self._db()) as db, db:
             db.execute('BEGIN IMMEDIATE')
-            error = self._check(db, key, request_id, content)
+            error = self._check(db, key, request_id, content, expected_version)
             if not error:
                 db.execute('INSERT OR IGNORE INTO submissions VALUES(?,?,?,?,?)',
                            (request_id, key, content, self.clock(), 'attempted'))
@@ -169,6 +171,16 @@ class HookAccountSafety:
             if status == 'unknown':
                 version, state = self._account(db, key)
                 self._pause(db, key, version, state, request_id)
+
+    def fail_before_submission(self, source, request_id):
+        """The caller could not persist its latch and has not dispatched native work."""
+        key=account_key(source)
+        with closing(self._db()) as db, db:
+            db.execute('BEGIN IMMEDIATE')
+            db.execute("UPDATE submissions SET status='not_submitted' WHERE id=? AND account_key=? AND status='attempted'",
+                       (request_id,key))
+            version,state=self._account(db,key)
+            self._pause(db,key,version,state,request_id,reason='journal_unavailable')
 
     def import_legacy(self, rows):
         with closing(self._db()) as db, db:

@@ -118,7 +118,8 @@ function renderHookSafety(safety){
  $('hook-safety').hidden=!safety;if(!safety)return;
  const key=state.account+':'+safety.version;
  if(hookSafetyVersion!==key){hookSafetyVersion=key;for(const [id,field] of [['interval','minimumIntervalSeconds'],['minute','perMinute'],['day','per24Hours'],['duplicate','duplicateWindowSeconds']])$('hook-safety-'+id).value=String(safety.limits[field]);$('hook-safety-ack').checked=false;}
- $('hook-safety-state').textContent=(safety.paused?'账号全部发送已暂停。':'账号保护已启用。')+' 最近一分钟 '+safety.usage.minute+'/'+safety.limits.perMinute+'，最近 24 小时 '+safety.usage.last24Hours+'/'+safety.limits.per24Hours+'。'+(safety.unresolvedCount?'待人工核对 '+safety.unresolvedCount+' 条。':'');
+ $('hook-safety-state').textContent=(safety.paused?(safety.reasonCode==='journal_unavailable'?'发送账本写入失败，账号全部发送已暂停；请先修复本机存储。':'账号全部发送已暂停。'):'账号保护已启用。')+' 最近一分钟 '+safety.usage.minute+'/'+safety.limits.perMinute+'，最近 24 小时 '+safety.usage.last24Hours+'/'+safety.limits.per24Hours+'。'+(safety.unresolvedCount?'待人工核对 '+safety.unresolvedCount+' 条。':'');
+ $('hook-safety-ack-text').textContent=safety.reasonCode==='journal_unavailable'?'我已修复本机存储并核对发送状态，允许新的发送；原请求不会重发':safety.reasonCode==='manual_pause'?'我已核对当前账号与发送状态，允许新的发送；原请求不会重发':'我已在微信核对未知结果，允许新的发送；原请求不会重发';
  $('hook-safety-recovery').hidden=!safety.paused;updateHookSafetyControls();
 }
 async function changeHookSafety(action){

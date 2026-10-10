@@ -28,6 +28,7 @@ const ready={available:true,bridgeConfigured:true,bridgeState:'ready',targetIds:
  pending.shift().resolve({...safety,version:2});await recovery;pending.shift().resolve({...ready,safety:{...safety,version:2}});await Promise.resolve();await Promise.resolve();
  assert.match($('hook-safety-feedback').textContent,/旧请求不会重发/);assert.equal(calls.filter(call=>call.url.endsWith('/resume')||call.url.endsWith('/confirm')).length,0);
  context.response={...ready,safety:{...safety,retryAt:Date.now()/1000+30}};run('renderHookStatus(response)');assert.equal($('send-button').disabled,true);
+ context.response={...ready,available:false,safety:{...safety,version:3,paused:true,reasonCode:'journal_unavailable'}};run('renderHookStatus(response)');assert.match($('hook-safety-state').textContent,/账本写入失败/);assert.match($('hook-safety-ack-text').textContent,/修复本机存储/);assert.equal($('send-button').disabled,true);
  run('resetHookSender()');assert.equal($('hook-safety').hidden,true);assert.equal($('hook-safety-ack').checked,false);
  console.log('PASS: account safety budgets, paused composer, explicit scoped acknowledgement, no replay and source reset (synthetic only)');
 })().catch(error=>{console.error(error);process.exitCode=1;});

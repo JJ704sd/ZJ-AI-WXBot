@@ -146,9 +146,13 @@ class TextBridge:
                 database.commit()
                 return response
             response = self.response(payload, 'unknown', True)
-            database.execute('INSERT INTO attempts VALUES(?,?,?)',
-                             (payload['requestId'], digest, json.dumps(response)))
-            database.commit()
+            try:
+                database.execute('INSERT INTO attempts VALUES(?,?,?)',
+                                 (payload['requestId'], digest, json.dumps(response)))
+                database.commit()
+            except BaseException:
+                self.safety.fail_before_submission(self.binding,payload['requestId'])
+                raise
             completed = False
             try:
                 construction = self.native.construct(payload)

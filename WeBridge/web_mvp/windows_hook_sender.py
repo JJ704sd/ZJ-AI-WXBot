@@ -44,6 +44,7 @@ MAX_RESPONSE = 131072
 STATUS_TIMEOUT = 3
 SEND_TIMEOUT = 12
 ISSUES = {
+    'safety_policy_changed': '账号发送保护已变化，此草稿未提交。请重新核对账号、目标和正文后创建新的发送请求。',
     'account_rate_limited': '已达到当前账号的本地频率、总量或重复正文限制；本次未发送，不会自动补发。',
     'idempotency_conflict': '该请求标识已绑定其他目标或内容。',
     'request_consumed': '该发送请求已有处理记录，不会重复提交。',
@@ -418,7 +419,7 @@ class WindowsHookSender:
         result = json.loads(row['result'])
         if status == 'unknown' and not result.get('issue'):
             result.update(issueCode='outcome_unknown', issue=ISSUES['outcome_unknown'])
-        public_result = {key: value for key, value in result.items() if key not in ('baselineMessageIds', 'submittedAtEpoch')}
+        public_result = {key: value for key, value in result.items() if key not in ('baselineMessageIds', 'submittedAtEpoch', 'safetyVersion')}
         return {'draftId': row['id'], 'status': status, 'text': request['text'], 'textHash': row['text_hash'],
                 'targetId': request['targetId'], 'targetName': request['targetName'],
                 'expiresAt': datetime.fromtimestamp(row['expires'], timezone.utc).isoformat(timespec='seconds'),
@@ -453,9 +454,10 @@ class WindowsHookSender:
         binding = self._probe(request)
         if not self.supports_target(request['targetId']):
             raise HookSendError('unsupported_target')
+        safety_version = self.account_safety.status(request)['version']
         with closing(self._connect()) as database:
             database.execute('INSERT OR IGNORE INTO hook_drafts VALUES (?,?,?,?,?,?,?,?)',
-                (draft_id, digest, _json(request), _json(binding), _hash(request['text']), self.clock() + TTL_SECONDS, 'prepared', '{}'))
+                (draft_id, digest, _json(request), _json(binding), _hash(request['text']), self.clock() + TTL_SECONDS, 'prepared', _json({'safetyVersion': safety_version})))
             database.commit()
         row = self._row(draft_id)
         if row['request_hash'] != digest:
@@ -463,10 +465,11 @@ class WindowsHookSender:
         return self._view(row)
 
     def _save_result(self, draft_id, status, result):
-        self.account_safety.finish(json.loads(self._row(draft_id)['request']), draft_id, status)
+        request=json.loads(self._row(draft_id)['request'])
         with closing(self._connect()) as database:
             database.execute('UPDATE hook_drafts SET status=?,result=? WHERE id=?', (status, _json(result), draft_id))
             database.commit()
+        self.account_safety.finish(request, draft_id, status)
         return self._view(self._row(draft_id))
 
     def confirm(self, data, *, baseline_messages=None):
@@ -524,6 +527,7 @@ class WindowsHookSender:
                     raise HookSendError('unsupported_target')
             except HookSendError as error:
                 return self._save_result(row['id'], 'blocked', {'issueCode': error.code, 'issue': error.public_message})
+            prepared_version = json.loads(row['result']).get('safetyVersion', -1)
             evidence = {}
             if baseline_messages is not None:
                 if not isinstance(baseline_messages, (list, tuple)):
@@ -535,7 +539,7 @@ class WindowsHookSender:
                 return self._save_result(row['id'], 'expired', {'issueCode':'schedule_window_expired',
                     'issue':ISSUES['schedule_window_expired']})
             try:
-                self.account_safety.check(request, row['id'], request['targetId'], row['text_hash'])
+                self.account_safety.check(request, row['id'], request['targetId'], row['text_hash'], expected_version=prepared_version)
             except SafetyError as error:
                 return self._save_result(row['id'], 'blocked', {'issueCode':error.code, 'issue':ISSUES[error.code]})
             if before_submit is not None:
@@ -546,13 +550,17 @@ class WindowsHookSender:
                 except ValueError as error:
                     return self._save_result(row['id'], 'blocked', {'issueCode':'submission_not_authorized', 'issue':str(error)})
             try:
-                self.account_safety.admit(request, row['id'], request['targetId'], row['text_hash'])
+                self.account_safety.admit(request, row['id'], request['targetId'], row['text_hash'], expected_version=prepared_version)
             except SafetyError as error:
                 return self._save_result(row['id'], 'blocked', {'issueCode':error.code, 'issue':ISSUES[error.code]})
-            with closing(self._connect()) as database:
-                database.execute("UPDATE hook_drafts SET status='attempted',result=? WHERE id=? AND status='prepared'",
-                                 (_json(evidence), row['id']))
-                database.commit()  # durable before handing anything to native code
+            try:
+                with closing(self._connect()) as database:
+                    database.execute("UPDATE hook_drafts SET status='attempted',result=? WHERE id=? AND status='prepared'",
+                                     (_json(evidence), row['id']))
+                    database.commit()  # durable before handing anything to native code
+            except BaseException:
+                self.account_safety.fail_before_submission(request,row['id'])
+                raise
             payload = {'protocol': PROTOCOL, 'requestId': row['id'], 'draftId': row['id'], 'textHash': row['text_hash'],
                        'text': request['text'], 'targetId': request['targetId'], 'expectedBinding': binding}
             status, result = 'unknown', {'issueCode': 'outcome_unknown', 'issue': ISSUES['outcome_unknown']}
@@ -560,31 +568,40 @@ class WindowsHookSender:
             # Preparation, probes and the durable claim can consume the window.
             # Once POST begins, only its outcome can determine submission status.
             if deadline is not None and self.clock() > deadline:
-                return self._save_result(row['id'], 'expired', {'issueCode':'schedule_window_expired',
-                    'issue':ISSUES['schedule_window_expired']})
+                try:
+                    return self._save_result(row['id'], 'expired', {'issueCode':'schedule_window_expired',
+                        'issue':ISSUES['schedule_window_expired']})
+                except BaseException:
+                    self.account_safety.fail_before_submission(request,row['id'])
+                    raise
+            completed = False
             try:
-                outcome = self.transport('POST', '/v1/send-text', payload)
-                correlated = (isinstance(outcome, dict) and all(outcome.get(key) == payload[key] for key in
-                              ('protocol', 'requestId', 'textHash', 'targetId')) and
-                              _native_binding(outcome.get('binding'), outcome.get('binding', {}).get('instanceId')) == binding)
+                try:
+                    outcome = self.transport('POST', '/v1/send-text', payload)
+                    correlated = (isinstance(outcome, dict) and all(outcome.get(key) == payload[key] for key in
+                                  ('protocol', 'requestId', 'textHash', 'targetId')) and
+                                  _native_binding(outcome.get('binding'), outcome.get('binding', {}).get('instanceId')) == binding)
+                    if correlated:
+                        if outcome.get('status') == 'not_submitted' and outcome.get('submissionAttempted') is False:
+                            status, result = 'blocked', {'issueCode': 'not_submitted', 'issue': ISSUES['not_submitted']}
+                        elif outcome.get('status') == 'submitted':
+                            status, result = 'submitted_unconfirmed', {'issueCode': '', 'issue': '微信原生发送入口已调用一次，尚无可核对的服务器回执。'}
+                        elif outcome.get('status') == 'server_accepted' and isinstance(outcome.get('serverId'), str) and re.fullmatch(r'[1-9][0-9]{0,19}', outcome['serverId']):
+                            status, result = 'server_accepted', {'serverId': outcome['serverId'], 'issueCode': '',
+                                'issue': '已取得匹配本次请求的服务器接受回执；尚未确认本地存档或收件端送达。'}
+                except Exception:
+                    pass
                 if correlated:
-                    if outcome.get('status') == 'not_submitted' and outcome.get('submissionAttempted') is False:
-                        status, result = 'blocked', {'issueCode': 'not_submitted', 'issue': ISSUES['not_submitted']}
-                    elif outcome.get('status') == 'submitted':
-                        status, result = 'submitted_unconfirmed', {'issueCode': '', 'issue': '微信原生发送入口已调用一次，尚无可核对的服务器回执。'}
-                    elif outcome.get('status') == 'server_accepted' and isinstance(outcome.get('serverId'), str) and re.fullmatch(r'[1-9][0-9]{0,19}', outcome['serverId']):
-                        status, result = 'server_accepted', {'serverId': outcome['serverId'], 'issueCode': '',
-                            'issue': '已取得匹配本次请求的服务器接受回执；尚未确认本地存档或收件端送达。'}
-            except Exception:
-                pass
+                    client_id = outcome.get('clientMessageId')
+                    if _string(client_id, 128):
+                        result['clientMessageId'] = client_id
+                view = self._save_result(row['id'], status, {**evidence, **result})
+                completed = True
+                return view
             finally:
-                # Includes interruption and a failure persisting the final draft result.
-                self.account_safety.finish(request, row['id'], status)
-            if correlated:
-                client_id = outcome.get('clientMessageId')
-                if _string(client_id, 128):
-                    result['clientMessageId'] = client_id
-            return self._save_result(row['id'], status, {**evidence, **result})
+                # The native boundary has been entered. Failed result writes or
+                # interruptions stay unknown until explicitly acknowledged.
+                if not completed:self.account_safety.finish(request,row['id'],'unknown')
 
     def reconcile(self, draft_id, messages, source_binding, *, target_id):
         """Accept only exact correlated outgoing DB records supplied by the server.

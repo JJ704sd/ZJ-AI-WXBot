@@ -366,10 +366,14 @@ class SmokeBridge:
                     database.commit()
                     return denied
                 response = self.response(payload,'unknown',True)
-                completed = False
                 try:
                     database.execute('INSERT INTO attempt VALUES(1,?,?)', (digest, json.dumps(response)))
                     database.commit()  # Durable before native submit; never deleted/reset by this tool.
+                except BaseException:
+                    self.safety.fail_before_submission(self.binding,payload['requestId'])
+                    raise
+                completed = False
+                try:
                     try:
                         result = self.native.submit()
                         if (result.get('state') == 'submitted_unconfirmed' and result.get('submissionAttempted') is True and
