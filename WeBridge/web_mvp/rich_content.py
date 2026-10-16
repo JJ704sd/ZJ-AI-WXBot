@@ -15,6 +15,14 @@ def xml_root(text):
         return None
 
 
+def xml_text(node, path):
+    """Read embedded XML in child-element, escaped-text and CDATA forms."""
+    child = node.find(path)
+    if child is None:
+        return ''
+    return ''.join(ET.tostring(value, encoding='unicode') for value in child) if len(child) else child.text or ''
+
+
 def plain(text):
     return re.sub(r'<[^>]{1,1000}>', '', html.unescape(text or '')).strip()
 

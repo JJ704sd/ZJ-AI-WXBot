@@ -32,6 +32,7 @@ SAFE_CODES = {
     'invalid_source', 'invalid_output', 'output_exists', 'output_write_failed',
     'missing_poc', 'windows_x64_required', 'owner_unknown', 'owner_not_unique',
     'owner_changed', 'process_unavailable', 'source_changed', 'source_not_encrypted',
+    'wechat_not_running', 'source_not_active',
     'scan_failed', 'scan_budget_exceeded', 'scan_timeout', 'key_match_incomplete',
     'key_match_ambiguous', 'internal_failure',
 }
@@ -247,10 +248,11 @@ class WindowsDependencies:
         # Optional sibling package, never an archive or a hidden import from a
         # current directory. The core database-reader has no dependency on it.
         poc = PROJECT_ROOT.parent / 'poc'
-        if not (poc / 'wechat_agent_poc/process_own.py').is_file() or not (poc / 'wechat_agent_poc/weixin_cipher_scan.py').is_file():
-            raise AcquireError('missing_poc')
+        if not getattr(sys, 'frozen', False):
+            if not (poc / 'wechat_agent_poc/process_own.py').is_file() or not (poc / 'wechat_agent_poc/weixin_cipher_scan.py').is_file():
+                raise AcquireError('missing_poc')
+            sys.path.insert(0, str(poc))
         self.kernel32 = declare_windows_apis()
-        sys.path.insert(0, str(poc))
         try:
             from wechat_agent_poc import process_own, weixin_cipher_scan
         except Exception:
@@ -319,6 +321,8 @@ class WindowsDependencies:
 
     def owner(self, paths):
         holders = self._file_owners(paths)
+        if not holders:
+            raise AcquireError('source_not_active' if self.ownership.weixin_pids() else 'wechat_not_running')
         if len(holders) != 1:
             raise AcquireError('owner_not_unique')
         pid, created = holders[0]

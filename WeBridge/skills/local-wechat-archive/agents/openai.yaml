@@ -1,0 +1,4 @@
+interface:
+  display_name: "本地微信聊天解析"
+  short_description: "一句话解析指定微信群并打开图片、附件和转发，首次选择数据密钥后自动记住"
+  default_prompt: "使用 $local-wechat-archive 解析我指定的微信群，完成后直接打开查看。"

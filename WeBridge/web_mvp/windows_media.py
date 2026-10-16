@@ -14,7 +14,7 @@ from datetime import datetime
 
 from database_adapter import _protobuf_fields
 from media_host import MediaCache
-from rich_content import xml_root, strip_sender, number
+from rich_content import xml_root, xml_text, strip_sender, number
 
 LIMIT = 100 * 1024 * 1024
 HASH = re.compile(r'[a-fA-F0-9]{32}\Z')
@@ -59,13 +59,14 @@ def descriptor(row, part):
         indexes = part.split('.')
         if len(indexes) > 5 or any(not re.fullmatch(r'\d{1,3}', value) for value in indexes):
             raise ValueError('记录附件编号无效。')
-        record = xml_root(xml.findtext('.//recorditem') or '')
+        app = xml if xml.tag == 'appmsg' else xml.find('appmsg')
+        record = xml_root(xml_text(app, 'recorditem')) if app is not None else None
         for value in indexes:
             nodes = record.findall('./datalist/dataitem') if record is not None else []
             if int(value) >= min(len(nodes), 200):
                 raise ValueError('记录附件不存在。')
             node = nodes[int(value)]
-            record = xml_root(node.findtext('recordxml') or node.findtext('recorditem') or '')
+            record = xml_root(xml_text(node, 'recordxml') or xml_text(node, 'recorditem'))
         kind = {2: 'image', 4: 'video', 8: 'file'}.get(number(node.get('datatype')))
         expected = node.findtext('fullmd5') or node.findtext('md5') or ''
         filename = node.findtext('datatitle') or filename
@@ -151,8 +152,9 @@ def image_key(config):
     raise ValueError('图片密钥文件无效或不属于当前账号。')
 
 
-def resolve_local(snapshot, config, group, row, part=''):
-    from media_container import dat_decode, media_type
+def resolve_local(snapshot, config, group, row, part='', *, recovery=None):
+    from media_container import media_type
+    from local_image_keys import ImageKeys
     kind, filename, expected = descriptor(row, part)
     source = Path(config['sourceRoot']).resolve()
     if source.name == 'db_storage':
@@ -162,7 +164,20 @@ def resolve_local(snapshot, config, group, row, part=''):
     else:
         return {'status': 'unavailable', 'reason': '独立明文副本没有绑定本机附件目录。'}, None
     issue = '本机尚未缓存这份附件，请在 Windows 微信打开或下载后重试。'
-    for path, preview in candidates(snapshot, account_root, group, row, part, kind, filename, expected):
+    best_preview = None
+    keys = recovery.image_keys if recovery is not None else ImageKeys(config)
+    def locations():
+        seen = set()
+        for path, preview in candidates(snapshot, account_root, group, row, part, kind, filename, expected):
+            seen.add(path)
+            yield path, preview, False
+        if recovery is not None and expected:
+            for path in recovery.paths_for(expected):
+                path = child(account_root, str(path.relative_to(account_root)))
+                if path not in seen:
+                    seen.add(path)
+                    yield path, False, True
+    for path, preview, recovered in locations():
         if not path.is_file():
             continue
         before = path.stat()
@@ -175,7 +190,7 @@ def resolve_local(snapshot, config, group, row, part=''):
             issue = '附件正在变化，请稍后重试。'; continue
         try:
             if data.startswith(b'\x07\x08V2\x08\x07'):
-                data = dat_decode(data, image_key(config))
+                data = keys.decode(data, expected_md5=expected if not preview else None)
         except ValueError as error:
             issue = str(error); continue
         mime, extension = media_type(data)
@@ -195,10 +210,29 @@ def resolve_local(snapshot, config, group, row, part=''):
                 pass
         if kind != 'file':
             filename = f'{kind}_{row["localId"]}.{extension}'
-        return {'status': 'ready', 'size': len(data), 'mime': mime, 'filename': filename,
+        result = {'status': 'ready', 'size': len(data), 'mime': mime, 'filename': filename,
                 'kind': kind, 'previewOnly': preview, 'digest': hashlib.sha256(data).hexdigest(),
-                **({'reason': '当前仅有缩略图或视频封面，尚未取得完整附件。'} if preview else {})}, data
-    return {'status': 'pending', 'reason': issue}, None
+                **({'reason': '当前仅有缩略图或视频封面，尚未取得完整附件。'} if preview else {})}
+        if preview:
+            if best_preview is None:
+                best_preview = (result, data)
+            continue
+        if recovered:
+            result.update(recoveredLocally=True, matchedBy='full_content_md5')
+            recovery.recovered += 1
+        return result, data
+    diagnosis = recovery.diagnosis(expected) if recovery is not None and expected else None
+    reasons = {'local_candidate_not_verified': '发现本地同名候选，但格式、密钥或完整性校验未通过，未作为原件返回。',
+               'local_search_incomplete': '本地媒体检查遇到读取限制或达到扫描上限，暂未匹配到原件。',
+               'not_found_in_supported_local_media': '已检查当前账号的本地媒体目录，未找到通过消息完整校验值的原件。'}
+    if best_preview:
+        result, data = best_preview
+        if diagnosis:
+            result['localCheck'] = diagnosis
+            result['reason'] = '当前仅有缩略图或视频封面。' + reasons.get(diagnosis['result'], '')
+        return result, data
+    return {'status': 'pending', 'reason': reasons.get(diagnosis['result'], issue) if diagnosis else issue,
+            **({'localCheck': diagnosis} if diagnosis else {})}, None
 
 
 class WindowsMediaCache(MediaCache):

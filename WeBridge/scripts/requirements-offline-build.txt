@@ -1,0 +1,4 @@
+# Used only on the developer's build machine, not on the recipient's machine.
+pyinstaller==6.22.3
+# Bundled native image viewing; recipients do not install this package.
+Pillow==12.3.0

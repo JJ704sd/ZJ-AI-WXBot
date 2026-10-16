@@ -89,6 +89,25 @@ class WindowsMediaTests(unittest.TestCase):
         (folder / '0.mp4').write_bytes(b'\x00\x00\x00\x18ftypmp42wrong!')
         self.assertIsNone(resolve_local(self.snapshot, self.config, GROUP, row, '0')[1])
 
+    def test_nested_record_child_xml_resolves_image_and_checks_digest(self):
+        from html import escape
+        image = '<recordinfo><datalist><dataitem datatype="2"><fullmd5>' + hashlib.md5(PNG).hexdigest() + '</fullmd5></dataitem></datalist></recordinfo>'
+        folder = self.source.parent / 'msg/attach' / hashlib.md5(GROUP.encode()).hexdigest() / '2023-11/Rec/opaque/Img'
+        folder.mkdir(parents=True)
+        path = folder / 'cached.dat'
+        for inner in (image, escape(image), '<![CDATA[' + image + ']]>'):
+            record = '<recordinfo><datalist><dataitem datatype="17"><recordxml>\n' + inner + '</recordxml></dataitem></datalist></recordinfo>'
+            for outer in (record, escape(record), '<![CDATA[' + record.replace(']]>', ']]]]><![CDATA[>') + ']]>'):
+                with self.subTest(inner=inner[:25], outer=outer[:25]):
+                    row = {'kind': 'record', '_raw': '<msg><appmsg><recorditem>' + outer + '</recorditem></appmsg></msg>',
+                           'timestamp': STAMP, 'localId': 1, 'serverId': '10'}
+                    path.write_bytes(PNG)
+                    metadata, body = resolve_local(self.snapshot, self.config, GROUP, row, '0.0')
+                    self.assertEqual(body, PNG)
+                    self.assertFalse(metadata['previewOnly'])
+                    path.write_bytes(PNG + b'wrong')
+                    self.assertIsNone(resolve_local(self.snapshot, self.config, GROUP, row, '0.0')[1])
+
     def test_paths_reject_traversal_absolute_and_alternate_stream(self):
         for value in ('../private', 'C:\\private', '/private', 'image.dat:secret'):
             with self.assertRaises(ValueError):

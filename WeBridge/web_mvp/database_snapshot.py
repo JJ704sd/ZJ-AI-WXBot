@@ -50,9 +50,11 @@ def _inside(path, root):
         return False
 
 
-def _inventory(root, include_media=False):
+def _inventory(root, include_media=False, include_voice=False):
     pattern = re.compile(r'(?:contact|session|(?:biz_)?message_\d+|message_resource|hardlink)\.db\Z', re.I) if include_media else BUSINESS_DB
     directories = BUSINESS_DIRS | {'hardlink'} if include_media else BUSINESS_DIRS
+    if include_voice:
+        pattern = re.compile('(?:' + pattern.pattern.removesuffix('\\Z') + r'|media_\d+\.db)\Z', re.I)
     paths = list(root.iterdir())
     files = [path for path in paths if path.is_file() and pattern.fullmatch(path.name)]
     for directory in paths:
@@ -113,21 +115,21 @@ def _remove_owned(path, owner):
         shutil.rmtree(path)
 
 
-def _capture_batch(source, generation, include_media=False):
+def _capture_batch(source, generation, include_media=False, include_voice=False):
     # Keep the original signatures: comparing final mtime to a new current mtime
     # would miss same-length changes after an individually stable file read.
     for attempt in range(3):
         raw = generation / ('.raw-' + str(attempt))
         raw.mkdir()
         try:
-            before = _inventory(source, include_media)
+            before = _inventory(source, include_media, include_voice)
             hashes = {}
             for relative, signature in before.items():
                 original = source / relative
                 hashes[relative] = _copy_file(original, raw / relative)
                 if _signature(original) != signature:
                     raise SourceChanged('复制期间源数据库发生变化。')
-            if _inventory(source, include_media) != before:
+            if _inventory(source, include_media, include_voice) != before:
                 raise SourceChanged('复制期间数据库或 WAL 清单发生变化。')
             # A second complete streaming read detects equal-length replacements
             # even when their timestamps have been preserved.
@@ -135,7 +137,7 @@ def _capture_batch(source, generation, include_media=False):
                 original = source / relative
                 if _hash_file(original) != hashes[relative] or _signature(original) != signature:
                     raise SourceChanged('复制后源数据库或 WAL 内容发生变化。')
-            if _inventory(source, include_media) != before:
+            if _inventory(source, include_media, include_voice) != before:
                 raise SourceChanged('复核期间数据库或 WAL 清单发生变化。')
             return raw, before, hashes
         except (SourceChanged, FileNotFoundError):
@@ -246,7 +248,7 @@ def _quick_check(path):
         raise SnapshotError('无法验证数据库副本；未将损坏或格式不支持的文件作为成功结果。') from None
 
 
-def prepare_snapshot(source_root, output_root, keys_file=None, include_media=False):
+def prepare_snapshot(source_root, output_root, keys_file=None, include_media=False, include_voice=False):
     """Return {'root': Path, 'source': metadata} only after the whole batch passes."""
     source, output = Path(source_root).expanduser().resolve(), Path(output_root).expanduser().resolve()
     if not source.is_dir():
@@ -256,11 +258,11 @@ def prepare_snapshot(source_root, output_root, keys_file=None, include_media=Fal
     if output == source or _inside(output, source):
         raise SnapshotError('输出目录不能位于源目录内；不会向微信数据目录写入文件。')
     keys = _load_keys(keys_file)
-    _inventory(source, include_media)
+    _inventory(source, include_media, include_voice)
     output.mkdir(parents=True, exist_ok=True)
     generation = Path(tempfile.mkdtemp(prefix='snapshot-', dir=output))
     try:
-        raw, signatures, hashes = _capture_batch(source, generation, include_media)
+        raw, signatures, hashes = _capture_batch(source, generation, include_media, include_voice)
         reports = []
         encrypted_count = 0
         for relative in signatures:
@@ -286,6 +288,7 @@ def prepare_snapshot(source_root, output_root, keys_file=None, include_media=Fal
         metadata = {'sourceRoot': str(source), 'createdAt': datetime.now(timezone.utc).isoformat(timespec='seconds'),
                     'dbCount': len(reports), 'walCount': sum(name.endswith('-wal') for name in signatures),
                     'encryptedCount': encrypted_count, 'integrity': 'ok', 'databases': reports,
+                    'includeVoice': include_voice,
                     'limitations': ['只包含所选账号的业务库及显式开启的附件索引；不读取 FTS 或其他账号。',
                                     '副本反映本次稳定复制的状态，后续新消息需要手动刷新。']}
         if any(report['wal'].get('uncommittedFrames') for report in reports):
