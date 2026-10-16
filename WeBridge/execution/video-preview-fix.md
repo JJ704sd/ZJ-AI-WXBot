@@ -4,7 +4,7 @@
 
 ## 原始故障
 
-“中技AI cosplay”新收到的普通视频，localId=56，serverId=`5450782503465515206`。消息声明时长 7 秒、大小 1,000,767 字节；加载接口却返回 19,778 字节 `image/jpeg`，`previewOnly=true`。
+“示例混合群”新收到的普通视频，localId=<LOCAL_ID>，serverId=`<SERVER_ID>`。消息声明时长 7 秒、大小 1,000,767 字节；加载接口却返回 19,778 字节 `image/jpeg`，`previewOnly=true`。
 
 最小复现：
 

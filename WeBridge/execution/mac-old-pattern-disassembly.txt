@@ -1,5 +1,5 @@
 (lldb) target create --arch=arm64 "downloads/mac/mount-4.1.11.53/WeChat.app/Contents/Resources/wechat.dylib"
-Current executable set to '/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/Resources/wechat.dylib' (arm64).
+Current executable set to '<MAC_WORKBENCH_ROOT>/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/Resources/wechat.dylib' (arm64).
 (lldb) disassemble --start-address 0x5120fd8 --end-address 0x5121090
 wechat.dylib`___lldb_unnamed_symbol_5120fd8:
 wechat.dylib[0x5120fd8] <+0>:   sub    sp, sp, #0x140
@@ -16,7 +16,7 @@ wechat.dylib[0x5121000] <+40>:  stur   x8, [x29, #-0x28]
 wechat.dylib[0x5121004] <+44>:  adrp   x2, 15178
 wechat.dylib[0x5121008] <+48>:  add    x2, x2, #0xa86            ; "mars::mmext"
 wechat.dylib[0x512100c] <+52>:  adrp   x4, 15179
-wechat.dylib[0x5121010] <+56>:  add    x4, x4, #0x5ac            ; "/Users/bkdevops/.wconan2/mmnet/70105a11_1782358184/mars-wechat/mars/mm-ext/mmstn_manager.cc"
+wechat.dylib[0x5121010] <+56>:  add    x4, x4, #0x5ac            ; "<BUILD_CACHE_ROOT>/mmnet/70105a11_1782358184/mars-wechat/mars/mm-ext/mmstn_manager.cc"
 wechat.dylib[0x5121014] <+60>:  adrp   x3, 15178
 wechat.dylib[0x5121018] <+64>:  add    x3, x3, #0xb96            ; "MMStartTask"
 wechat.dylib[0x512101c] <+68>:  mov    x0, sp

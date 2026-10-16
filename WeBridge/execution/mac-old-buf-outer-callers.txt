@@ -1,5 +1,5 @@
 (lldb) target create --arch=arm64 "downloads/mac/mount-4.1.11.53/WeChat.app/Contents/Resources/wechat.dylib"
-Current executable set to '/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/Resources/wechat.dylib' (arm64).
+Current executable set to '<MAC_WORKBENCH_ROOT>/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/Resources/wechat.dylib' (arm64).
 (lldb) disassemble --start-address 0x3e16738 --end-address 0x3e167b8
 wechat.dylib`___lldb_unnamed_symbol_3e16738:
 wechat.dylib[0x3e16738] <+0>:   sub    sp, sp, #0xa0

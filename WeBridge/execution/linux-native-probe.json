@@ -1,6 +1,6 @@
 {
   "status": "static_candidates_not_runtime_configuration",
-  "elf": "/Users/neo/Documents/by/WeChat_Agent/build/linux/wechat-4.1.1.8-arm64",
+  "elf": "<MAC_WORKBENCH_ROOT>/build/linux/wechat-4.1.1.8-arm64",
   "sha256": "e40116597803a5e0d9fc4a2b727df4b8f7a3dd6de1c336140ea373be2b6626e9",
   "size": 136776576,
   "gnu_build_id": "9a3558be209dfcf1b85d6ec18bf029c7f97ccb61",

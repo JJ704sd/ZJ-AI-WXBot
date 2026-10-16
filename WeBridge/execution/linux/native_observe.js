@@ -2,7 +2,7 @@
 // Offsets apply only to the BuildID gated by native_observe.py.
 const core = Process.getModuleByName('wechat');
 const counts = {};
-const member = '25984984017034815@openim';
+let member = null;
 
 function readable(p, size) {
     if (!p || p.isNull() || p.compare(ptr(0x10000)) < 0) return false;
@@ -60,4 +60,8 @@ Interceptor.attach(core.base.add(0x4852f8c), {
     }
 });
 rpc.exports.summary=()=>counts;
+rpc.exports.configure = value => {
+    if (typeof value !== 'string' || !value.trim()) throw new Error('Target member is required');
+    member = value.trim();
+};
 send({event:'observerReady',module:core.name,arch:Process.arch});

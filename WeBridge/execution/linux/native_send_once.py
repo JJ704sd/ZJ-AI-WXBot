@@ -14,9 +14,9 @@ import frida
 from native_object_roundtrip import integer, blob
 
 EXPECTED='e40116597803a5e0d9fc4a2b727df4b8f7a3dd6de1c336140ea373be2b6626e9'
-GROUP='48437025209@chatroom'
-MEMBER='25984984017034815@openim'
-TEXT='[接入测试] NATIVE-005 无界面原生接口发送验证。  @陈佳豪'
+GROUP=os.environ.get('WECHAT_TEST_GROUP','').strip()
+MEMBER=os.environ.get('WECHAT_TEST_MEMBER','').strip()
+TEXT=os.environ.get('WECHAT_TEST_TEXT','[接入测试] 原生接口发送验证。')
 ATTEMPT=Path('/tmp/wechat-lab-native-005-attempt.json')
 RESULT=Path('/tmp/wechat-lab-native-005-result.json')
 
@@ -66,6 +66,8 @@ def decode_ack(raw, client_id):
 
 
 def main():
+    if not GROUP or not MEMBER:
+        raise SystemExit('Set WECHAT_TEST_GROUP and WECHAT_TEST_MEMBER for this one-shot send')
     if ATTEMPT.exists():raise SystemExit('Native-005 already attempted; no automatic retry')
     binary=Path('/opt/wechat/wechat')
     if hashlib.sha256(binary.read_bytes()).hexdigest()!=EXPECTED:raise SystemExit('Binary mismatch')

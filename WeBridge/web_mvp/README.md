@@ -37,7 +37,7 @@
 先确保 Docker Desktop 已启动、`wechat-lab-linux` 容器运行，再执行：
 
 ```sh
-cd /Users/neo/Documents/by/WeChat_Agent
+cd <MAC_WORKBENCH_ROOT>
 sh scripts/start_web_mvp.sh
 ```
 
@@ -46,7 +46,7 @@ sh scripts/start_web_mvp.sh
 停止后台：
 
 ```sh
-cd /Users/neo/Documents/by/WeChat_Agent
+cd <MAC_WORKBENCH_ROOT>
 sh scripts/stop_web_mvp.sh
 ```
 

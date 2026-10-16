@@ -5,13 +5,15 @@ Refuses existing drafts and writes a local attempt marker before clicking Send.
 All locations come from fresh accessibility bounds, never saved coordinates.
 """
 import json
+import os
 from pathlib import Path
 import select
 import subprocess
 import time
 from linux_lab import request, ROOT
 
-GROUP = '中技AI cosplay'
+GROUP = os.environ.get('WECHAT_CALIBRATION_GROUP', '').strip()
+MEMBER = os.environ.get('WECHAT_CALIBRATION_MEMBER', '').strip()
 MARKER = ROOT / '.runtime/native-cal-004-attempt.json'
 
 
@@ -44,6 +46,8 @@ def confirmed_controls():
 
 
 def main():
+    if not GROUP or not MEMBER:
+        raise SystemExit('Set WECHAT_CALIBRATION_GROUP and WECHAT_CALIBRATION_MEMBER for this one-shot calibration')
     if MARKER.exists(): raise SystemExit('Calibration already attempted; will not send again')
     if request('/api/status/auth').get('status')!='logged_in': raise SystemExit('Not logged in')
     editor,button=confirmed_controls()
@@ -58,7 +62,7 @@ def main():
         subprocess.run(['docker','exec','wechat-lab-linux','xdotool','key','at'],check=True,capture_output=True)
         target=None
         for _ in range(15):
-            found=[n for n in tree() if n.get('role')=='list-item' and n.get('name')=='陈佳豪']
+            found=[n for n in tree() if n.get('role')=='list-item' and n.get('name')==MEMBER]
             if len(found)==1: target=found[0]; break
             time.sleep(.15)
         if target is None: raise RuntimeError('Exact authorized mention target not found; do not send')
@@ -67,7 +71,7 @@ def main():
         if 'DISABLED' in button.get('states',[]): raise RuntimeError('Send remains disabled')
         MARKER.parent.mkdir(exist_ok=True)
         with MARKER.open('x') as output:
-            json.dump({'group':GROUP,'member':'陈佳豪','marker':'NATIVE-CAL-004','attempted':True,'automaticRetry':False},output,ensure_ascii=False)
+            json.dump({'group':GROUP,'member':MEMBER,'marker':'NATIVE-CAL-004','attempted':True,'automaticRetry':False},output,ensure_ascii=False)
         MARKER.chmod(0o600)
         click(button)
         output,_=process.communicate(timeout=45)

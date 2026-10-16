@@ -64,7 +64,7 @@ function fixture(failAt = null) {
             assert.equal(rva, entry.sendMessage);
         };
     }
-    const modulePath = 'D:\\Program Files\\Tencent\\Weixin\\4.1.15.13\\Weixin.dll';
+    const modulePath = 'D:\\Synthetic\\Weixin\\4.1.15.13\\Weixin.dll';
     const context = {
         rpc: {exports: {}}, Memory: {alloc: allocate}, uint64: value => BigInt(value), NativeFunction: native,
         Process: {id: 123, platform: 'windows', arch: 'x64', pointerSize: 8,

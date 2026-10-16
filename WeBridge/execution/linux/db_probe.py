@@ -6,14 +6,14 @@ The normal read mode includes WAL; immutable mode is diagnostic only.
 """
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
 import sys
 import tempfile
 
-CHAT_ID = "48437025209@chatroom"
-TABLE = "Msg_" + hashlib.md5(CHAT_ID.encode()).hexdigest()
+CHAT_ID = os.environ.get('WECHAT_CHAT_ID', '').strip()
 
 
 def query(path, key, sql, *, raw_key=True, immutable=False):
@@ -45,6 +45,9 @@ def context():
 
 
 def main():
+    if not CHAT_ID:
+        raise SystemExit('Set WECHAT_CHAT_ID for this target-scoped probe')
+    table = "Msg_" + hashlib.md5(CHAT_ID.encode()).hexdigest()
     root, keys = context()
     print(json.dumps({'stored_key_names': sorted(keys)}, ensure_ascii=False))
     for path in sorted(root.glob('message/message_*.db')):
@@ -61,13 +64,13 @@ def main():
                     Path(str(copy) + '-wal').write_bytes(wal.read_bytes())
                 result['comparison_uses_temporary_copy'] = True
                 for mode in (False, True):
-                    found = query(copy, key, f"SELECT name FROM sqlite_master WHERE name='{TABLE}';", immutable=mode)
+                    found = query(copy, key, f"SELECT name FROM sqlite_master WHERE name='{table}';", immutable=mode)
                     result['immutable' if mode else 'read_only'] = {'table_exists': bool(found)}
                     if found:
-                        result['immutable' if mode else 'read_only']['count'] = query(copy,key,f'SELECT count(*) AS n FROM "{TABLE}";',immutable=mode)[0]['n']
+                        result['immutable' if mode else 'read_only']['count'] = query(copy,key,f'SELECT count(*) AS n FROM "{table}";',immutable=mode)[0]['n']
                 if result['read_only']['table_exists']:
-                    result['columns'] = query(copy,key,f'PRAGMA table_info("{TABLE}");')
-                    result['target_rows'] = query(copy,key,f'SELECT local_id, server_id, local_type, create_time, hex(message_content) AS content_hex, hex(source) AS source_hex, WCDB_CT_message_content, WCDB_CT_source FROM "{TABLE}" ORDER BY local_id DESC LIMIT 10;')
+                    result['columns'] = query(copy,key,f'PRAGMA table_info("{table}");')
+                    result['target_rows'] = query(copy,key,f'SELECT local_id, server_id, local_type, create_time, hex(message_content) AS content_hex, hex(source) AS source_hex, WCDB_CT_message_content, WCDB_CT_source FROM "{table}" ORDER BY local_id DESC LIMIT 10;')
         print(json.dumps(result, ensure_ascii=False))
 
 

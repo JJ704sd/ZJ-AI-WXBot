@@ -23,6 +23,9 @@ try:
     script=session.create_script(Path('/tmp/native_calibrate.js').read_text())
     script.on('message',lambda message,data: print(json.dumps(message,ensure_ascii=False),flush=True))
     script.load()
+    group=os.environ.get('WECHAT_TEST_GROUP','').strip()
+    if not group: raise SystemExit('Set WECHAT_TEST_GROUP for this calibration sample')
+    script.exports_sync.configure(group)
     deadline=time.monotonic()+40
     result=None
     while time.monotonic()<deadline:

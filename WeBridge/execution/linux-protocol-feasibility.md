@@ -67,7 +67,7 @@ docker run -d --name wechat-protocol-session \
   --read-only --cap-drop ALL --security-opt no-new-privileges \
   --memory 256m --cpus 1 \
   -p 127.0.0.1:18081:8080 \
-  --mount type=bind,src=/Users/neo/Documents/by/WeChat_Agent/build/linux-protocol,dst=/audit,readonly \
+  --mount type=bind,src=<MAC_WORKBENCH_ROOT>/build/linux-protocol,dst=/audit,readonly \
   -e GIN_MODE=release \
   mirror.gcr.io/library/golang@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2 \
   /audit/wechatclient-linux-arm64

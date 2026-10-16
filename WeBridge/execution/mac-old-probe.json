@@ -1,8 +1,8 @@
 {
   "generated_utc": "2026-09-21T07:09:31.424002+00:00",
   "mode": "read_only_disk_analysis",
-  "app": "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app",
-  "core": "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/Resources/wechat.dylib",
+  "app": "<MAC_WORKBENCH_ROOT>/downloads/mac/mount-4.1.11.53/WeChat.app",
+  "core": "<MAC_WORKBENCH_ROOT>/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/Resources/wechat.dylib",
   "version": {
     "CFBundleShortVersionString": "4.1.11",
     "WeChatBundleVersion": "4.1.11.53",
@@ -1274,22 +1274,22 @@
       "--verify",
       "--deep",
       "--strict",
-      "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app"
+      "<MAC_WORKBENCH_ROOT>/downloads/mac/mount-4.1.11.53/WeChat.app"
     ],
     "returncode": 1,
     "stdout": "",
-    "stderr": "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app: invalid signature (code or signature have been modified)\nIn architecture: arm64\n"
+    "stderr": "<MAC_WORKBENCH_ROOT>/downloads/mac/mount-4.1.11.53/WeChat.app: invalid signature (code or signature have been modified)\nIn architecture: arm64\n"
   },
   "signature_metadata": {
     "command": [
       "codesign",
       "-dv",
       "--verbose=4",
-      "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app"
+      "<MAC_WORKBENCH_ROOT>/downloads/mac/mount-4.1.11.53/WeChat.app"
     ],
     "returncode": 0,
     "stdout": "",
-    "stderr": "Executable=/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/MacOS/WeChat\nIdentifier=com.tencent.xinWeChat\nFormat=app bundle with Mach-O universal (x86_64 arm64)\nCodeDirectory v=20500 size=9665 flags=0x10000(runtime) hashes=291+7 location=embedded\nVersionPlatform=1\nVersionMin=786432\nVersionSDK=983552\nHash type=sha256 size=32\nCandidateCDHash sha1=dbcdb57a6ffec14224698d1e101b24a05b61f12d\nCandidateCDHashFull sha1=dbcdb57a6ffec14224698d1e101b24a05b61f12d\nCandidateCDHash sha256=a70c6775e83796ecb73cc7ad5615686bb4ffcfef\nCandidateCDHashFull sha256=a70c6775e83796ecb73cc7ad5615686bb4ffcfef32aed95fef13432b0155ce26\nHash choices=sha1,sha256\nCMSDigest=6e29ba40da68539c61dc486b816463990d5a6d5bf7246ed0fffad27c51754cca\nCMSDigestType=2\nExecutable Segment base=0\nExecutable Segment limit=1081344\nExecutable Segment flags=0x1\nPage size=4096\nCDHash=a70c6775e83796ecb73cc7ad5615686bb4ffcfef\nSignature size=9173\nAuthority=(unavailable)\nInfo.plist=not bound\nTeamIdentifier=5A4RE8SF68\nRuntime Version=15.2.0\nSealed Resources version=2 rules=13 files=207\nInternal requirements count=1 size=184\n"
+    "stderr": "Executable=<MAC_WORKBENCH_ROOT>/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/MacOS/WeChat\nIdentifier=com.tencent.xinWeChat\nFormat=app bundle with Mach-O universal (x86_64 arm64)\nCodeDirectory v=20500 size=9665 flags=0x10000(runtime) hashes=291+7 location=embedded\nVersionPlatform=1\nVersionMin=786432\nVersionSDK=983552\nHash type=sha256 size=32\nCandidateCDHash sha1=dbcdb57a6ffec14224698d1e101b24a05b61f12d\nCandidateCDHashFull sha1=dbcdb57a6ffec14224698d1e101b24a05b61f12d\nCandidateCDHash sha256=a70c6775e83796ecb73cc7ad5615686bb4ffcfef\nCandidateCDHashFull sha256=a70c6775e83796ecb73cc7ad5615686bb4ffcfef32aed95fef13432b0155ce26\nHash choices=sha1,sha256\nCMSDigest=6e29ba40da68539c61dc486b816463990d5a6d5bf7246ed0fffad27c51754cca\nCMSDigestType=2\nExecutable Segment base=0\nExecutable Segment limit=1081344\nExecutable Segment flags=0x1\nPage size=4096\nCDHash=a70c6775e83796ecb73cc7ad5615686bb4ffcfef\nSignature size=9173\nAuthority=(unavailable)\nInfo.plist=not bound\nTeamIdentifier=5A4RE8SF68\nRuntime Version=15.2.0\nSealed Resources version=2 rules=13 files=207\nInternal requirements count=1 size=184\n"
   },
   "entitlements": {
     "command": [
@@ -1297,10 +1297,10 @@
       "-d",
       "--entitlements",
       ":-",
-      "/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app"
+      "<MAC_WORKBENCH_ROOT>/downloads/mac/mount-4.1.11.53/WeChat.app"
     ],
     "returncode": 0,
     "stdout": "",
-    "stderr": "Executable=/Users/neo/Documents/by/WeChat_Agent/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/MacOS/WeChat\nwarning: Specifying ':' in the path is deprecated and will not work in a future release\nwarning: binary contains an invalid entitlements blob. The OS will ignore these entitlements.\n"
+    "stderr": "Executable=<MAC_WORKBENCH_ROOT>/downloads/mac/mount-4.1.11.53/WeChat.app/Contents/MacOS/WeChat\nwarning: Specifying ':' in the path is deprecated and will not work in a future release\nwarning: binary contains an invalid entitlements blob. The OS will ignore these entitlements.\n"
   }
 }

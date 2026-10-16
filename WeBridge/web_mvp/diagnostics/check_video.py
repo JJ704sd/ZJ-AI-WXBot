@@ -8,8 +8,8 @@ import urllib.request
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--group',default='48437025209@chatroom')
-    parser.add_argument('--message',default='5450782503465515206')
+    parser.add_argument('--group',required=True,help='target group ID from the selected local data source')
+    parser.add_argument('--message',required=True,help='message ID from the selected local data source')
     args=parser.parse_args()
     base='http://127.0.0.1:8787'
     opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))

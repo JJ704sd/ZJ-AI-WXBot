@@ -6,7 +6,7 @@ const copy = nf(0x5bbcf18, 'void', ['pointer', 'pointer']);
 const byteSize = nf(0x5bbce64, 'int', ['pointer']);
 const serialize = nf(0x6b24ca4, 'pointer', ['pointer', 'pointer']);
 const destroy = nf(0x5bbcaac, 'void', ['pointer']);
-let captured = null, failure = null;
+let captured = null, failure = null, targetGroup = null;
 function readable(p, size) {
     if (p.isNull() || p.compare(ptr(0x10000)) < 0) return false;
     const r = Process.findRangeByAddress(p);
@@ -75,7 +75,7 @@ Interceptor.attach(core.base.add(0x4f65f78), {
             const message = fields(request[2][0]);
             const to = ascii(fields(message[1][0])[1][0]);
             const text = ascii(message[2][0]);
-            if (to !== '48437025209@chatroom' || !text.includes('NATIVE-CAL-004')) return;
+            if (!targetGroup || to !== targetGroup || !text.includes('NATIVE-CAL-004')) return;
             const serviceVtable = pointerAt(args[0]);
             const callback = pointerAt(args[4].add(0x20));
             const callbackVtable = pointerAt(callback);
@@ -99,4 +99,8 @@ Interceptor.attach(core.base.add(0x4f65f78), {
     }
 });
 rpc.exports.result = () => ({ captured, failure });
+rpc.exports.configure = group => {
+    if (typeof group !== 'string' || !group.trim()) throw new Error('Target group is required');
+    targetGroup = group.trim();
+};
 send({event:'ready'});

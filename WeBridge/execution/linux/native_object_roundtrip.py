@@ -6,6 +6,7 @@ message history, service pointers, or UI state are read by this check.
 """
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import typing
@@ -37,17 +38,21 @@ def blob(field, value):
     return varint((field << 3) | 2) + varint(len(value)) + value
 
 
-def payload():
+def payload(group, member):
     # These fields exist only in an owned object; this script has no send entry.
-    child = blob(1, blob(1, '48437025209@chatroom'))
+    child = blob(1, blob(1, group))
     child += blob(2, '[接入测试] NATIVE-OBJECT-ONLY 未发送的对象往返验证。')
     child += integer(3, 1) + integer(4, 1700000000) + integer(5, 1700000001)
-    child += blob(6, '<msgsource><atuserlist>25984984017034815@openim</atuserlist></msgsource>')
+    child += blob(6, f'<msgsource><atuserlist>{member}</atuserlist></msgsource>')
     child += integer(7, 0)
     return integer(1, 1) + blob(2, child)
 
 
 def main():
+    group = os.environ.get('WECHAT_TEST_GROUP', '').strip()
+    member = os.environ.get('WECHAT_TEST_MEMBER', '').strip()
+    if not group or not member:
+        raise SystemExit('Set WECHAT_TEST_GROUP and WECHAT_TEST_MEMBER for this roundtrip check')
     binary = Path('/opt/wechat/wechat')
     if hashlib.sha256(binary.read_bytes()).hexdigest() != EXPECTED:
         raise SystemExit('Unsupported binary; no attachment')
@@ -59,7 +64,7 @@ def main():
     try:
         script = session.create_script(Path(__file__).with_suffix('.js').read_text())
         script.load()
-        result = script.exports_sync.roundtrip(list(payload()))
+        result = script.exports_sync.roundtrip(list(payload(group, member)))
         script.unload()
         print(json.dumps({'pid': matches[0], **result}, ensure_ascii=False), flush=True)
         if not result.get('passed'):

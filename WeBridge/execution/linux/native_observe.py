@@ -3,6 +3,7 @@
 import hashlib
 import argparse
 import json
+import os
 from pathlib import Path
 import subprocess
 import time
@@ -30,6 +31,9 @@ try:
     script=session.create_script(Path('/tmp/native_observe.js').read_text())
     script.on('message', lambda message,data: print(json.dumps(message,ensure_ascii=False),flush=True))
     script.load()
+    member=os.environ.get('WECHAT_TEST_MEMBER','').strip()
+    if not member: raise SystemExit('Set WECHAT_TEST_MEMBER for this observation')
+    script.exports_sync.configure(member)
     time.sleep(args.seconds)
     try:
         print(json.dumps({'summary':script.exports_sync.summary()}),flush=True)
