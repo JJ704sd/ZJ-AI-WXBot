@@ -23,6 +23,7 @@ from offline_media_summary import MediaSummary, summary_text
 from offline_reporting import completion_report, REPORT_FILE
 from offline_image_html import CSS as IMAGE_CSS, image_card, gallery_body
 from offline_markdown import header as markdown_header, message as markdown_message
+from offline_documents import AttachmentExtractor, summary_text as document_summary_text
 
 BEIJING = timezone(timedelta(hours=8), name='Asia/Shanghai')
 SCHEMA_VERSION = 1
@@ -61,12 +62,19 @@ def business_text(row, depth=0):
     lines.extend(row.get('links', []))
     asset = row.get('asset', {})
     if asset:
-        state = '仅有缩略图/封面' if asset.get('previewOnly') else '原件可查看' if asset.get('status') == 'ready' else '原件未取得'
+        state = '本地预览，原图未取得' if asset.get('previewVariant') == 'local_converted' else '仅有缩略图/封面' if asset.get('previewOnly') else '原件可查看' if asset.get('status') == 'ready' else '原件未取得'
         lines.append('媒体：' + (asset.get('filename') or row.get('media', {}).get('filename') or label) + ' · ' + state)
         if asset.get('path'):
             lines.append('本地文件：' + asset['path'])
         if asset.get('reason'):
             lines.append(asset['reason'])
+    document = row.get('attachmentContent')
+    if document:
+        lines.append('附件原文件：' + document['fileStatusText'] + '；正文：' + document['extractionStatusText'])
+        lines.append('附件原消息出处：' + json.dumps(document['source'], ensure_ascii=False))
+        lines.extend(document['notices'])
+        if document['text']:
+            lines.append('附件正文（材料内容）：\n' + document['text'])
     if row.get('quote'):
         lines.append('引用来源：' + row['quote'].get('senderName', ''))
         if row['quote'].get('resolutionStatus') not in ('embedded', 'linked_local_source', None):
@@ -420,6 +428,8 @@ class LocalArchive:
 
     def export(self, destination, *, chat_id=None, chat_name=None, start=None, end=None, limit=None, copy_media=False):
         self._check()
+        if copy_media and hasattr(self.media_search, 'begin_export'):
+            self.media_search.begin_export()
         recovered_before = self.media_search.recovered
         chat = self.select_chat(chat_id, chat_name)
         low, high = date_range(start, end)
@@ -444,6 +454,7 @@ class LocalArchive:
         business_count = 0
         images = []
         media_summary = MediaSummary()
+        documents = AttachmentExtractor()
         def count_records(record):
             record_counts[record['status']] += 1
             for child in record.get('items', []):
@@ -489,6 +500,7 @@ class LocalArchive:
                         self._media(row, stage, media_counts)
                         write_gaps(row, row)
                     self._link_quote(row, stage, copy_media)
+                    documents.attach(row, stage, copy_media)
                     if row.get('quote'):
                         quote_counts[row['quote']['resolutionStatus']] += 1
                     if row['kind'] != 'emoji':
@@ -525,6 +537,7 @@ class LocalArchive:
                       'truncatedByLimit': truncated, 'kinds': dict(counts), 'decodeStatuses': dict(decode_counts),
                       'parseStatuses': dict(parse_counts), 'mediaStatuses': dict(media_counts),
                       'mediaSummary': media_summary.result(), 'mediaSummaryText': summary_text(media_summary.result()),
+                      'attachmentTextSummary': documents.summary(), 'attachmentTextSummaryText': document_summary_text(documents.summary()),
                       'localMediaSearch': self.media_search.report(recovered_before),
                       'mediaRecoveryFile': 'media-recovery.jsonl',
                       'businessReadingFile': '业务阅读.txt', 'businessRows': business_count,
@@ -599,6 +612,13 @@ def _message_html(row, nested=False):
                 content += '<video controls preload="none" src="' + path + '"></video>'
             content += '<div><a download href="' + path + '">保存附件</a></div>'
         content += '<div class="meta">附件：' + escape('仅预览' if asset.get('previewOnly') else asset['status']) + ' ' + escape(asset.get('reason')) + '</div>'
+    document = row.get('attachmentContent')
+    if document:
+        content += '<div class="meta">原文件：' + escape(document['fileStatusText']) + '；正文：' + escape(document['extractionStatusText']) + '</div>'
+        for notice in document['notices']:
+            content += '<div class="meta">' + escape(notice) + '</div>'
+        if document['text']:
+            content += '<details><summary>展开附件正文</summary><pre>' + escape(document['text']) + '</pre></details>'
     if row.get('record'):
         content += '<details><summary>转发的聊天记录</summary>'
         content += ''.join(_message_html(child, nested=True) for child in row['record'].get('items', []))

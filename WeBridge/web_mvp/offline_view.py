@@ -6,7 +6,7 @@ import re
 from collections import Counter
 
 from offline_chat import ArchiveError
-from offline_images import image_references, image_state
+from offline_images import image_references, image_state, message_nodes
 
 PAGE_SIZE = 100
 OPEN_EXTENSIONS = frozenset(('.pdf', '.csv', '.txt', '.md', '.log', '.json', '.docx', '.xlsx',
@@ -29,6 +29,7 @@ class ConversationView:
         self.image_index = []
         self.image_counts = Counter()
         self.message_offsets = {}
+        self.search_cache = None
         with (self.root / 'messages.jsonl').open('rb') as stream:
             while True:
                 offset = stream.tell()
@@ -60,19 +61,45 @@ class ConversationView:
             raise ArchiveError('当前导出中未找到这条图片的原始消息。')
         return self.page(self.message_offsets[message_id])
 
-    def page(self, offset=None, kind=None):
+    def page(self, offset=None, kind=None, *, page_size=PAGE_SIZE, query=''):
+        if not isinstance(page_size, int) or not 1 <= page_size <= 1000:
+            raise ArchiveError('每页条数需为1至1000。')
+        query = query.strip().casefold()
+        if len(query) > 200:
+            raise ArchiveError('消息关键词不能超过200字。')
+        matches = None
+        if query:
+            if self.search_cache is None or self.search_cache[0] != query:
+                matches = set()
+                with (self.root / 'messages.jsonl').open('rb') as stream:
+                    for index, (position, *_rest) in enumerate(self.index):
+                        stream.seek(position)
+                        row = json.loads(stream.readline())
+                        for node, _, _ in message_nodes(row):
+                            texts = [node.get(key) or '' for key in ('text', 'senderName', 'senderId', 'time', 'description')]
+                            texts += node.get('links', [])
+                            texts.append(node.get('attachmentContent', {}).get('text', ''))
+                            if any(query in str(value).casefold() for value in texts):
+                                matches.add(index)
+                                break
+                self.search_cache = query, matches
+            matches = self.search_cache[1]
         selected = [position for position, value, gap, image_gap in self.index if
                     (gap if kind == 'missing_media' else image_gap if kind == 'missing_images'
                      else value != 'emoji' if kind == 'business' else not kind or value == kind)]
+        if matches is not None:
+            matching_offsets = {self.index[index][0] for index in matches}
+            selected = [position for position in selected if position in matching_offsets]
         if offset is None:
-            offset = max(0, len(selected) - PAGE_SIZE)
+            offset = max(0, len(selected) - page_size)
         offset = max(0, min(offset, max(0, len(selected) - 1)))
         messages = []
         with (self.root / 'messages.jsonl').open('rb') as stream:
-            for position in selected[offset:offset + PAGE_SIZE]:
+            for position in selected[offset:offset + page_size]:
                 stream.seek(position)
                 messages.append(json.loads(stream.readline()))
-        return {'messages': messages, 'offset': offset, 'total': len(selected), 'pageSize': PAGE_SIZE,
+        return {'messages': messages, 'offset': offset, 'total': len(selected), 'pageSize': page_size,
+                'query': query, 'sourceTotal': len(self.index),
                 'viewRoot': str(self.root), 'report': self.report}
 
 

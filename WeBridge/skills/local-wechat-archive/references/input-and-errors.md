@@ -19,9 +19,13 @@
 - `manifest.json`：条数、类型、解码、引用与媒体状态及完整性信息。
 - `解析结果.md`：程序生成的固定汇报，内容与 `reporting.replyMarkdown` 一致；提供三格式文件链接。宿主用 `reporting.presentation` 的完整参数呈现文件，再原样使用汇报，不重写媒体数量或状态。
 
-媒体报告读取 `mediaSummary` / `mediaSummaryText`：图片原图、缩略图、缺失、未加载四类互斥；附件和表情单独统计。范围与图片总览一致，包含普通、转发及引用，单位是引用处数，不按文件去重；总数不是不同图片张数。旧 `mediaStatuses` 和 `businessMediaStatuses` 是混合媒体且不含引用展开，不能当作图片统计。图片在程序内查看。PDF、Office文档及视频通过电脑已有默认查看器打开，解析和保存文件不要求安装Office。
+媒体报告读取 `mediaSummary` / `mediaSummaryText`：图片原图、缩略图、本地预览、缺失、未加载五类互斥；附件和表情单独统计。范围与图片总览一致，包含普通、转发及引用，单位是引用处数，不按文件去重；总数不是不同图片张数。旧 `mediaStatuses` 和 `businessMediaStatuses` 是混合媒体且不含引用展开，不能当作图片统计。图片在程序内查看。PDF、Office文档及视频通过电脑已有默认查看器打开，解析和保存文件不要求安装Office。
 
 `mediaSummary.attachmentTypes` 按扩展名统计每种附件引用，大小写合并，无法识别的归为 `unknown`；每类保留 total/ready/previewOnly/missing/notLoaded，总数与附件统计一致。不要凭文件名列表重新算或把可用数当总数。JSONL、JSON、MD通过 `exportFiles` 和 `reporting.presentation.files` 提供，文件呈现失败须保留程序给出的本地链接。
+
+## 配置迁移
+
+桌面与Skill共用对应客户端的固定用户目录，已有配置优先保留。没有用户配置时自动迁移附近有效旧配置并复制其引用密钥；多账号、远处旧目录或失败时，在手动页“导入旧版配置”选择旧settings.local.json。高级自定义DataDir保持独立。详见[配置迁移说明](../配置迁移说明.md)。
 
 ## 常见故障
 

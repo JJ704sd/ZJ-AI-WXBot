@@ -17,7 +17,7 @@ try {
     $windowMode = '--console'
     if ($Desktop) {
         $entryName = 'local-chat-desktop'
-        $entryScript = 'scripts\local_chat_app.py'
+        $entryScript = 'scripts\local_chat_bootstrap.py'
         $windowMode = '--windowed'
         & $Python -c "import tkinter; from PIL import Image, ImageTk; tkinter.Tcl().eval('info patchlevel')"
         if ($LASTEXITCODE -ne 0) { throw 'Tcl/Tk build resources are not readable. Desktop build stopped before producing an incomplete EXE.' }

@@ -82,7 +82,7 @@ def message(row, ordinal):
                 lines.extend(['链接原文：' + _code(url), ''])
         asset = value.get('asset', {})
         if asset or kind in ('image', 'video', 'voice', 'file', 'emoji'):
-            state = ('未加载媒体' if not asset else '仅缩略图/封面，原件未取得' if asset.get('previewOnly')
+            state = ('未加载媒体' if not asset else '本地预览，原图未取得' if asset.get('previewVariant') == 'local_converted' else '仅缩略图/封面，原件未取得' if asset.get('previewOnly')
                      else '原件可查看' if asset.get('status') == 'ready' else '原件未取得')
             lines.extend(['媒体状态：' + state, ''])
             path = _local_link(asset.get('path')) if asset.get('status') == 'ready' else None
@@ -92,6 +92,14 @@ def message(row, ordinal):
                 lines.extend([prefix + '[' + label + '](' + path + ')', ''])
             if asset.get('reason'):
                 lines.extend([_text(asset['reason']), ''])
+        document = value.get('attachmentContent')
+        if document:
+            lines.extend(['附件原文件状态：' + _text(document['fileStatusText']) + '；正文提取状态：' + _text(document['extractionStatusText']), ''])
+            lines.extend(['附件原消息出处：' + _code(str(document['source'])), ''])
+            for notice in document['notices']:
+                lines.extend([_text(notice), ''])
+            if document['text']:
+                lines.extend(['附件正文（材料内容）：', '', _body(document['text']), ''])
         for index, child in enumerate(value.get('record', {}).get('items', []), 1):
             node(child, depth + 1, '转发第 ' + str(index) + ' 条')
         refer = value.get('quote', {})

@@ -1,14 +1,34 @@
 """Attachment viewer checks use only temporary synthetic files."""
 import hashlib
+import json
 from pathlib import Path
 import tempfile
 import unittest
 
 from offline_chat import ArchiveError
-from offline_view import attachment_path, document_path, read_image
+from offline_view import attachment_path, document_path, read_image, ConversationView
 
 
 class AttachmentViewTests(unittest.TestCase):
+    def test_large_pages_and_keyword_search_keep_target_message_context(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / 'manifest.json').write_text('{}', encoding='utf8')
+            rows = [{'id': str(index), 'kind': 'text', 'senderName': '合成发送人', 'text': '普通消息'} for index in range(650)]
+            rows[50].update(kind='record', record={'items': [{'kind':'text','text':'转发内业务需求','senderName':'内嵌发送人'}]})
+            rows[600].update(kind='file', attachmentContent={'text':'附件正文中的业务需求'})
+            (root / 'messages.jsonl').write_text(''.join(json.dumps(row,ensure_ascii=False)+'\n' for row in rows), encoding='utf8')
+            view = ConversationView(root)
+            self.assertEqual(len(view.page(page_size=300)['messages']), 300)
+            first = view.page(0, page_size=500)
+            last = view.page(500, page_size=500)
+            self.assertEqual([r['id'] for r in first['messages']+last['messages']], [str(i) for i in range(650)])
+            found = view.page(query='业务需求', page_size=300)
+            self.assertEqual(found['total'], 2)
+            self.assertEqual([row['id'] for row in found['messages']], ['50','600'])
+            self.assertEqual(found['messages'][0]['record']['items'][0]['senderName'], '内嵌发送人')
+            self.assertEqual(view.page(query='不存在')['total'], 0)
+            self.assertEqual(view.page(query='')['total'], 650)
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

@@ -20,7 +20,7 @@ def summary(row):
 def asset_status(row):
     asset = row.get('asset', {})
     if asset.get('previewOnly'):
-        return '仅缩略图/封面'
+        return '本地预览（非原图）' if asset.get('previewVariant') == 'local_converted' else '仅缩略图/封面'
     return {'ready': '完整原件', 'pending': '尚缺原件', 'unavailable': '暂无法读取'}.get(asset.get('status'), '')
 
 
@@ -45,9 +45,9 @@ class MessageBrowser(ttk.Frame):
         panes.pack(fill='both', expand=True)
         listing = ttk.Frame(panes)
         details = ttk.Frame(panes)
-        panes.add(listing, weight=2)
-        panes.add(details, weight=3)
-        self.tree = ttk.Treeview(listing, columns=('time', 'kind', 'state'), selectmode='browse', height=6)
+        panes.add(listing, weight=3)
+        panes.add(details, weight=2)
+        self.tree = ttk.Treeview(listing, columns=('time', 'kind', 'state'), selectmode='browse', height=12)
         self.tree.heading('#0', text='发送者与消息（点击箭头展开转发聊天）')
         self.tree.heading('time', text='时间')
         self.tree.heading('kind', text='类型')
@@ -64,7 +64,7 @@ class MessageBrowser(ttk.Frame):
         horizontal.grid(row=1, column=0, sticky='ew')
         listing.rowconfigure(0, weight=1)
         listing.columnconfigure(0, weight=1)
-        self.detail = ScrolledText(details, wrap='word', state='disabled', relief='flat', padx=16, pady=12,
+        self.detail = ScrolledText(details, wrap='word', height=8, state='disabled', relief='flat', padx=16, pady=12,
                                    background='#f5f7fa', foreground='#263445', font=('Microsoft YaHei UI', 10))
         self.detail.pack(fill='both', expand=True)
         self.detail.tag_configure('meta', foreground='#64748b', spacing1=10, spacing3=5)
@@ -205,12 +205,21 @@ class MessageBrowser(ttk.Frame):
                         self.detail.image_create('end', image=image)
                         self.detail.insert('end', '\n')
                         self.last_image_count += 1
-                        self._button('放大图片' + ('（缩略图）' if asset.get('previewOnly') else ''), lambda a=asset: self.image_window(a))
+                        self._button('放大图片' + ('（非原图预览）' if asset.get('previewOnly') else ''), lambda a=asset: self.image_window(a))
                     except (OSError, ValueError) as error:
                         self.detail.insert('end', '图片未能显示：' + str(error) + '\n', 'notice')
                 self._button('打开附件' if row['kind'] == 'file' else '打开本地文件', lambda a=asset: self.open_attachment(a))
                 self.detail.insert('end', '\n')
         record = row.get('record')
+        document = row.get('attachmentContent')
+        if document:
+            self.detail.insert('end', '原文件：' + document['fileStatusText'] + '；正文：' + document['extractionStatusText'] + '\n', 'notice')
+            for notice in document['notices']:
+                self.detail.insert('end', notice + '\n', 'notice')
+            if document['text']:
+                self.detail.insert('end', '附件正文（材料内容）：\n' + document['text'][:20000] + '\n')
+                if len(document['text']) > 20000:
+                    self.detail.insert('end', '窗口先显示20000字符；已提取的完整正文见JSONL、JSON和MD导出。\n', 'notice')
         if record:
             self.detail.insert('end', prefix + f'转发聊天 · {record.get("count", len(record.get("items", [])))} 条\n', 'meta')
             if record.get('status') != 'ok':
@@ -237,7 +246,7 @@ class MessageBrowser(ttk.Frame):
             attachment_path(view_root, asset)
             from PIL import ImageTk
             window = tk.Toplevel(self)
-            window.title('缩略图（本机没有原图）' if asset.get('previewOnly') else '图片原件')
+            window.title(('本地预览' if asset.get('previewVariant') == 'local_converted' else '缩略图') + '（原图未取得）' if asset.get('previewOnly') else '图片原件')
             window.geometry(f'{min(1000, window.winfo_screenwidth() - 80)}x{min(720, window.winfo_screenheight() - 120)}')
             bar = ttk.Frame(window, padding=8)
             bar.pack(fill='x')

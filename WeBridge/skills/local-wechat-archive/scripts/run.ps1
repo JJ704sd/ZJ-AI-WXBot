@@ -1,5 +1,6 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
+    [ValidateSet('WeChat','WeCom')][string]$Client,
     [ValidateSet('Parse','Desktop','Discover','Groups','Export','RecoverKeys')][string]$Mode = 'Parse',
     [string]$Source,
     [string]$Keys,
@@ -20,6 +21,12 @@ if (-not [Environment]::Is64BitOperatingSystem) { throw 'Windows x64 is required
 $runtimePath = Join-Path $skillDirectory 'runtime.json'
 if (-not (Test-Path -LiteralPath $runtimePath -PathType Leaf)) { throw 'The runtime manifest is missing.' }
 $runtime = [IO.File]::ReadAllText($runtimePath, [Text.Encoding]::UTF8) | ConvertFrom-Json
+if ($runtime.PSObject.Properties['client']) {
+    $bundledClient = [string]$runtime.client
+    if ($bundledClient -notin @('wechat','wecom')) { throw 'Invalid bundled client.' }
+    if ($Client -and $Client -ine $bundledClient) { throw 'This skill is bound to a different client. Use its matching WeChat or WeCom skill.' }
+    $Client = $bundledClient
+} elseif (-not $Client) { $Client = 'WeChat' }
 $binaryRelativePath = 'bin\local-chat-desktop.exe'
 if ($runtime.PSObject.Properties['exeRelativePath']) { $binaryRelativePath = [string]$runtime.exeRelativePath }
 $binaryPath = [IO.Path]::GetFullPath((Join-Path $skillDirectory $binaryRelativePath))
@@ -37,12 +44,11 @@ try {
 if ($binaryHash -ne $runtime.exeSha256) {
     throw 'The EXE checksum does not match this skill package.'
 }
-if (-not $DataDir) { $DataDir = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'LocalWechatArchive' }
-$dataDirectory = [IO.Path]::GetFullPath($DataDir)
-function Quote-Path([string]$value) {
-    if ($value.Contains('"') -or $value.Contains("`r") -or $value.Contains("`n")) { throw 'Invalid path.' }
-    return '"' + $value + '"'
+if (-not $DataDir) {
+    $profileName = if ($Client -eq 'WeCom') { 'LocalWeComArchive' } else { 'LocalWechatArchive' }
+    $DataDir = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) $profileName
 }
+$dataDirectory = [IO.Path]::GetFullPath($DataDir)
 function Write-JsonResult($value) {
     $previousEncoding = [Console]::OutputEncoding
     try {
@@ -57,7 +63,7 @@ if ($Mode -in @('Parse','Desktop') -and $Chat -and $ChatName) { throw 'Select ex
 if ($Mode -eq 'Export' -and ((-not $Chat -and -not $ChatName) -or ($Chat -and $ChatName))) {
     throw 'Export requires exactly one of -Chat or -ChatName.'
 }
-$task = @{version=1; action=$Mode.ToLowerInvariant()}
+$task = @{version=1; action=$Mode.ToLowerInvariant(); client=$Client.ToLowerInvariant()}
 if ($Mode -eq 'RecoverKeys') {
     if (-not $Source) { throw 'Key recovery requires the explicitly selected local live-account data directory.' }
     $task.action = 'recover_keys'
@@ -100,7 +106,7 @@ if ($guardConfig -and $guardConfig.sourceRoot) {
     $sourceDirectory = [IO.Path]::GetFullPath($guardConfig.sourceRoot)
     if (Test-Path -LiteralPath $sourceDirectory) { $sourceDirectory = (Resolve-Path -LiteralPath $sourceDirectory).Path }
     $accountDirectory = $sourceDirectory
-    if ([IO.Path]::GetFileName($sourceDirectory.TrimEnd('\')) -eq 'db_storage') { $accountDirectory = [IO.Path]::GetDirectoryName($sourceDirectory) }
+    if ([IO.Path]::GetFileName($sourceDirectory.TrimEnd('\')) -in @('db_storage','Data')) { $accountDirectory = [IO.Path]::GetDirectoryName($sourceDirectory) }
     $accountPrefix = $accountDirectory.TrimEnd('\') + '\'
     if ($dataDirectory.Equals($accountDirectory, [StringComparison]::OrdinalIgnoreCase) -or $dataDirectory.StartsWith($accountPrefix, [StringComparison]::OrdinalIgnoreCase)) {
         throw 'Application data must stay outside the selected WeChat account directory.'
@@ -108,23 +114,27 @@ if ($guardConfig -and $guardConfig.sourceRoot) {
 }
 [IO.Directory]::CreateDirectory($dataDirectory) | Out-Null
 if ($Mode -in @('Parse','Desktop')) {
-    $launchArgs = @('--data-dir', (Quote-Path $dataDirectory))
+    $requestDirectory = Join-Path $dataDirectory 'requests'
+    [IO.Directory]::CreateDirectory($requestDirectory) | Out-Null
+    $launchId = [Guid]::NewGuid().ToString('N')
+    $launchPath = Join-Path $requestDirectory ($launchId + '.desktop.json')
+    $launchResult = Join-Path $requestDirectory ($launchId + '.launch.json')
+    $launchTask = @{version=1;client=$Client.ToLowerInvariant()}
     $receiptPath = $null
     if ($Chat -or $ChatName) {
-        $requestDirectory = Join-Path $dataDirectory 'requests'
-        [IO.Directory]::CreateDirectory($requestDirectory) | Out-Null
-        $receiptPath = Join-Path $requestDirectory ([Guid]::NewGuid().ToString('N') + '.open.json')
-        $launchArgs += @('--open-result-json', (Quote-Path $receiptPath))
-        if ($Chat) { $launchArgs += @('--open-chat', (Quote-Path $Chat)) }
-        if ($ChatName) { $launchArgs += @('--open-chat-name', (Quote-Path $ChatName)) }
+        $receiptPath = Join-Path $requestDirectory ($launchId + '.open.json')
+        $launchTask.receipt = $receiptPath
+        if ($Chat) { $launchTask.chatId = $Chat }
+        if ($ChatName) { $launchTask.chatName = $ChatName }
     }
-    # Use the Windows desktop shell to open a persistent, user-visible app.
-    # A GUI launched as a terminal child can be closed with the host's terminal.
-    # Do not disable the host's process cleanup or security settings.
-    $desktopShell = New-Object -ComObject Shell.Application
-    try {
-        $desktopShell.ShellExecute($binaryPath, ($launchArgs -join ' '), $skillDirectory, 'open', 1)
-    } finally { [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($desktopShell) }
+    [IO.File]::WriteAllText($launchPath, ($launchTask | ConvertTo-Json -Depth 6), (New-Object Text.UTF8Encoding($false)))
+    # Invoke the bundled helper directly. Explorer opens its standard shortcut
+    # as a desktop app; no COM, WMI or host/security/proxy changes are needed.
+    & $binaryPath --client $Client.ToLowerInvariant() --launch-desktop-json $launchPath --result-json $launchResult --data-dir $dataDirectory | Out-Null
+    $launchExit = $LASTEXITCODE
+    if (-not (Test-Path -LiteralPath $launchResult -PathType Leaf)) { throw 'The desktop helper returned no result. Open Start.cmd and inspect startup logs.' }
+    $launchReceipt = [IO.File]::ReadAllText($launchResult, [Text.Encoding]::UTF8) | ConvertFrom-Json
+    if ($launchExit -ne 0 -or -not $launchReceipt.ok) { throw $launchReceipt.error }
     if (-not $receiptPath) {
         Write-JsonResult ([pscustomobject]@{ok=$true; action='desktop'; state='started'; dataDirectory=$dataDirectory})
         exit 0
@@ -159,8 +169,9 @@ $requestId = [Guid]::NewGuid().ToString('N')
 $requestPath = Join-Path $requestDirectory ($requestId + '.request.json')
 $resultPath = Join-Path $requestDirectory ($requestId + '.result.json')
 [IO.File]::WriteAllText($requestPath, ($task | ConvertTo-Json -Depth 8), (New-Object Text.UTF8Encoding($false)))
-$commandArgs = @('--task-json', (Quote-Path $requestPath), '--result-json', (Quote-Path $resultPath), '--data-dir', (Quote-Path $dataDirectory))
-$completed = Start-Process -FilePath $binaryPath -ArgumentList $commandArgs -WindowStyle Hidden -PassThru -Wait
+# A native command pipeline waits for the windowed executable to finish.
+& $binaryPath --client $Client.ToLowerInvariant() --task-json $requestPath --result-json $resultPath --data-dir $dataDirectory | Out-Null
+$exitCode = $LASTEXITCODE
 if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) { throw 'The parser returned no result. Check file permissions and paths.' }
 $resultText = [IO.File]::ReadAllText($resultPath, [Text.Encoding]::UTF8)
 $parsedResult = $resultText | ConvertFrom-Json
@@ -171,5 +182,5 @@ try {
 } finally {
     [Console]::OutputEncoding = $previousEncoding
 }
-if ($completed.ExitCode -ne 0 -or -not $parsedResult.ok) { exit 2 }
+if ($exitCode -ne 0 -or -not $parsedResult.ok) { exit 2 }
 exit 0

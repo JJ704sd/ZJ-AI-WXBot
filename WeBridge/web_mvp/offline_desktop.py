@@ -14,6 +14,7 @@ from database_adapter import DatabaseError
 from database_snapshot import SnapshotError, prepare_snapshot
 from offline_chat import ArchiveError, LocalArchive, discover, workbench_source
 from offline_view import ConversationView
+from offline_accounts import same_account_source
 
 CONFIG_FIELDS = ('sourceRoot', 'keyFile', 'imageKeyFile', 'selfId', 'includeMedia', 'includeVoice')
 
@@ -27,7 +28,10 @@ def safe_issue(error):
 
 
 class DesktopSession:
-    def __init__(self, data_directory, workbench=None):
+    def __init__(self, data_directory, workbench=None, *, client='wechat'):
+        if client not in ('wechat', 'wecom'):
+            raise ArchiveError('客户端类型必须为 wechat 或 wecom。')
+        self.client = client
         self.directory = Path(data_directory).resolve()
         self.settings_path = self.directory / 'settings.local.json'
         self.workbench = Path(workbench) if workbench else None
@@ -50,7 +54,11 @@ class DesktopSession:
     def _save(self, config=None, last_chat=None):
         value = dict(self.settings)
         value['version'] = 1
+        value['client'] = self.client
         if config is not None:
+            previous = value.get('source', {}).get('sourceRoot')
+            if previous and not same_account_source(previous, config.get('sourceRoot'), self.client):
+                value.pop('lastChat', None)
             value['source'] = {name: config[name] for name in CONFIG_FIELDS if name in config}
         if last_chat is not None:
             value['lastChat'] = last_chat
@@ -67,20 +75,26 @@ class DesktopSession:
 
     def _outside_source(self, config):
         source = Path(config['sourceRoot']).expanduser().resolve()
-        account = source.parent if source.name == 'db_storage' else source
+        account = source.parent if source.name in ('db_storage', 'Data') else source
         if self.directory == account or self.directory.is_relative_to(account):
             raise ArchiveError('程序数据目录不能位于微信账号目录内，请将程序移到其他位置运行。')
 
     def open_source(self, config, *, save=True):
+        if self.settings.get('source') and self.settings.get('client', 'wechat') != self.client:
+            raise ArchiveError('当前程序配置属于另一种客户端，请使用各自的启动入口和独立数据目录。')
         config = {name: config[name] for name in CONFIG_FIELDS if name in config}
         if not isinstance(config.get('sourceRoot'), str) or not config['sourceRoot'].strip():
             raise ArchiveError('请选择一个本机账号的数据目录或已经解密的副本目录。')
         config['sourceRoot'] = str(Path(config['sourceRoot']).expanduser().resolve())
         self._outside_source(config)
-        result = prepare_snapshot(config['sourceRoot'], self.directory / 'snapshots',
+        snapshot_factory, archive_factory = prepare_snapshot, LocalArchive
+        if self.client == 'wecom':
+            from wecom_snapshot import prepare_snapshot as snapshot_factory
+            from wecom_archive import WeComArchive as archive_factory
+        result = snapshot_factory(config['sourceRoot'], self.directory / 'snapshots',
             config.get('keyFile') or None, include_media=config.get('includeMedia', False),
             include_voice=config.get('includeVoice', False))
-        archive = LocalArchive(result['root'], config.get('selfId', ''), config)
+        archive = archive_factory(result['root'], config.get('selfId', ''), config)
         groups = archive.groups()['conversations']
         # Persist only a source that really passed decryption and schema checks.
         if save:
@@ -99,12 +113,70 @@ class DesktopSession:
             except (OSError, ValueError, DatabaseError) as error:
                 # Keep the selected source. Never silently switch accounts.
                 return {'status': 'needs_source', 'message': safe_issue(error), 'config': saved}
-        if self.workbench and self.workbench.is_file():
+        if self.settings_path.exists() or self.settings_path.is_symlink():
+            return {'status': 'needs_source', 'message': '用户配置已存在但无法读取有效数据源；已保留原文件，请在账号设置中修复，或导入旧版配置。'}
+        from offline_profiles import default_directory, legacy_settings, read_legacy
+        if self.directory == default_directory(self.client):
+            paths = legacy_settings(self.client)
+            candidates = []
+            for path in paths:
+                try:
+                    value, config = read_legacy(path, self.client)
+                    candidates.append((path.stat().st_mtime_ns, path, config))
+                except (OSError, ValueError):
+                    continue
+            if candidates:
+                source = candidates[0][2]['sourceRoot']
+                if any(not same_account_source(source, config['sourceRoot'], self.client) for _, _, config in candidates[1:]):
+                    return {'status': 'needs_source', 'message': '发现多个不同账号的旧配置，未自动选择。请在手动页点击“导入旧版配置”，选择要继续使用的账号配置。'}
+                last_error = None
+                for _, path, config in sorted(candidates, key=lambda item: item[0], reverse=True)[:8]:
+                    try:
+                        return self.import_settings(path, overwrite=False)
+                    except (OSError, ValueError, DatabaseError) as error:
+                        last_error = error
+                return {'status': 'needs_source', 'message': '已找到旧配置但校验未通过，旧文件已保留。'+safe_issue(last_error),
+                        'config': config}
+            if paths:
+                return {'status': 'needs_source', 'message': '发现旧配置但格式、客户端或路径不符合要求，已保留旧文件。请在手动页导入正确的旧版配置，或修复数据和密钥路径。'}
+        if self.client == 'wechat' and self.workbench and self.workbench.is_file():
             try:
                 return self.open_workbench(self.workbench)
             except (OSError, ValueError, KeyError, TypeError, DatabaseError) as error:
                 return {'status': 'needs_source', 'message': safe_issue(error)}
-        return {'status': 'needs_source', 'message': '首次使用：登录本人微信后点击“一键自动配置”；已有数据与密钥也可在手动页选择。'}
+        label = '企业微信' if self.client == 'wecom' else '微信'
+        return {'status': 'needs_source', 'message': f'首次使用：登录本人{label}后点击“一键自动配置”；已有数据与密钥也可在手动页选择。'}
+
+    def import_settings(self, path, *, overwrite=True):
+        """Validate before publishing; automatic migration never overwrites a user profile."""
+        from offline_profiles import read_legacy, copy_key_references, publish_settings
+        from offline_startup import record
+        value, config = read_legacy(path, self.client)
+        if not overwrite and self.settings_path.exists():
+            self.settings = self._settings()
+            return self.bootstrap()
+        probe = DesktopSession(self.directory, client=self.client)
+        probe.open_source(config, save=False)
+        config = copy_key_references(config, self.directory)
+        value = {**value, 'version': 1, 'client': self.client,
+                 'source': {name: config[name] for name in CONFIG_FIELDS if name in config}}
+        if overwrite:
+            probe.settings = value
+            probe._save(config)
+        else:
+            try:
+                publish_settings(self.settings_path, value)
+            except FileExistsError:
+                self.settings = self._settings()
+                return self.bootstrap()
+        self.settings = value
+        self.archive, self.groups = probe.archive, probe.groups
+        self.last_export = None
+        self.views.clear()
+        self.archive.media_config.update(config)
+        self.source_status = '已迁移并验证旧配置，后续桌面版与 Skill 共用此账号配置'
+        record('profile_migration_completed', client=self.client, copiedKeyReferences=sum(bool(config.get(k)) for k in ('keyFile', 'imageKeyFile')))
+        return self.ready_info()
 
     def open_workbench(self, path):
         snapshot, config = workbench_source(path)
@@ -129,10 +201,15 @@ class DesktopSession:
                 'snapshotTime': info['createdAt'], 'coverage': self.archive.coverage()}
 
     def scan(self):
+        if self.client == 'wecom':
+            from wecom_snapshot import discover as discover_wecom
+            return discover_wecom()
         return discover()
 
     def automatic_setup(self, config=None, *, allow_process_read=False):
         """Explicit one-click setup; retain old settings format and source binding."""
+        if self.settings.get('source') and self.settings.get('client', 'wechat') != self.client:
+            return {'status': 'needs_source', 'message': '当前配置属于另一种客户端，请使用其独立启动入口和数据目录。'}
         saved = self.settings.get('source', {})
         supplied = {name: config[name] for name in CONFIG_FIELDS if name in (config or {})}
         source = supplied.get('sourceRoot') or saved.get('sourceRoot')
@@ -146,6 +223,9 @@ class DesktopSession:
             source = accounts[0]['sourceRoot']
         def normalized(value):
             path = Path(value).expanduser().resolve()
+            if self.client == 'wecom':
+                from wecom_snapshot import data_root
+                return data_root(path)
             return path / 'db_storage' if (path / 'db_storage').is_dir() else path
         source = normalized(source)
         same_source = bool(saved.get('sourceRoot')) and normalized(saved['sourceRoot']) == source
@@ -178,7 +258,10 @@ class DesktopSession:
         if allow_process_read is not True:
             return {'status': 'needs_source', 'config': value,
                     'message': '未找到可用的本机密钥。登录对应微信后，点击“一键自动配置”尝试恢复。'}
-        from portable_key_recovery import recover_key_file
+        if self.client == 'wecom':
+            from wecom_key_recovery import recover_key_file
+        else:
+            from portable_key_recovery import recover_key_file
         try:
             result = recover_key_file(source, self.directory, allow_process_read=True,
                                       include_media=value['includeMedia'])
@@ -188,12 +271,15 @@ class DesktopSession:
             info = self.open_source(value)
         except (OSError, ValueError, DatabaseError) as error:
             return {'status': 'needs_source', 'message': safe_issue(error), 'config': value}
+        if self.client == 'wecom':
+            return {**info, 'setupMode': 'recovered_live', 'imageRecovery': result['imageRecovery'],
+                    'notice': '企微数据库密钥已自动恢复并通过副本校验；已保存独立配置。媒体按本机缓存摘要匹配，不需要个微图片密钥。'}
         return {**info, 'setupMode': 'recovered_live', 'imageRecovery': result['imageRecovery'],
                 'notice': '数据库密钥已自动恢复并通过副本校验，已记住本机设置。' +
                           ('图片密钥也已验证。' if result['imageRecovery'] == 'verified_local_samples' else
                            '图片密钥未恢复，图片仍按可用、缩略图或缺失显示。')}
 
-    def preview(self, chat, offset=None, kind=None):
+    def preview(self, chat, offset=None, kind=None, *, page_size=100, query=''):
         if self.archive is None:
             raise ArchiveError('请先加载数据。')
         self.archive.select_chat(chat_id=chat)
@@ -203,7 +289,7 @@ class DesktopSession:
             output = self.directory / 'views' / (datetime.now().strftime('%Y%m%d-%H%M%S-%f') + '-' + suffix)
             self.archive.export(output, chat_id=chat, copy_media=True)
             self.views[chat] = ConversationView(output)
-        result = self.views[chat].page(offset, kind)
+        result = self.views[chat].page(offset, kind, page_size=page_size, query=query)
         self._save(last_chat=chat)
         return result
 
@@ -220,10 +306,10 @@ class DesktopSession:
                 'reporting': result['reporting'],
                 'exportFiles': {kind: str(output / name) for kind, name in result['messageExports'].items()}}
 
-    def parse_and_open(self, *, chat_id=None, chat_name=None):
+    def parse_and_open(self, *, chat_id=None, chat_name=None, start=None, end=None, copy_media=True, page_size=100):
         if self.archive is None:
             raise ArchiveError('请先选择本机数据和匹配密钥。')
         chat = self.archive.select_chat(chat_id=chat_id, chat_name=chat_name)
-        result = self.export(chat['id'])
+        result = self.export(chat['id'], start=start, end=end, copy_media=copy_media)
         self.views[chat['id']] = ConversationView(result['output'])
-        return {**result, 'chat': chat, 'view': self.preview(chat['id'], kind='business')}
+        return {**result, 'chat': chat, 'view': self.preview(chat['id'], kind='business', page_size=page_size)}

@@ -11,7 +11,7 @@ KINDS = {'image': 'images', 'file': 'attachments', 'emoji': 'emoji',
 class MediaSummary:
     def __init__(self):
         self.counts = {
-            category: dict.fromkeys(('total', 'original', 'thumbnail', 'missing', 'notLoaded')
+            category: dict.fromkeys(('total', 'original', 'thumbnail', 'localPreview', 'missing', 'notLoaded')
                                     if category == 'images' else
                                     ('total', 'ready', 'previewOnly', 'missing', 'notLoaded'), 0)
             for category in KINDS.values()}
@@ -24,7 +24,7 @@ class MediaSummary:
                 continue
             asset = node.get('asset') or {}
             state = image_state(asset)[0]
-            key = {'preview': 'thumbnail', 'not_loaded': 'notLoaded'}.get(state, state)
+            key = {'preview': 'thumbnail', 'local_preview': 'localPreview', 'not_loaded': 'notLoaded'}.get(state, state)
             if category != 'images':
                 key = {'original': 'ready', 'thumbnail': 'previewOnly'}.get(key, key)
             self.counts[category]['total'] += 1
@@ -56,6 +56,7 @@ def attachment_type_text(summary):
 def summary_text(summary):
     image = summary['images']
     parts = [f'图片引用 {image["total"]} 处：原图 {image["original"]}，缩略图 {image["thumbnail"]}，'
+             f'本地预览 {image.get("localPreview", 0)}，'
              f'缺失图片 {image["missing"]}，未加载 {image["notLoaded"]}']
     for key, label in (('attachments', '附件'), ('emoji', '表情'), ('videos', '视频'), ('voice', '语音')):
         item = summary[key]

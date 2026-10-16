@@ -18,6 +18,11 @@ MAX_FILE_BYTES = 100 * 1024 ** 2
 
 
 class LocalMediaSearch:
+    def begin_export(self):
+        recovered = self.recovered
+        self.__init__(self.config, max_files=self.max_files, max_bytes=self.max_bytes)
+        self.recovered = recovered
+
     def __init__(self, config, *, max_files=MAX_FILES, max_bytes=MAX_BYTES):
         self.config = config
         source = Path(config.get('sourceRoot') or '').resolve()

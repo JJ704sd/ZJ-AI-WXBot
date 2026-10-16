@@ -28,9 +28,34 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 class Fixture {
+    static string JsonString(string text, string key) {
+        string marker = "\"" + key + "\":";
+        int start = text.IndexOf(marker, StringComparison.Ordinal);
+        if (start < 0) return null;
+        start += marker.Length;
+        while (start < text.Length && Char.IsWhiteSpace(text[start])) start++;
+        if (start >= text.Length || text[start] != '\"') return null;
+        start++;
+        int end = text.IndexOf('\"', start);
+        if (end < 0) return null;
+        return text.Substring(start, end - start).Replace("\\\\", "\\");
+    }
     static void Main(string[] args) {
-        string path = null;
-        for (int i=0; i<args.Length-1; i++) if (args[i]=="--open-result-json") path=args[i+1];
+        string path = null, launch = null, launchResult = null;
+        for (int i=0; i<args.Length-1; i++) {
+            if (args[i]=="--open-result-json") path=args[i+1];
+            if (args[i]=="--launch-desktop-json") launch=args[i+1];
+            if (args[i]=="--result-json") launchResult=args[i+1];
+        }
+        if (launch!=null) {
+            string receipt = JsonString(File.ReadAllText(launch), "receipt");
+            if (launchResult!=null) File.WriteAllText(launchResult, "{\"ok\":true,\"state\":\"started\"}");
+            if (receipt==null) return;
+            File.WriteAllText(receipt, "{\"state\":\"starting\"}");
+            Thread.Sleep(1200);
+            File.WriteAllText(receipt, "{\"state\":\"completed\",\"ok\":true,\"exportedRows\":2}");
+            return;
+        }
         if (path==null) return;
         File.WriteAllText(path, "{\"state\":\"starting\"}");
         Thread.Sleep(1200);

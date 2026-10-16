@@ -5,6 +5,7 @@ from pathlib import PurePosixPath
 from offline_images import image_state, message_anchor
 
 CSS = '''
+.local_preview{color:#a15b00;background:#fff3d6}
 .gallery-link,.action{display:inline-block;padding:7px 14px;margin:4px 8px 4px 0;background:#e6f1ff;border-radius:7px;color:#1756a2;text-decoration:none}
 .image-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;align-items:start}
 .image-card{padding:14px;border:1px solid #d8e1eb;background:#fff;border-radius:10px;overflow-wrap:anywhere;margin:12px 0}
@@ -66,6 +67,7 @@ def gallery_body(entries):
                '点击预览查看原始尺寸；缩略图无法还原为原图。</p>')
     content += (f'<p><span class="badge original">原图 {counts["original"]}</span> '
                 f'<span class="badge preview">仅缩略图 {counts["preview"]}</span> '
+                f'<span class="badge preview">本地预览 {counts["local_preview"]}</span> '
                 f'<span class="badge missing">图片缺失 {counts["missing"]}</span> '
                 f'<span class="badge not_loaded">未加载 {counts["not_loaded"]}</span> · 共 {len(entries)} 个图片引用</p>')
     if not entries:

@@ -12,7 +12,7 @@ from local_chat_distribution import copy_public_guide, complete_metadata, GUIDE
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--desktop-package', type=Path, required=True)
-    parser.add_argument('--skill-package', type=Path, required=True)
+    parser.add_argument('--skill-package', type=Path, action='append', required=True)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     project = Path(__file__).resolve().parents[1]
@@ -20,7 +20,7 @@ def main():
     archive = output.parent / (output.name + '.zip')
     if output.exists() or archive.exists():
         raise SystemExit('Choose a new delivery directory.')
-    sources = [args.desktop_package.resolve(), args.skill_package.resolve()]
+    sources = [args.desktop_package.resolve(), *(path.resolve() for path in args.skill_package)]
     packages = []
     for directory in sources:
         metadata = json.loads((directory / 'package.json').read_text(encoding='utf-8'))
@@ -38,14 +38,20 @@ def main():
     readme = '# 本地微信聊天解析：Windows完整交付包\n\n'
     readme += '先看 [操作指南](操作指南.md)，按使用方式选择下面一个独立ZIP。版本、实测范围和限制见 [版本与验证说明](版本与验证说明.md)。\n\n'
     readme += '请选择以下一种方式使用，无需同时安装两个版本，也无需安装Python。\n\n'
+    readme += '**两个Skill分开导入**：个微使用“个微-本地聊天解析”，企微使用“企微-本地聊天解析”。各自默认客户端已绑定，配置和密钥隔离。桌面包仍包含Start.cmd与Start-WeCom.cmd。\n\n'
     readme += f'## 直接双击使用\n\n解压 [{packages[0].name}]({packages[0].name})，进入其中的文件夹，双击 `Start.cmd` 或 `local-chat-desktop.exe`。\n\n'
-    readme += f'## 在WorkBuddy中使用\n\n在技能页面“添加技能 → 上传技能”选择 [{packages[1].name}]({packages[1].name}) 并启用。新任务中说“解析示例业务群”，替换为实际群名。其他宿主需支持本地Skill执行和文件访问。\n\n'
+    readme += '## 在WorkBuddy中使用\n\n在技能页面“添加技能 → 上传技能”导入所需Skill ZIP并启用，也可同时启用两个：\n\n'
+    for source_zip, source_dir in zip(packages[1:], sources[1:]):
+        client = json.loads((source_dir / 'runtime.json').read_text(encoding='utf8')).get('client', 'wechat')
+        label, phrase = ('企微-本地聊天解析', '解析企微示例业务群') if client == 'wecom' else ('个微-本地聊天解析', '解析个微示例业务群')
+        readme += f'- [{label} ZIP]({source_zip.name})：新任务说“{phrase}”。\n'
+    readme += '\n替换为实际群名；只解析指定群，无需先列出所有群。其他宿主需支持本地Skill执行和文件访问。\n\n'
     readme += '**导入的是里面的Skill ZIP，不能把本总包作为Skill导入。** Skill ZIP本身包含SKILL.md、EXE、启动脚本及全部许可文件，不要只取SKILL.md。\n\n'
     readme += '每次解析同时提供JSONL、JSON、MD，并生成程序固定汇报。转移结果时保留整个导出目录及assets，原电脑的绝对本地链接不能作为另一台电脑的文件下载地址。更新或换电脑的具体操作见操作指南。\n\n'
     readme += '## 第一次或换电脑\n\n先手动登录本人微信，在弹窗确认发现的账号并点“一键自动配置”，无需寻找密钥JSON；多个账号先选一个。校验加载成功后Skill原解析请求会继续并记住设置。已有离线副本和密钥也可切到手动页选择；未登录、布局不支持或缺少匹配密钥时会明确失败。需要本人有权读取的微信4.x副本；保留相关WAL、附件索引和媒体。\n\n'
     readme += '目标为Windows 10/11 x64；已完成Windows 10本机隔离验证，另一台物理机和Windows 11尚未实测。Office、PDF及视频附件需已有默认查看器；程序内图片和转发展示不依赖Office。企业执行策略限制由IT按组织规则处理。\n\n'
     readme += f'详细功能、环境要求和限制见 [{GUIDE}]({GUIDE})。\n\n'
-    readme += '## 包内与校验\n\n两个独立包及本总包均提供SHA256SUMS.txt和package.json。包内不含真实聊天、数据库、媒体、密钥、本机账号设置或真实会话分享链接。收到包后先完整解压再运行。\n'
+    readme += '## 包内与校验\n\n各独立包及本总包均提供SHA256SUMS.txt和package.json。包内不含真实聊天、数据库、媒体、密钥、本机账号设置或真实会话分享链接。收到包后先完整解压再运行。\n'
     (output / 'README.md').write_text(readme, encoding='utf-8')
     complete_metadata(output, {'platform': 'Windows 10/11 x64', 'interface': 'delivery-suite',
                                'includes': [path.name for path in packages]})

@@ -37,7 +37,8 @@ def main():
     if args.shareable:
         copy_public_guide(project, output, 'desktop')
         write_quick_start(output, 'desktop')
-        (output / 'Start.cmd').write_bytes(b'@echo off\r\nsetlocal\r\nstart "" "%~dp0local-chat-desktop.exe"\r\n')
+        (output / 'Start.cmd').write_bytes(b'@echo off\r\nsetlocal\r\nstart "" "%~dp0local-chat-desktop.exe" --client wechat --data-dir "%LOCALAPPDATA%\\LocalWechatArchive"\r\n')
+        (output / 'Start-WeCom.cmd').write_bytes(b'@echo off\r\nsetlocal\r\nstart "" "%~dp0local-chat-desktop.exe" --client wecom --data-dir "%LOCALAPPDATA%\\LocalWeComArchive"\r\n')
     elif args.desktop:
         shutil.copyfile(project / 'LOCAL_CHAT_DESKTOP.md', output / 'README.md')
         reference = (project / 'LOCAL_CHAT.md').read_text(encoding='utf-8')
@@ -68,7 +69,7 @@ def main():
         shutil.copyfile(project / 'scripts/licenses/Tcl-8.6.15-license.terms', licenses / 'Tcl-8.6.15-license.terms')
         shutil.copyfile(Path(sys.base_prefix) / 'tcl/tk8.6/license.terms', licenses / 'Tk-8.6-license.terms')
     versions = {}
-    names = {'cryptography', 'zstandard', 'cffi', 'pycparser', 'pyinstaller'}
+    names = {'cryptography', 'zstandard', 'cffi', 'pycparser', 'pyinstaller', 'pypdf', 'xlrd', 'olefile'}
     if args.desktop:
         names.add('pillow')
     for distribution in importlib.metadata.distributions(path=[str(dependencies)]):
@@ -77,11 +78,14 @@ def main():
             continue
         versions[name] = distribution.version
         for file in distribution.files or []:
-            if '/licenses/' not in str(file).replace('\\', '/'):
+            listed = str(file).replace('\\', '/')
+            modern_license = '/licenses/' in listed
+            legacy_license = name in ('pypdf', 'xlrd', 'olefile') and Path(listed).name.upper() in ('LICENSE', 'LICENSE.TXT', 'COPYING')
+            if not modern_license and not legacy_license:
                 continue
             path = Path(distribution.locate_file(file))
             if path.is_file():
-                target = licenses / name / Path(str(file).split('licenses/', 1)[1])
+                target = licenses / name / (Path(listed.split('licenses/', 1)[1]) if modern_license else Path(listed).name)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(path, target)
     metadata = {'platform': 'Windows x64', 'interface': 'desktop' if args.desktop else 'cli',

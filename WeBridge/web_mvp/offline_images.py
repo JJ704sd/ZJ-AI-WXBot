@@ -6,6 +6,8 @@ def image_state(asset):
     if not asset:
         return 'not_loaded', '未加载媒体 · 尚未核对缓存'
     if asset.get('status') == 'ready':
+        if asset.get('previewOnly') and asset.get('previewVariant') == 'local_converted':
+            return 'local_preview', '本地预览 · 原图未取得'
         return ('preview', '仅缩略图 · 原图未取得') if asset.get('previewOnly') else ('original', '原图可查看')
     return 'missing', '图片缺失 · 影响判断时需补充'
 

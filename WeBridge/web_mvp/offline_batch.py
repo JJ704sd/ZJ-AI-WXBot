@@ -11,13 +11,16 @@ from offline_desktop import CONFIG_FIELDS, DesktopSession, safe_issue
 
 MAX_REQUEST_BYTES = 65536
 TASK_FIELDS = {'version', 'action', 'source', 'roots', 'chatId', 'chatName', 'startDate', 'endDate', 'copyMedia',
-               'allowProcessRead', 'timeoutSeconds', 'scanBudgetMiB'}
+               'allowProcessRead', 'timeoutSeconds', 'scanBudgetMiB', 'client'}
 
 
 def execute(task, directory):
     if not isinstance(task, dict) or set(task) - TASK_FIELDS or task.get('version') != 1:
         raise ArchiveError('请求格式或版本不支持；需要 version=1 的本地任务。')
     action = task.get('action')
+    client = task.get('client', 'wechat')
+    if client not in ('wechat', 'wecom'):
+        raise ArchiveError('客户端类型必须为 wechat 或 wecom。')
     if action not in ('discover', 'groups', 'export', 'recover_keys'):
         raise ArchiveError('本地任务类型不支持。')
     if action == 'recover_keys' and task.get('allowProcessRead') is not True:
@@ -27,7 +30,11 @@ def execute(task, directory):
         if roots is not None and (not isinstance(roots, list) or len(roots) > 16 or
                                   not all(isinstance(root, str) and root for root in roots)):
             raise ArchiveError('发现目录应为不超过16项的路径列表。')
-        return {'ok': True, 'action': action, **discover(roots)}
+        if client == 'wecom':
+            from wecom_snapshot import discover as discover_client
+        else:
+            discover_client = discover
+        return {'ok': True, 'action': action, **discover_client(roots)}
     if action == 'export':
         if bool(task.get('chatId')) == bool(task.get('chatName')):
             raise ArchiveError('导出时需要且只能提供 chatId 或 chatName。')
@@ -36,7 +43,7 @@ def execute(task, directory):
                 raise ArchiveError('会话与日期筛选必须是字符串。')
         if 'copyMedia' in task and not isinstance(task['copyMedia'], bool):
             raise ArchiveError('copyMedia 必须为布尔值。')
-    session = DesktopSession(directory)
+    session = DesktopSession(directory, client=client)
     config = task.get('source')
     if config is not None:
         if not isinstance(config, dict) or set(config) - set(CONFIG_FIELDS):
@@ -46,7 +53,10 @@ def execute(task, directory):
         if any(not isinstance(config[name], str) for name in ('sourceRoot', 'keyFile', 'imageKeyFile', 'selfId') if name in config):
             raise ArchiveError('数据和密钥设置必须为路径字符串，不接受密钥正文。')
         if action == 'recover_keys':
-            from portable_key_recovery import recover_key_file
+            if client == 'wecom':
+                from wecom_key_recovery import recover_key_file
+            else:
+                from portable_key_recovery import recover_key_file
             recovered = recover_key_file(config.get('sourceRoot', ''), directory, allow_process_read=True,
                 include_media=config.get('includeMedia', True), timeout=task.get('timeoutSeconds', 30),
                 budget_mib=task.get('scanBudgetMiB', 512))
@@ -71,7 +81,7 @@ def execute(task, directory):
     return {'ok': True, 'action': action, **result}
 
 
-def run_file(request, result, directory):
+def run_file(request, result, directory, *, client=None):
     request, result = Path(request).resolve(), Path(result).resolve()
     if result.exists():
         return 2
@@ -83,12 +93,16 @@ def run_file(request, result, directory):
         if len(data) > MAX_REQUEST_BYTES:
             raise ArchiveError('任务文件超过64 KiB支持上限。')
         task = json.loads(data.decode('utf-8-sig'))
+        if client is not None and isinstance(task, dict):
+            if 'client' in task and task['client'] != client:
+                raise ArchiveError('启动参数与任务中的客户端类型不一致。')
+            task['client'] = client
         config = task.get('source', {}) if isinstance(task, dict) else {}
         if not config:
-            config = DesktopSession(directory).settings.get('source', {})
+            config = DesktopSession(directory, client=task.get('client', 'wechat') if isinstance(task, dict) else 'wechat').settings.get('source', {})
         if isinstance(config, dict) and isinstance(config.get('sourceRoot'), str) and config['sourceRoot']:
             source = Path(config['sourceRoot']).resolve()
-            account = source.parent if source.name == 'db_storage' else source
+            account = source.parent if source.name in ('db_storage', 'Data') else source
             if result == account or result.is_relative_to(account):
                 return 2  # Never write even an error report into the input account.
         value = execute(task, directory)

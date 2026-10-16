@@ -5,7 +5,7 @@ from tkinter import ttk
 from offline_images import image_state
 from offline_view import read_image
 
-COLORS = {'original': '#087c62', 'preview': '#a15b00', 'missing': '#b42318', 'not_loaded': '#64748b'}
+COLORS = {'original': '#087c62', 'preview': '#a15b00', 'local_preview': '#a15b00', 'missing': '#b42318', 'not_loaded': '#64748b'}
 
 
 class ImageGallery(ttk.Frame):
@@ -63,7 +63,7 @@ class ImageGallery(ttk.Frame):
         self.view = view
         counts = view.image_counts
         self.summary.set(f'共 {len(view.image_index)} 个图片引用：原图 {counts["original"]} · '
-                         f'仅缩略图 {counts["preview"]} · 缺失 {counts["missing"]} · 未加载 {counts["not_loaded"]}（含转发、引用）')
+                         f'仅缩略图 {counts["preview"]} · 本地预览 {counts["local_preview"]} · 缺失 {counts["missing"]} · 未加载 {counts["not_loaded"]}（含转发、引用）')
 
     def wheel(self, event):
         self.canvas.yview_scroll(-int(event.delta / 120), 'units')
