@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime
 import json
 from pathlib import Path
 import sqlite3
@@ -29,6 +28,12 @@ def default_workbench():
 def parser():
     app = argparse.ArgumentParser(description='本地个微聊天记录解析；不登录、不注入、不发送、不联网。')
     commands = app.add_subparsers(dest='command', required=True)
+    review = commands.add_parser('review', help='列账号与全部群 ID，解析后由人工复核确认导出')
+    review.add_argument('--client', choices=('wechat', 'wecom'))
+    review.add_argument('--data-dir', type=Path, help='程序数据目录，默认使用当前 Windows 用户配置')
+    review.add_argument('--source', type=Path, help='明确选择账号数据目录或已解密副本')
+    review.add_argument('--keys', type=Path, help='已有数据库密钥 JSON')
+    review.add_argument('--image-keys', type=Path, help='已有图片密钥 JSON')
     scan = commands.add_parser('discover', help='只读取本机账号目录及数据库文件元数据')
     scan.add_argument('--root', action='append', help='自定义 xwechat_files 根目录，可重复')
     scan.add_argument('--output', type=Path, help='另存发现结果 JSON，目标须不存在')
@@ -63,64 +68,12 @@ def parser():
     return app
 
 
-def menu():
-    """Double-click entry. All actions stay local and require a selected source."""
-    print('本地个微聊天记录解析\n仅处理本机副本，不登录、不发送、不联网。')
-    archive = None
-    while True:
-        print('\n1. 发现本机账号目录\n2. 打开已有副本并列群\n3. 按群导出\n4. 用已有密钥创建解密副本\n0. 退出')
-        choice = input('选择：').strip()
-        try:
-            if choice == '0':
-                return 0
-            if choice == '1':
-                print(json.dumps(discover(), ensure_ascii=False, indent=2))
-            elif choice in ('2', '3'):
-                if archive is None:
-                    default = default_workbench()
-                    if default.is_file() and input('复用当前工作台副本？[Y/n]：').strip().lower() != 'n':
-                        root, config = workbench_source(default)
-                        archive = LocalArchive(root, config.get('selfId', ''), config)
-                    else:
-                        root = Path(input('已解密且合并 WAL 的副本目录：').strip().strip('"'))
-                        own = input('本人微信 ID（可留空，双方身份保持未知）：').strip()
-                        media = input('同账号附件根目录（可留空）：').strip().strip('"')
-                        archive = LocalArchive(root, own, {'sourceRoot': media} if media else {})
-                groups = archive.groups()['conversations']
-                for index, group in enumerate(groups, 1):
-                    print(f'{index}. {group["name"]}  [{group["id"]}]')
-                if choice == '3':
-                    index = int(input('选择群序号：')) - 1
-                    if not 0 <= index < len(groups):
-                        raise ValueError('群序号无效。')
-                    start = input('开始日期 YYYY-MM-DD（留空=不限）：').strip() or None
-                    end = input('结束日期 YYYY-MM-DD（留空=不限）：').strip() or None
-                    media = input('复制本机已缓存附件？[Y/n]：').strip().lower() != 'n'
-                    default_output = Path.cwd() / '.runtime/offline-exports' / datetime.now().strftime('%Y%m%d-%H%M%S')
-                    output = input(f'导出到新目录（留空={default_output}）：').strip().strip('"') or str(default_output)
-                    result = archive.export(output, chat_id=groups[index]['id'], start=start, end=end, copy_media=media)
-                    print(f'完成：{result["exportedRows"]} 条。用浏览器打开 {Path(output).resolve() / "chat.html"}')
-            elif choice == '4':
-                source = input('单个账号 db_storage 或账号根目录：').strip().strip('"')
-                keys = input('已有数据库密钥 JSON 路径（明文源可留空）：').strip().strip('"') or None
-                output = input('副本父目录：').strip().strip('"')
-                media = input('包含附件索引？[Y/n]：').strip().lower() != 'n'
-                voice = input('包含语音库？需对应密钥 [y/N]：').strip().lower() == 'y'
-                value = prepare_snapshot(source, output, keys, media, voice)
-                own = input('本人微信 ID（可留空）：').strip()
-                image_keys = input('已有图片密钥 JSON 路径（可留空）：').strip().strip('"')
-                config = {'sourceRoot': str(Path(source).resolve())}
-                if image_keys:
-                    config['imageKeyFile'] = image_keys
-                archive = LocalArchive(value['root'], own, config)
-                print('副本完成：' + str(value['root']))
-        except (SnapshotError, DatabaseError, ArchiveError) as error:
-            print('未完成：' + str(error))
-        except (OSError, ValueError, KeyError, TypeError, sqlite3.Error):
-            print('未完成：请核对路径、权限、日期及群序号；现有文件未覆盖。')
-
-
 def run(args):
+    if args.command == 'review':
+        from offline_workflow import review_workflow
+        config = {'sourceRoot': str(args.source), 'keyFile': str(args.keys) if args.keys else '',
+                  'imageKeyFile': str(args.image_keys) if args.image_keys else '', 'includeMedia': True} if args.source else None
+        return review_workflow(client=args.client, directory=args.data_dir, config=config)
     if args.command == 'discover':
         result = discover(args.root)
     elif args.command == 'snapshot':
@@ -161,13 +114,13 @@ def main(argv=None):
         sys.stderr.reconfigure(encoding='utf-8')
     arguments = sys.argv[1:] if argv is None else argv
     if not arguments and sys.stdin.isatty():
-        try:
-            return menu()
-        except (EOFError, KeyboardInterrupt):
-            return 0
+        arguments = ['review']
     args = parser().parse_args(arguments)
     try:
         result = run(args)
+    except (EOFError, KeyboardInterrupt):
+        print(json.dumps({'ok': False, 'error': '人工复核已取消，未确认导出。'}, ensure_ascii=False), file=sys.stderr)
+        return 2
     except (SnapshotError, DatabaseError, ArchiveError) as error:
         print(json.dumps({'ok': False, 'error': str(error)}, ensure_ascii=False), file=sys.stderr)
         return 2

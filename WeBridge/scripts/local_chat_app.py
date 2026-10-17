@@ -25,7 +25,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v20'
+GUI_RELEASE = 'v21'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -86,9 +86,9 @@ class ChatApp:
         self.end_date = tk.StringVar()
         self.copy_media = tk.BooleanVar(value=True)
         self.status = tk.StringVar(value='正在查找已有配置并准备本地副本…')
-        self.subtitle = tk.StringVar(value='本机处理 · 输入目标群名 · 仅解析指定群')
-        self.group_title = tk.StringVar(value='搜索目标群聊')
-        self.account_text = tk.StringVar(value='确认账号 → 搜索目标群 → 解析此群')
+        self.subtitle = tk.StringVar(value='列群 → 选择群 ID → 解析 → 人工复核 → 导出')
+        self.group_title = tk.StringVar(value='当前账号的全部本地群聊')
+        self.account_text = tk.StringVar(value='确认账号 → 选择群 ID → 解析 → 人工复核 → 导出')
         self.group_hint = tk.StringVar(value='配置账号后，输入要解析的群名。')
         self.chat_title = tk.StringVar(value='输入目标群名后按 Enter')
         self.result_text = tk.StringVar(value='')
@@ -148,7 +148,7 @@ class ChatApp:
         self.progress.grid(row=0, column=1, sticky='e', padx=(12, 0))
         pane = ttk.PanedWindow(self.root, orient='horizontal')
         pane.grid(row=2, column=0, sticky='nsew', padx=14)
-        self.sidebar = ttk.Frame(pane, width=250, padding=(0, 8, 12, 0))
+        self.sidebar = ttk.Frame(pane, width=310, padding=(0, 8, 12, 0))
         self.sidebar.pack_propagate(False)
         right = ttk.Frame(pane, padding=(12, 8, 0, 0))
         pane.add(self.sidebar, weight=0)
@@ -159,22 +159,30 @@ class ChatApp:
         self.search_entry = ttk.Entry(self.sidebar, textvariable=self.search)
         self.search_entry.pack(fill='x')
         self.search_entry.bind('<Return>', self.choose_search_result)
-        self.parse_button = ttk.Button(self.sidebar, text='查找并解析目标群', command=self.choose_search_result)
+        self.parse_button = ttk.Button(self.sidebar, text='解析所选群（先预览复核）', command=self.choose_search_result)
         self.parse_button.pack(fill='x', pady=6)
         ttk.Label(self.sidebar, textvariable=self.group_hint, wraplength=230, style='Sub.TLabel').pack(fill='x', pady=(0, 8))
         tree_frame = ttk.Frame(self.sidebar)
         tree_frame.pack(fill='both', expand=True)
-        self.tree = ttk.Treeview(tree_frame, columns=('name', 'count'), show='headings', selectmode='browse')
+        self.tree = ttk.Treeview(tree_frame, columns=('name', 'id', 'count'), show='headings', selectmode='browse')
         self.tree.heading('name', text='群聊')
-        self.tree.column('name', width=150, minwidth=120)
+        self.tree.column('name', width=120, minwidth=90)
+        self.tree.heading('id', text='群 ID')
+        self.tree.column('id', width=210, minwidth=120)
         self.tree.heading('count', text='记录')
         self.tree.column('count', width=62, minwidth=50, stretch=False, anchor='e')
         scroll = ttk.Scrollbar(tree_frame, orient='vertical', command=self.tree.yview)
         self.tree.configure(yscrollcommand=scroll.set)
-        self.tree.pack(side='left', fill='both', expand=True)
-        scroll.pack(side='right', fill='y')
+        horizontal = ttk.Scrollbar(tree_frame, orient='horizontal', command=self.tree.xview)
+        self.tree.configure(xscrollcommand=horizontal.set)
+        tree_frame.columnconfigure(0, weight=1)
+        tree_frame.rowconfigure(0, weight=1)
+        self.tree.grid(row=0, column=0, sticky='nsew')
+        scroll.grid(row=0, column=1, sticky='ns')
+        horizontal.grid(row=1, column=0, sticky='ew')
+        ttk.Button(self.sidebar, text='复制所选群 ID', command=self.copy_group_id).pack(fill='x', pady=(6, 0))
         self.tree.bind('<<TreeviewSelect>>', self.selection)
-        self.tree.bind('<Return>', lambda _event: self.export())
+        self.tree.bind('<Return>', lambda _event: self.choose_search_result())
         self.tree.bind('<Double-1>', self.confirm_group)
         title = ttk.Frame(right)
         title.grid(row=0, column=0, sticky='ew', pady=(0, 10))
@@ -238,7 +246,7 @@ class ChatApp:
         exports = ttk.Frame(right, padding=(0, 8, 0, 0))
         exports.grid(row=5, column=0, sticky='ew')
         ttk.Separator(exports).pack(fill='x', pady=(0, 8))
-        self.export_button = ttk.Button(exports, text='解析此群并导出', command=self.export, state='disabled')
+        self.export_button = ttk.Button(exports, text='人工复核并导出', command=self.export, state='disabled')
         self.export_button.pack(side='right')
         ttk.Label(exports, text='导出结果').pack(side='left', padx=(0, 8))
         self.export_format_picker = ttk.Combobox(exports, textvariable=self.export_format, values=('MD','JSON','JSONL'), width=6, state='disabled')
@@ -349,7 +357,7 @@ class ChatApp:
         self.message_search_button.configure(state=state if readable else 'disabled')
         self.message_clear_button.configure(state=state if readable else 'disabled')
         self.page_size_choice.configure(state='readonly' if state == 'normal' else 'disabled')
-        self.export_button.configure(state='normal' if state == 'normal' and self.active_chat else 'disabled')
+        self.export_button.configure(state='normal' if state == 'normal' and readable and self.session.pending_review else 'disabled')
         result_state = 'normal' if state == 'normal' and self.session.last_export else 'disabled'
         self.open_button.configure(state=result_state)
         self.folder_button.configure(state=result_state)
@@ -378,18 +386,18 @@ class ChatApp:
         self.search.set((self.open_request or {}).get('chat_name') or '')
         source = Path(self.session.archive.media_config.get('sourceRoot', ''))
         label = source.parent.name if source.name in ('db_storage', 'Data') else source.name
-        self.account_text.set('当前账号目录：' + label + ' · 搜索仅查询群索引 · 仅解析目标群')
+        self.account_text.set('当前账号目录：' + label + ' · 全部本地群 ' + str(len(self.groups)) + ' 个 · 按群 ID 选择')
         self.render_groups()
         stamp = datetime.fromisoformat(value['snapshotTime']).astimezone(BEIJING).strftime('%Y-%m-%d %H:%M:%S')
         self.subtitle.set(value['message'] + ' · 副本时间 ' + stamp + '（北京时间）')
-        self.status.set('请输入目标群名并按 Enter；只解析确认的群。' + (' ' + value['notice'] if value.get('notice') else ''))
+        self.status.set('已列出全部本地群聊；选择群 ID 后解析，人工确认后导出。' + (' ' + value['notice'] if value.get('notice') else ''))
         self.result_text.set('本机工作目录：' + str(self.session.directory))
         self.check_data.update(groups=len(self.groups), sourceStatus=value['message'], snapshotTime=value['snapshotTime'])
         if self.open_request:
             try:
                 chat = self.session.archive.select_chat(**self.open_request)
             except ValueError:
-                self.status.set('指定群不存在或名称重复，请搜索并选中正确群，再点“解析此群并导出”。')
+                self.status.set('指定群不存在或名称重复，请按群 ID 选中正确群，再点“解析所选群”。')
                 self.publish_open('needs_chat', message=self.status.get())
                 if self.check_report:
                     self.finish_check({'error': self.status.get()})
@@ -409,7 +417,7 @@ class ChatApp:
 
     def clear_chat(self):
         self.active_chat = self.parsed_chat = None
-        self.session.last_export = None
+        self.session.discard_review()
         self.auto_parse_result = None
         self.chat_title.set('输入目标群名后按 Enter')
         self.root.title(self.client_title)
@@ -423,44 +431,60 @@ class ChatApp:
         for item in self.tree.get_children():
             self.tree.delete(item)
         query = self.search.get().strip()
-        choices = group_choices(self.groups, query, self.session.settings.get('lastChat')) if query else []
-        self.group_title.set(f'匹配群聊 · {len(choices)} 个' if query else '搜索目标群聊')
-        self.group_hint.set('搜索只查群名和ID。双击目标群，或选中后点击“解析此群并导出”。' if choices else
-                            ('没有匹配的群聊，请调整关键词。' if query else '输入群名或ID，按Enter查找并解析；不会解析其他群。'))
+        choices = group_choices(self.groups, query, self.session.settings.get('lastChat'))
+        self.group_title.set(f'匹配群聊 · {len(choices)} 个' if query else f'全部本地群聊 · {len(choices)} 个')
+        self.group_hint.set('群名 / ID 搜索；横向滚动查看完整 ID。选中后点解析，或双击此群。' if choices else '没有匹配的本地群聊，请核对账号与关键词。')
         for group in choices:
             name = ('上次查看 · ' if group['recent'] else '') + group['choiceLabel']
             count = group.get('localMessageCount', '有记录' if group.get('hasLocalMessages') else '暂无')
-            self.tree.insert('', 'end', iid=group['id'], values=(name, count))
+            self.tree.insert('', 'end', iid=group['id'], values=(name, group['id'], count))
         if selected and self.tree.exists(selected):
             self.tree.selection_set(selected)
         elif selected:
             self.clear_chat()
         self.update_buttons()
 
+    def copy_group_id(self):
+        selected = self.tree.selection()
+        if selected:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(selected[0])
+
     def choose_search_result(self, _event=None):
         if self.busy:
             return
         query = self.search.get().strip()
         if not query:
-            self.group_hint.set('请先输入要解析的目标群名。')
-            self.search_entry.focus_set()
+            selected = self.tree.selection()
+            if selected:
+                self.start_parse(selected[0])
+            else:
+                self.group_hint.set('请先选择要解析的群 ID。')
             return
         choices = self.tree.get_children()
+        selected = self.tree.selection()
+        if selected:
+            self.start_parse(selected[0])
+            return
         exact = [row['id'] for row in self.groups if row['id'] in choices and
                  (row['name'] == query or row['id'] == query)]
         matches = exact or list(choices)
         if len(matches) == 1:
             self.start_parse(matches[0])
         elif choices:
-            self.group_hint.set(f'找到 {len(choices)} 个群，请在列表中选择；重名群会显示实际会话 ID。')
-            self.tree.focus_set()
+            selected = self.tree.selection()
+            if selected:
+                self.start_parse(selected[0])
+            else:
+                self.group_hint.set(f'找到 {len(choices)} 个群，请按群 ID 选择。')
+                self.tree.focus_set()
 
     def confirm_group(self, event):
         item = self.tree.identify_row(event.y)
         if item and not self.busy:
             self.tree.selection_set(item)
             self.selection()
-            self.export()
+            self.start_parse(item)
         return 'break'
 
     def selection(self, _event=None):
@@ -478,7 +502,7 @@ class ChatApp:
         self.root.title(self.client_title + ' — ' + group['name'])
         self.filter_kind.set('业务阅读')
         self.browser.clear()
-        self.status.set('已选中目标群，尚未解析。点击“解析此群并导出”或双击该结果。')
+        self.status.set('已选中群 ID：' + self.active_chat + '。点击“解析所选群”，预览后人工复核。')
         self.update_buttons()
 
     def start_parse(self, chat):
@@ -506,25 +530,27 @@ class ChatApp:
         media = self.copy_media.get()
         size = int(self.page_size.get())
         self.work('仅解析指定群并准备查看',
-                  lambda: self.session.parse_and_open(chat_id=chat, start=start, end=end, copy_media=media, page_size=size), self.parsed_ready)
+                  lambda: self.session.prepare_review(chat, start=start, end=end, copy_media=media, page_size=size), self.parsed_ready)
 
     def parsed_ready(self, value):
         self.auto_parse_result = value
         self.parsed_chat = value['chat']['id']
         self.preview_ready(value['view'])
         self.check_data['parseAndOpen'] = True
-        self.publish_open('completed', ok=True, chatName=value['chat']['name'],
-                          output=value['output'], viewRoot=value['view']['viewRoot'],
+        self.publish_open('awaiting_review', ok=False, chatName=value['chat']['name'], chatId=value['chat']['id'],
+                          viewRoot=value['view']['viewRoot'], reviewId=value['review']['reviewId'],
                           exportedRows=value['report']['exportedRows'], businessRows=value['report']['businessRows'],
-                          exportFiles=value['exportFiles'],
-                          reporting=value['reporting'],
+                          message='解析完成，请在窗口中人工复核并确认导出。',
                           groups=len(self.groups), mediaSummary=value['report']['mediaSummary'],
                           mediaSummaryText=value['report']['mediaSummaryText'])
         self.open_request = None
         if self.check_report and self.check_chat:
             self.root.after(50, self.verify_browser)
+        elif self.check_report:
+            self.finish_check({'ok': True, 'reviewRequired': True})
         else:
-            self.export_ready(value)
+            self.status.set('解析完成，尚未确认导出。请检查消息与媒体缺口，再点“人工复核并导出”。')
+            self.result_text.set('待复核群 ID：' + value['chat']['id'] + ' · 源记录 ' + str(value['report']['exportedRows']) + ' 条')
 
     def read_page(self, offset=None):
         if not self.active_chat or self.parsed_chat != self.active_chat or self.busy:
@@ -707,20 +733,72 @@ class ChatApp:
         finally:
             self.browser.opener = original_opener
         if self.auto_parse_result is not None:
-            self.root.after(50, lambda: self.export_ready(self.auto_parse_result))
+            report = self.auto_parse_result['report']
+            self.finish_check({'ok': True, 'reviewRequired': True, 'exportedRows': report['exportedRows'],
+                               'output': self.auto_parse_result['view']['viewRoot']})
         else:
-            self.root.after(50, self.export)
+            self.finish_check({'ok': True, 'reviewRequired': True})
 
     def export(self):
-        if not self.active_chat or self.busy:
+        if not self.active_chat or self.busy or not self.session.pending_review:
             return
-        self.start_parse(self.active_chat)
+        from offline_review import REVIEW_CHECKS
+        summary = self.session.pending_review['summary']
+        if ((self.start_date.get().strip() or None, self.end_date.get().strip() or None, self.copy_media.get()) !=
+                (summary['startDate'], summary['endDate'], summary['copyMediaRequested'])):
+            self.status.set('日期或媒体选项已变化，请重新解析并复核。')
+            return
+        dialog = tk.Toplevel(self.root)
+        dialog.title('人工复核 · 确认后导出 JSON / JSONL / Markdown')
+        dialog.geometry('740x660')
+        dialog.transient(self.root)
+        dialog.grab_set()
+        box = ttk.Frame(dialog, padding=16)
+        box.pack(fill='both', expand=True)
+        ttk.Label(box, text='请核对本次账号、群 ID 与解析结果', font=('Microsoft YaHei UI', 14, 'bold')).pack(anchor='w')
+        report = self.auto_parse_result['report']
+        text = tk.Text(box, height=13, wrap='word')
+        text.pack(fill='both', expand=True, pady=10)
+        text.insert('end', f"客户端：{summary['client']}\n账号目录：{summary['accountDirectory']}\n本人 ID：{summary['selfId'] or '未知'}\n"
+                    f"群名称：{summary['chat']['name']}\n群 ID：{summary['chat']['id']}\n副本时间：{summary['snapshotTime']}\n"
+                    f"日期：{summary['startDate'] or '不限'} 至 {summary['endDate'] or '不限'}（北京时间）\n源记录：{summary['exportedRows']} 条\n"
+                    + report['mediaSummaryText'] + '\n解析状态：' + json.dumps(report['parseStatuses'], ensure_ascii=False)
+                    + '\n解码状态：' + json.dumps(report['decodeStatuses'], ensure_ascii=False)
+                    + '\n成员资料：仅为本地已保存资料，不保证当前全量成员。\n'
+                    + '\n'.join(report['warnings'] + report['limitations']))
+        text.configure(state='disabled')
+        checks = {key: tk.BooleanVar(value=False) for key in REVIEW_CHECKS}
+        for key, label in REVIEW_CHECKS.items():
+            ttk.Checkbutton(box, text=label, variable=checks[key]).pack(anchor='w', pady=3)
+        ttk.Label(box, text='复核备注（可记录已接受的缺口）').pack(anchor='w', pady=(8, 0))
+        note = tk.Text(box, height=3, wrap='word')
+        note.pack(fill='x', pady=5)
+        buttons = ttk.Frame(box)
+        buttons.pack(fill='x', pady=6)
+
+        def confirm():
+            values = {key: variable.get() for key, variable in checks.items()}
+            if not all(values.values()):
+                messagebox.showinfo('尚未完成复核', '请人工检查并勾选全部复核项。', parent=dialog)
+                return
+            comment = note.get('1.0', 'end-1c')
+            dialog.destroy()
+            self.work('导出已复核的解析结果',
+                      lambda: self.session.confirm_export(summary['reviewId'], values, comment, chat=self.active_chat),
+                      self.export_ready)
+
+        ttk.Button(buttons, text='返回检查', command=dialog.destroy).pack(side='left')
+        ttk.Button(buttons, text='确认无误，导出三种格式', command=confirm).pack(side='right')
 
     def export_ready(self, value):
         report = value['report']
         self.status.set(f'导出完成：业务阅读 {report["businessRows"]} 条，原始记录 {report["exportedRows"]} 条。'
                         + report['mediaSummaryText'])
         self.result_text.set('已生成 JSONL / JSON / MD。保存位置：' + value['output'])
+        self.publish_open('completed', ok=True, chatName=report['chat']['name'], chatId=report['chat']['id'],
+                          output=value['output'], exportFiles=value['exportFiles'], reporting=value['reporting'],
+                          humanReview=value['humanReview'], exportedRows=report['exportedRows'],
+                          businessRows=report['businessRows'], mediaSummary=report['mediaSummary'], mediaSummaryText=report['mediaSummaryText'])
         if self.check_report:
             self.finish_check({'ok': True, 'exportedRows': report['exportedRows'],
                                'mediaStatuses': report['mediaStatuses'], 'decodeStatuses': report['decodeStatuses'],
@@ -970,7 +1048,7 @@ class ChatApp:
             return
         target = self.session.last_export / name
         if not target.is_file():
-            messagebox.showinfo('此导出未包含该格式', '请点击“解析此群并导出”，会同时生成 JSONL、JSON 和 MD。', parent=self.root)
+            messagebox.showinfo('此导出未包含该格式', '请重新解析并完成人工复核，确认后会生成 JSONL、JSON 和 MD。', parent=self.root)
             return
         try:
             os.startfile(str(target))

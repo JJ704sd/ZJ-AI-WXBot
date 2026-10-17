@@ -144,7 +144,7 @@ if ($Mode -in @('Parse','Desktop')) {
     do {
         if (Test-Path -LiteralPath $receiptPath -PathType Leaf) {
             $receipt = [IO.File]::ReadAllText($receiptPath, [Text.Encoding]::UTF8) | ConvertFrom-Json
-            if ($receipt.state -in @('completed','needs_source','needs_chat','failed')) { break }
+            if ($receipt.state -in @('completed','awaiting_review','needs_source','needs_chat','failed')) { break }
             if ($receipt.processId -and -not (Get-Process -Id $receipt.processId -ErrorAction SilentlyContinue)) {
                 $receipt = [pscustomobject]@{ok=$false;state='failed';message='The desktop parser exited before completion.'}
                 break
@@ -152,7 +152,7 @@ if ($Mode -in @('Parse','Desktop')) {
         }
         Start-Sleep -Milliseconds 500
     } while ([DateTime]::UtcNow -lt $deadline)
-    if (-not $receipt -or $receipt.state -notin @('completed','needs_source','needs_chat','failed')) {
+    if (-not $receipt -or $receipt.state -notin @('completed','awaiting_review','needs_source','needs_chat','failed')) {
         $receipt = [pscustomobject]@{ok=$false;state='waiting';message='The parser is still running. Read resultFile for this exact request; do not start another request.'}
     }
     if (-not $receipt.PSObject.Properties['ok']) { $receipt | Add-Member -NotePropertyName ok -NotePropertyValue ($receipt.state -eq 'completed') }

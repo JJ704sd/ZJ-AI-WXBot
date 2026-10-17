@@ -21,6 +21,8 @@
 
 ## Windows 工作台
 
+- [本地群聊复核导出 v21](./WeBridge/docs/local-chat/复核导出流程.md)：个微／企微按账号列出全部本地群 ID 和名称，选择群解析后，由人工复核并确认导出 JSON、JSONL、Markdown；复核绑定同一批解析结果，缺失及未支持内容保留状态。
+
 - [Windows 媒体接入验收（2026-09-28）](./WeBridge/execution/windows-media-acceptance-2026-09-28.md)：新增本机 V2 图片解码、附件索引映射与缓存预览；已验证完整图片、缩略图及合并记录中的 MP4。未下载附件、WXGF/部分表情和普通文件的实机验收边界见记录。
 
 - [WeBridge 工作台](./WeBridge/README.md)：基于 WeBridge 的 Windows 界面、启动入口、会话与消息检索、草稿和连接诊断。

@@ -192,18 +192,19 @@ try:
     assert not (profile/'settings.local.json').exists(),'invalid source was saved'
     (running/'Data/session.db').write_bytes((base/'session-repair.bin').read_bytes())
     button.invoke()
-    pump(lambda:json.loads(receipt.read_text(encoding='utf8')).get('state')=='completed')
+    pump(lambda:json.loads(receipt.read_text(encoding='utf8')).get('state')=='awaiting_review')
     result=json.loads(receipt.read_text(encoding='utf8'))
     assert not dialog.winfo_exists(),'successful setup did not proceed to the chat'
     settings=json.loads((profile/'settings.local.json').read_text(encoding='utf8'))
     assert Path(settings['source']['sourceRoot']).resolve()==(running/'Data').resolve()
     assert settings['client']=='wecom' and result['exportedRows']==2
-    assert all(Path(p).is_file() for p in result['exportFiles'].values())
+    assert 'exportFiles' not in result and not (profile/'exports').exists()
+    assert (Path(result['viewRoot'])/'messages.jsonl').is_file()
     app.search.set('没有这样的群');root.update()
     assert not app.tree.get_children(),'unmatched search retained another group'
     app.search.set('企微合成');root.update()
     selected=app.tree.get_children()
-    assert len(selected)==1 and str(app.tree.item(selected[0],'values')[1])=='2'
+    assert len(selected)==1 and str(app.tree.set(selected[0],'id'))=='R:synthetic'
     (base/'verified.json').write_text(json.dumps({'ok':True,'sameDialogAfterFailure':True,'reusedRecommendedAccount':True,'completed':True}),encoding='utf8')
 finally:
     root.destroy()

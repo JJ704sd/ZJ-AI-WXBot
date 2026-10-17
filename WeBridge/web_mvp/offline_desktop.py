@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+import uuid
 
 from database_adapter import DatabaseError
 from database_snapshot import SnapshotError, prepare_snapshot
@@ -41,6 +42,7 @@ class DesktopSession:
         self.last_export = None
         self.source_status = ''
         self.views = {}
+        self.pending_review = None
 
     def _settings(self):
         try:
@@ -80,6 +82,7 @@ class DesktopSession:
             raise ArchiveError('程序数据目录不能位于微信账号目录内，请将程序移到其他位置运行。')
 
     def open_source(self, config, *, save=True):
+        self.discard_review()
         if self.settings.get('source') and self.settings.get('client', 'wechat') != self.client:
             raise ArchiveError('当前程序配置属于另一种客户端，请使用各自的启动入口和独立数据目录。')
         config = {name: config[name] for name in CONFIG_FIELDS if name in config}
@@ -149,6 +152,7 @@ class DesktopSession:
 
     def import_settings(self, path, *, overwrite=True):
         """Validate before publishing; automatic migration never overwrites a user profile."""
+        self.discard_review()
         from offline_profiles import read_legacy, copy_key_references, publish_settings
         from offline_startup import record
         value, config = read_legacy(path, self.client)
@@ -199,6 +203,61 @@ class DesktopSession:
         info = self.archive.adapter.get_source_info()
         return {'status': 'ready', 'groups': self.groups, 'message': self.source_status,
                 'snapshotTime': info['createdAt'], 'coverage': self.archive.coverage()}
+
+    def discard_review(self):
+        self.pending_review = None
+        self.last_export = None
+
+    def prepare_review(self, chat, start=None, end=None, copy_media=True, *, page_size=100):
+        """Parse into a private reading cache; no final export or human conclusion."""
+        from offline_review import inventory, REVIEW_CHECKS
+        if self.archive is None:
+            raise ArchiveError('请先加载数据。')
+        selected = self.archive.select_chat(chat_id=chat)
+        if selected['conversationKind'] != 'group':
+            raise ArchiveError('请选择当前账号的群聊 ID。')
+        self.discard_review()
+        review_id = uuid.uuid4().hex
+        output = self.directory / 'reviews' / review_id
+        report = self.archive.export(output, chat_id=chat, start=start, end=end, copy_media=copy_media)
+        source = self.archive.media_config.get('sourceRoot', '')
+        account = Path(source).parent.name if Path(source).name in ('Data', 'db_storage') else Path(source).name
+        summary = {'version': 1, 'reviewId': review_id, 'client': self.client,
+                   'accountDirectory': account, 'selfId': self.archive.state['self_id'],
+                   'identityBasis': report['coverage']['identityBasis'],
+                   'sourceFingerprint': hashlib.sha256(str(Path(source).resolve()).encode()).hexdigest(),
+                   'snapshotTime': self.archive.adapter.get_source_info()['createdAt'],
+                   'chat': report['chat'], 'startDate': start, 'endDate': end,
+                   'copyMediaRequested': copy_media, 'exportedRows': report['exportedRows'],
+                   'kinds': report['kinds'], 'parseStatuses': report['parseStatuses'],
+                   'decodeStatuses': report['decodeStatuses'], 'mediaSummary': report['mediaSummary'],
+                   'coverage': report['coverage'], 'warnings': report['warnings'],
+                   'limitations': report['limitations']}
+        self.views[chat] = ConversationView(output)
+        view = self.views[chat].page(kind='business', page_size=page_size)
+        self.pending_review = {'archive': self.archive, 'root': output,
+                               'files': inventory(output), 'summary': summary}
+        self._save(last_chat=chat)
+        return {'chat': selected, 'report': report, 'view': view,
+                'review': summary, 'reviewChecks': dict(REVIEW_CHECKS), 'state': 'awaiting_review'}
+
+    def confirm_export(self, review_id, checks, note='', *, chat=None):
+        """Export an unchanged reviewed batch; never parse a newer result here."""
+        from offline_review import publish_review
+        pending = self.pending_review
+        if (not pending or pending['archive'] is not self.archive or
+                pending['summary']['reviewId'] != review_id or
+                (chat is not None and pending['summary']['chat']['id'] != chat)):
+            raise ArchiveError('复核目标已失效，请重新解析当前账号和群聊。')
+        self.archive._check()
+        output = self.directory / 'exports' / (datetime.now().strftime('%Y%m%d-%H%M%S-%f') + '-' + review_id[:8])
+        result = publish_review(pending, output, checks, note)
+        self.last_export = output
+        self.pending_review = None
+        return {'output': str(output), 'report': result, 'humanReview': result['humanReview'],
+                'mediaSummary': result['mediaSummary'], 'mediaSummaryText': result['mediaSummaryText'],
+                'reporting': result['reporting'],
+                'exportFiles': {kind: str(output / name) for kind, name in result['messageExports'].items()}}
 
     def scan(self):
         if self.client == 'wecom':

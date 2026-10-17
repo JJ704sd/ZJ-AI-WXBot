@@ -54,14 +54,15 @@ def settle():
     deadline=time.monotonic()+.35
     while time.monotonic()<deadline:root.update();time.sleep(.01)
 def outputs():
-    return sorted(profile.glob('exports/*/manifest.json'))+sorted(profile.glob('views/*/manifest.json'))
+    return sorted(profile.glob('exports/*/manifest.json'))+sorted(profile.glob('reviews/*/manifest.json'))
 def enter():
     app.search_entry.focus_force();root.update();app.search_entry.event_generate('<Return>')
 try:
     pump(lambda:bool(app.groups) and not app.busy)
     settle()
     assert not outputs(),'restoring a recent group parsed it without a request'
-    assert not app.tree.get_children(),'startup should ask for a target, not list every group'
+    assert len(app.tree.get_children())==5,'startup should list every local group'
+    assert all(app.tree.set(cid,'id')==cid for cid in app.tree.get_children())
     assert app.active_chat is None
     app.choose_kind('图片');settle()
     assert not outputs(),'a filter shortcut parsed an unconfirmed group'
@@ -72,11 +73,13 @@ try:
     assert app.kind_choice.instate(['disabled'])
     app.choose_kind('图片');settle()
     assert not outputs(),'filter shortcut parsed a selected candidate'
+    app.tree.selection_remove('R:similar');settle()
     enter()
-    pump(lambda:session.last_export is not None and not app.busy)
+    pump(lambda:session.pending_review is not None and not app.busy)
     assert app.active_chat=='R:synthetic','exact name must win over a longer partial match'
     assert len(outputs())==1,'one request should create one target result'
-    target=Path(session.last_export)
+    target=Path(session.pending_review['root'])
+    assert session.last_export is None and not (profile/'exports').exists()
     rows=json.loads((target/'messages.json').read_text(encoding='utf8'))
     assert len(rows)==2
     assert '其他群消息' not in (target/'messages.jsonl').read_text(encoding='utf8')
@@ -85,23 +88,54 @@ try:
     opened=[]
     os.startfile=lambda path:opened.append(Path(path))
     app.open_button.invoke()
-    assert opened==[target/'业务阅读.txt'],'reading button did not open the current target result'
+    assert not opened,'unconfirmed preview must not enable final export links'
+    app.export_button.invoke();root.update()
+    dialogs=[w for w in root.winfo_children() if isinstance(w,tk.Toplevel)]
+    assert len(dialogs)==1
+    def widgets(parent):
+        result=[]
+        for w in parent.winfo_children():result.append(w);result.extend(widgets(w))
+        return result
+    assert len([w for w in widgets(dialogs[0]) if w.winfo_class()=='TCheckbutton'])==4
+    assert not (profile/'exports').exists()
+    dialogs[0].destroy()
     app.search.set('同名业务群');root.update();enter();settle()
     assert len(outputs())==1,'duplicate group name was silently chosen'
     assert not app.tree.selection(),'a duplicate name should require a choice'
     assert session.last_export is None,'old result links survived a different target search'
     app.tree.selection_set('R:second');settle()
     assert len(outputs())==1,'selecting a duplicate candidate should wait for confirmation'
-    app.export_button.invoke()
-    pump(lambda:session.last_export is not None and not app.busy)
+    app.parse_button.invoke()
+    pump(lambda:session.pending_review is not None and not app.busy)
     assert len(outputs())==2
-    rows=json.loads((session.last_export/'messages.json').read_text(encoding='utf8'))
+    rows=json.loads((session.pending_review['root']/'messages.json').read_text(encoding='utf8'))
     assert len(rows)==1 and rows[0]['text']=='其他群消息 R:second'
+    import local_chat_app
+    notices=[]
+    local_chat_app.messagebox.showinfo=lambda *args,**kwargs:notices.append(args)
+    app.export_button.invoke();root.update()
+    dialog=next(w for w in root.winfo_children() if isinstance(w,tk.Toplevel))
+    checks=[w for w in widgets(dialog) if w.winfo_class()=='TCheckbutton']
+    assert all(not root.getvar(w.cget('variable')) for w in checks),'review checks were preselected'
+    confirm=next(w for w in widgets(dialog) if w.winfo_class()=='TButton' and w.cget('text')=='确认无误，导出三种格式')
+    confirm.invoke();root.update()
+    assert notices and not (profile/'exports').exists(),'unchecked review was exported'
+    for check in checks:check.invoke()
+    note=[w for w in widgets(dialog) if w.winfo_class()=='Text'][-1]
+    note.insert('end','自动化合成测试，不代表真实人工复核')
+    confirm.invoke()
+    pump(lambda:session.last_export is not None and not app.busy)
+    assert len(outputs())==3
+    output=session.last_export
+    assert json.loads((output/'messages.json').read_text(encoding='utf8'))==rows
+    assert json.loads((output/'review.json').read_text(encoding='utf8'))['chat']['id']=='R:second'
+    assert all((output/name).is_file() for name in ('messages.json','messages.jsonl','messages.md'))
+    assert app.export_button.instate(['disabled']),'a consumed review can be submitted twice'
     app.search.set('不存在的群');root.update();enter();settle()
-    assert len(outputs())==2 and not app.tree.get_children()
+    assert len(outputs())==3 and not app.tree.get_children()
     assert session.last_export is None and app.open_button.instate(['disabled'])
     app.search.set('');root.update();enter();settle()
-    assert not app.tree.get_children() and len(outputs())==2
+    assert len(app.tree.get_children())==5 and len(outputs())==3
 finally:
     root.destroy()
 '''

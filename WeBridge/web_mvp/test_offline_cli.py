@@ -58,11 +58,16 @@ class OfflineCliTests(unittest.TestCase):
         self.assertEqual(status, 2)
         self.assertNotIn('sensitive-payload-marker', err)
 
-    def test_wizard_handles_exit_and_local_source_listing(self):
-        inputs = ['2', str(self.source), '', '', '0']
-        with patch.object(CLI, 'default_workbench', return_value=self.root / 'absent.json'), patch('builtins.input', side_effect=inputs), redirect_stdout(io.StringIO()) as out:
-            self.assertEqual(CLI.menu(), 0)
+    def test_review_command_lists_ids_and_does_not_export_failed_review(self):
+        inputs = [GROUP, '', '', 'n', 'n', 'n', 'n']
+        with patch('builtins.input', side_effect=inputs), redirect_stdout(io.StringIO()) as out:
+            status = CLI.main(['review', '--client', 'wechat', '--source', str(self.source),
+                               '--data-dir', str(self.root / 'review-profile')])
+        self.assertEqual(status, 0)
         self.assertIn('合成普通群', out.getvalue())
+        self.assertIn(GROUP, out.getvalue())
+        self.assertIn('awaiting_review', out.getvalue())
+        self.assertFalse((self.root / 'review-profile/exports').exists())
 
 
 if __name__ == '__main__':
