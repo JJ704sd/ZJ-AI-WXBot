@@ -27,6 +27,7 @@ root.deiconify()
 root.update()
 app.status.set('本地记录已解析。'*30)
 app.result_text.set('已生成 JSONL / JSON / MD。保存位置：'+'example/'*25)
+app.chat_title.set('合成的长群聊名称与业务信息查看'*5)
 for geometry in ('1200x760','1000x700'):
  root.geometry(geometry)
  root.update()
@@ -39,7 +40,7 @@ for geometry in ('1200x760','1000x700'):
  app.date_toggle_button.invoke()
  root.update()
  assert app.date_frame.winfo_ismapped() and app.browser.winfo_height()<folded_height
- for widget in (app.export_button,app.review_button,app.batch_folder_button,*app.export_file_buttons.values(),app.folder_button,*app.date_controls,app.first_button,app.last_button,app.message_search_button):
+ for widget in (app.export_button,app.review_button,app.batch_folder_button,*app.export_file_buttons.values(),app.folder_button,*app.date_controls,app.first_button,app.last_button,app.message_search_button,app.search_clear_button,app.group_id_entry,app.copy_current_id_button,app.next_review_button):
   x,y=widget.winfo_rootx()-root.winfo_rootx(),widget.winfo_rooty()-root.winfo_rooty()
   assert widget.winfo_ismapped() and 0<=x and 0<=y and x+widget.winfo_width()<=root.winfo_width() and y+widget.winfo_height()<=root.winfo_height(),(geometry,widget.cget('text') if 'text' in widget.keys() else 'format',x,y)
 output=session.directory/'synthetic-export';output.mkdir(parents=True)

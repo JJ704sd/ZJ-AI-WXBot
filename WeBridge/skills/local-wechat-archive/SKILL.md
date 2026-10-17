@@ -2,7 +2,7 @@
 name: local-wechat-archive
 description: 打开个微或企微本地聊天界面，列出群ID与名称供人工多选并批量解析，或解析用户指定群；逐群人工复核确认后导出JSON/JSONL/Markdown，复用已有账号配置，无需安装Python。
 metadata:
-  version: "1.16.2"
+  version: "1.16.3"
   description_zh: "打开界面多选群聊、批量解析，逐群人工复核后导出。"
   description_en: "Select multiple groups, parse locally and review each group before export."
   author: "Local WeChat Archive"
@@ -20,7 +20,9 @@ metadata:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "技能根目录\scripts\run.ps1" -Mode Desktop
 ```
 
-程序复用已保存的本客户端账号配置，列出全部本地群ID和名称。返回 `started` 只说明窗口已启动；请用户在窗口确认账号，勾选一个或多个群，点击“解析所选 N 个群（先预览复核）”。支持全选当前结果、清空选择，搜索后勾选仍保留并显示隐藏数量；批量复制ID每行一个。单击群名只查看，解析队列可在当前群结束后停止，已完成结果保留，失败群单独标记。宿主不替用户勾选不明确的群，不扩展到其他群正文。
+程序复用已保存的本客户端账号配置，列出全部本地群ID和名称。返回 `started` 只说明窗口已启动；请用户在窗口确认账号，勾选一个或多个群，点击“解析所选 N 群”。支持全选当前结果、清空选择，搜索后勾选仍保留并显示隐藏数量；批量复制ID每行一个。单击群名只查看，解析队列可在当前群结束后停止，已完成结果保留，失败群单独标记。宿主不替用户勾选不明确的群，不扩展到其他群正文。
+
+界面顶部直接显示当前群ID并可复制；搜索旁“清除”保留勾选。解析按钮按目标显示解析/重新解析，底部说明下一步和导出禁用原因；小窗口自动收起重复说明。
 
 群列表前部直接显示“未复核/已复核”，当前群顶部也显示状态；可筛选“所选群聊/所选未复核/所选已复核”，筛选保留勾选。已导出仍属于已复核，导出数量在底部另列。
 
@@ -45,7 +47,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "技能根目录\scripts
 - `awaiting_review`：解析预览完成，等待人工。即使 `ok=false` 也不是解析失败；报告群名、条数及程序给出的缺口，保持窗口打开并停止自动操作。**不得调用直接Export、重新解析、代勾复核项或自动点击确认导出。** 尚无正式导出，不调用 `present_files` 呈现预览JSON/JSONL/MD为已确认文件，不自动读取正文给宿主模型。
 - `completed`：仅当 `humanReview.status=confirmed` 且含本次 `exportFiles` 才表示人工确认后导出完成；使用下面的固定汇报与文件入口。缺少复核记录属于旧版结果，不能当作新版已复核导出。
 - `needs_source`：在已打开的设置窗口完成首次配置；原请求会自动继续，无需重发。
-- `needs_chat`：在窗口按群ID选择，点“解析所选群（先预览复核）”继续。
+- `needs_chat`：在窗口按群ID选择，点左侧解析按钮继续。
 - `waiting`：继续读取返回的完整 `resultFile` 路径，保持扩展名原样；不要启动另一个相同请求。
 - `failed`：报告实际错误，不自动转为取钥。
 

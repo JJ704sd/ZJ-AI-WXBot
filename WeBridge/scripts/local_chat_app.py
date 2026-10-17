@@ -25,7 +25,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v26'
+GUI_RELEASE = 'v27'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -83,16 +83,28 @@ class ChatApp:
         root.minsize(min(1000, width), min(700, height))
         root.protocol('WM_DELETE_WINDOW', self.close)
         style = ttk.Style(root)
-        if 'vista' in style.theme_names():
-            style.theme_use('vista')
+        if 'clam' in style.theme_names():
+            style.theme_use('clam')
+        root.configure(background='#f4f6fa')
+        style.configure('.', background='#f4f6fa', foreground='#1e293b', font=('Microsoft YaHei UI', 9))
+        style.configure('TButton', background='#ffffff', bordercolor='#cbd5e1', padding=(7, 3), width=0)
+        style.map('TButton', background=[('disabled', '#edf1f6'), ('active', '#e8effa')],
+                  foreground=[('disabled', '#94a3b8')])
+        style.configure('Accent.TButton', background='#2563eb', foreground='#ffffff', bordercolor='#2563eb')
+        style.map('Accent.TButton', background=[('disabled', '#dce5f4'), ('active', '#1d4ed8')],
+                  foreground=[('disabled', '#8a9bb8'), ('!disabled', '#ffffff')])
+        style.configure('TEntry', fieldbackground='#ffffff', padding=2)
+        style.configure('TCombobox', fieldbackground='#ffffff', padding=2)
         style.configure('Title.TLabel', font=('Microsoft YaHei UI', 20, 'bold'))
         style.configure('Sub.TLabel', foreground='#64748b', font=('Microsoft YaHei UI', 9))
         style.configure('Status.TLabel', font=('Microsoft YaHei UI', 10))
+        style.configure('Section.TLabel', foreground='#1d4ed8', font=('Microsoft YaHei UI', 9, 'bold'))
         style.configure('ReviewPending.TLabel', foreground='#9a3412', font=('Microsoft YaHei UI', 10, 'bold'))
         style.configure('ReviewDone.TLabel', foreground='#15803d', font=('Microsoft YaHei UI', 10, 'bold'))
         style.configure('ReviewNone.TLabel', foreground='#64748b', font=('Microsoft YaHei UI', 10, 'bold'))
-        style.configure('Treeview', rowheight=30, font=('Microsoft YaHei UI', 10))
-        style.configure('Treeview.Heading', font=('Microsoft YaHei UI', 10))
+        style.configure('Treeview', rowheight=30, background='#ffffff', fieldbackground='#ffffff', bordercolor='#dbe2ed', font=('Microsoft YaHei UI', 10))
+        style.map('Treeview', background=[('selected', '#dbeafe')], foreground=[('selected', '#1e3a8a')])
+        style.configure('Treeview.Heading', background='#eaf0f8', padding=(4, 5), font=('Microsoft YaHei UI', 9, 'bold'))
         root.option_add('*Font', ('Microsoft YaHei UI', 10))
         self.search = tk.StringVar()
         self.start_date = tk.StringVar()
@@ -103,6 +115,8 @@ class ChatApp:
         self.group_title = tk.StringVar(value='当前账号的全部本地群聊')
         self.selection_text = tk.StringVar(value='已选 0 个群')
         self.review_summary = tk.StringVar(value='勾选群聊 → 解析 → 逐群复核 → 一键导出所选群')
+        self.workflow_hint = tk.StringVar(value='先勾选需要解析的群聊。')
+        self.current_group_id = tk.StringVar()
         self.review_filter = tk.StringVar(value='全部群聊')
         self.current_review_state = tk.StringVar(value='未选群')
         self.current_review_hint = tk.StringVar(value='单击群名查看，勾选群聊决定导出范围')
@@ -144,7 +158,7 @@ class ChatApp:
     def _layout(self):
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(2, weight=1)
-        header = ttk.Frame(self.root, padding=(14, 10, 14, 6))
+        header = ttk.Frame(self.root, padding=(14, 8, 14, 4))
         header.grid(row=0, column=0, sticky='ew')
         ttk.Label(header, text='本地聊天解析', font=('Microsoft YaHei UI', 15, 'bold')).pack(side='left')
         client = '企业微信' if self.session.client == 'wecom' else '个人微信'
@@ -159,7 +173,7 @@ class ChatApp:
         self.source_button.pack(side='right', padx=8)
         self.refresh_button = ttk.Button(header, text='刷新此群与媒体', command=self.refresh)
         self.refresh_button.pack(side='right')
-        info = ttk.Frame(self.root, padding=(14, 0, 14, 8))
+        info = ttk.Frame(self.root, padding=(14, 0, 14, 4))
         info.grid(row=1, column=0, sticky='ew')
         info.columnconfigure(0, weight=1)
         ttk.Label(info, textvariable=self.account_text, style='Sub.TLabel').grid(row=0, column=0, sticky='w')
@@ -174,11 +188,15 @@ class ChatApp:
         pane.add(right, weight=1)
         right.columnconfigure(0, weight=1)
         right.rowconfigure(3, weight=1)
-        ttk.Label(self.sidebar, textvariable=self.group_title, font=('Microsoft YaHei UI', 11, 'bold')).pack(anchor='w', pady=(0, 8))
-        self.search_entry = ttk.Entry(self.sidebar, textvariable=self.search)
-        self.search_entry.pack(fill='x')
+        ttk.Label(self.sidebar, textvariable=self.group_title, style='Section.TLabel').pack(anchor='w', pady=(0, 8))
+        search_bar = ttk.Frame(self.sidebar)
+        search_bar.pack(fill='x')
+        self.search_clear_button = ttk.Button(search_bar, text='清除', width=4, command=lambda: self.search.set(''), state='disabled')
+        self.search_clear_button.pack(side='right', padx=(4, 0))
+        self.search_entry = ttk.Entry(search_bar, textvariable=self.search)
+        self.search_entry.pack(side='left', fill='x', expand=True)
         self.search_entry.bind('<Return>', self.choose_search_result)
-        self.parse_button = ttk.Button(self.sidebar, text='解析所选群（先预览复核）', command=self.choose_search_result)
+        self.parse_button = ttk.Button(self.sidebar, text='先选择需要解析的群', style='Accent.TButton', command=self.choose_search_result, state='disabled')
         self.parse_button.pack(fill='x', pady=6)
         picks = ttk.Frame(self.sidebar)
         picks.pack(fill='x')
@@ -211,7 +229,7 @@ class ChatApp:
         self.tree.column('count', width=62, minwidth=50, stretch=False, anchor='e')
         self.tree.heading('state', text='解析状态')
         self.tree.column('state', width=85, minwidth=75, stretch=False)
-        self.tree.tag_configure('unreviewed', foreground='#9a3412')
+        self.tree.tag_configure('unreviewed', foreground='#334155')
         self.tree.tag_configure('reviewed', foreground='#15803d')
         scroll = ttk.Scrollbar(tree_frame, orient='vertical', command=self.tree.yview)
         self.tree.configure(yscrollcommand=scroll.set)
@@ -230,19 +248,27 @@ class ChatApp:
         self.tree.bind('<Return>', lambda _event: self.choose_search_result())
         self.tree.bind('<Double-1>', lambda _event: 'break')
         title = ttk.Frame(right)
-        title.grid(row=0, column=0, sticky='ew', pady=(0, 10))
+        title.grid(row=0, column=0, sticky='ew', pady=(0, 6))
         title_line = ttk.Frame(title)
         title_line.pack(fill='x')
         self.next_review_button = ttk.Button(title_line, text='下一个未复核群', command=self.next_review, state='disabled')
         self.next_review_button.pack(side='right')
         ttk.Label(title_line, textvariable=self.chat_title, font=('Microsoft YaHei UI', 13, 'bold')).pack(side='left')
-        badge_line = ttk.Frame(title)
-        badge_line.pack(fill='x', pady=(3, 0))
-        self.current_review_badge = ttk.Label(badge_line, textvariable=self.current_review_state, style='ReviewNone.TLabel')
+        identity_line = ttk.Frame(title)
+        identity_line.pack(fill='x', pady=(4, 0))
+        self.copy_current_id_button = ttk.Button(identity_line, text='复制 ID', width=6, command=self.copy_current_group_id, state='disabled')
+        self.copy_current_id_button.pack(side='right', padx=(6, 0))
+        self.current_review_badge = ttk.Label(identity_line, textvariable=self.current_review_state, style='ReviewNone.TLabel')
         self.current_review_badge.pack(side='left', padx=(0, 10))
-        ttk.Label(badge_line, textvariable=self.current_review_hint, style='Sub.TLabel').pack(side='left')
+        ttk.Label(identity_line, text='群 ID', style='Sub.TLabel').pack(side='left', padx=(0, 6))
+        self.group_id_entry = ttk.Entry(identity_line, textvariable=self.current_group_id, state='readonly')
+        self.group_id_entry.pack(side='left', fill='x', expand=True)
+        self.current_hint_row = ttk.Frame(title)
+        self.current_hint_row.pack(fill='x', pady=(3, 0))
+        ttk.Label(self.current_hint_row, textvariable=self.current_review_hint, style='Sub.TLabel').pack(side='left')
+        self.root.bind('<Configure>', self.adapt_layout, add='+')
         reading = ttk.Frame(right)
-        reading.grid(row=1, column=0, sticky='ew', pady=(0, 8))
+        reading.grid(row=1, column=0, sticky='ew', pady=(0, 6))
         reading.columnconfigure(3, weight=1)
         ttk.Label(reading, text='消息').grid(row=0, column=0, padx=(0, 6))
         self.kind_choice = ttk.Combobox(reading, textvariable=self.filter_kind, values=list(FILTERS), state='readonly', width=9)
@@ -284,7 +310,7 @@ class ChatApp:
         self.date_frame.grid_remove()
         self.browser = MessageBrowser(right, notify=self.status.set, show_source=self.show_image_source)
         self.browser.grid(row=3, column=0, sticky='nsew')
-        pagination = ttk.Frame(right, padding=(0, 8, 0, 8))
+        pagination = ttk.Frame(right, padding=(0, 4, 0, 4))
         pagination.grid(row=4, column=0, sticky='ew')
         ttk.Label(pagination, textvariable=self.page_text, style='Sub.TLabel').pack(side='left')
         pager = ttk.Frame(pagination)
@@ -306,14 +332,20 @@ class ChatApp:
         summary.pack(fill='x', pady=(0, 6))
         self.batch_folder_button = ttk.Button(summary, text='打开批次目录', command=self.open_batch, state='disabled')
         self.batch_folder_button.pack(side='right')
-        ttk.Label(summary, textvariable=self.review_summary, style='Sub.TLabel', wraplength=420).pack(side='left', fill='x', expand=True)
+        summary_text = ttk.Frame(summary)
+        summary_text.pack(side='left', fill='x', expand=True)
+        counts = ttk.Label(summary_text, textvariable=self.review_summary, style='Sub.TLabel', wraplength=420)
+        counts.pack(anchor='w')
+        guidance = ttk.Label(summary_text, textvariable=self.workflow_hint, style='Section.TLabel', wraplength=420)
+        guidance.pack(anchor='w')
+        summary_text.bind('<Configure>', lambda event: [label.configure(wraplength=max(180, event.width)) for label in (counts, guidance)])
         actions = ttk.Frame(exports)
         actions.pack(fill='x')
-        self.export_button = ttk.Button(actions, text='一键导出所选群', command=self.export_selected, state='disabled')
+        self.export_button = ttk.Button(actions, text='一键导出所选群', style='Accent.TButton', command=self.export_selected, state='disabled')
         self.export_button.pack(side='right')
         self.review_button = ttk.Button(actions, text='复核当前群', command=self.review_current, state='disabled')
         self.review_button.pack(side='right', padx=(0, 6))
-        ttk.Label(actions, text='当前群').pack(side='left', padx=(0, 6))
+        ttk.Label(actions, text='文件', style='Sub.TLabel').pack(side='left', padx=(0, 6))
         self.export_file_buttons = {}
         for kind in ('JSON', 'JSONL', 'Markdown'):
             button = ttk.Button(actions, text=kind, command=lambda kind=kind: self.open_export_file(kind), state='disabled')
@@ -321,7 +353,7 @@ class ChatApp:
             self.export_file_buttons[kind] = button
         self.folder_button = ttk.Button(actions, text='文件所在目录', command=lambda: self.open_result(True), state='disabled')
         self.folder_button.pack(side='left')
-        bottom = ttk.Frame(self.root, padding=(14, 10, 14, 10))
+        bottom = ttk.Frame(self.root, padding=(14, 6, 14, 6))
         bottom.grid(row=3, column=0, sticky='ew')
         bottom.columnconfigure(1, weight=1)
         ttk.Label(bottom, text='状态', style='Sub.TLabel').grid(row=0, column=0, padx=(0, 8))
@@ -332,6 +364,14 @@ class ChatApp:
         self.image_page_button.grid(row=0, column=3)
         ttk.Label(bottom, text='文件', style='Sub.TLabel').grid(row=1, column=0, padx=(0, 8), pady=(5, 0))
         ttk.Entry(bottom, textvariable=self.result_text, state='readonly').grid(row=1, column=1, columnspan=3, sticky='ew', pady=(5, 0))
+
+    def adapt_layout(self, event):
+        if event.widget is not self.root:
+            return
+        if event.height < 760:
+            self.current_hint_row.pack_forget()
+        elif not self.current_hint_row.winfo_manager():
+            self.current_hint_row.pack(fill='x', pady=(3, 0))
 
     def toggle_date_filters(self, show=None):
         visible = bool(self.date_frame.winfo_manager())
@@ -415,8 +455,10 @@ class ChatApp:
         for widget in self.date_controls:
             widget.configure(state=state)
         self.search_entry.configure(state=state)
+        self.search_clear_button.configure(state=state if self.search.get() else 'disabled')
         self.review_filter_choice.configure(state='readonly' if state == 'normal' else 'disabled')
-        self.parse_button.configure(state=state if self.groups else 'disabled')
+        target = self.selected_chats or (self.tree.get_children() if self.search.get().strip() else self.active_chat)
+        self.parse_button.configure(state=state if self.groups and target else 'disabled')
         self.select_all_button.configure(state=state if self.tree.get_children() else 'disabled')
         self.clear_selection_button.configure(state=state if self.selected_chats else 'disabled')
         self.cancel_batch_button.configure(state='normal' if self.batch_running and not self.batch_cancel_requested and not self.closing else 'disabled')
@@ -442,6 +484,26 @@ class ChatApp:
         if dirty:
             self.review_summary.set(self.review_summary.get() + ' · 当前群范围已变，请重新解析并复核')
         eligible = ready > 0 and waiting == 0 and not dirty
+        unparsed = sum(chat not in self.parsed_results for chat in self.selected_chats)
+        if self.closing:
+            hint = '正在完成当前操作，随后关闭窗口。'
+        elif self.batch_running:
+            hint = '正在逐群解析；停止队列会在当前群完成后生效。'
+        elif self.busy:
+            hint = '正在处理本地数据，请稍候。'
+        elif dirty:
+            hint = '当前范围已变，请重新解析并复核。'
+        elif not self.selected_chats:
+            hint = '先勾选群聊，解析后逐群复核。'
+        elif unparsed:
+            hint = f'还有 {unparsed} 群未解析，请点击左侧解析按钮。'
+        elif waiting:
+            hint = f'还有 {waiting} 群未复核，请查看后点击“复核当前群”。'
+        elif ready:
+            hint = f'所选群已全部复核，可导出 {ready} 群。'
+        else:
+            hint = '所选群已导出，可查看文件或打开目录。'
+        self.workflow_hint.set(hint)
         self.export_button.configure(state='normal' if state == 'normal' and eligible else 'disabled')
         self.batch_folder_button.configure(state=state if self.batch_output else 'disabled')
         result_state = 'normal' if state == 'normal' and self.session.last_export else 'disabled'
@@ -453,6 +515,7 @@ class ChatApp:
             exists = self.session.last_export and (self.session.last_export / name).is_file()
             button.configure(state=result_state if exists else 'disabled')
         self.update_review_display()
+        self.update_parse_caption()
 
     def ready(self, value):
         if value['status'] != 'ready':
@@ -535,7 +598,7 @@ class ChatApp:
             choices = [group for group in choices if self.review_label(group['id']) == label]
         self.group_title.set(f'{scope} · {len(choices)} 个' if scope != '全部群聊' else
                              f'匹配群聊 · {len(choices)} 个' if query else f'全部本地群聊 · {len(choices)} 个')
-        self.group_hint.set('勾选多群解析，复核状态直接可见。空格勾选，Ctrl+A 全选当前结果；搜索和筛选保留选择，横向查看完整 ID。' if choices else '当前搜索或筛选下没有匹配群聊；切换“全部群聊”或清除搜索。已有勾选会保留。')
+        self.group_hint.set('单击查看，空格勾选；Ctrl+A 全选当前结果。搜索和筛选保留勾选。' if choices else '没有匹配群聊；切换“全部群聊”或清除搜索。已有勾选保留。')
         for group in choices:
             name = ('上次查看 · ' if group['recent'] else '') + group['choiceLabel']
             count = group.get('localMessageCount', '有记录' if group.get('hasLocalMessages') else '暂无')
@@ -564,6 +627,8 @@ class ChatApp:
             self.tree.set(chat, 'review', label)
             self.tree.item(chat, tags=('reviewed' if label == '已复核' else 'unreviewed',))
         chat = self.active_chat
+        self.current_group_id.set(chat or '')
+        self.copy_current_id_button.configure(state='normal' if chat and not self.closing else 'disabled')
         if not chat:
             self.current_review_state.set('未选群')
             self.current_review_badge.configure(style='ReviewNone.TLabel')
@@ -599,8 +664,24 @@ class ChatApp:
     def update_selection_text(self):
         hidden = len(self.selected_chats - set(self.tree.get_children()))
         self.selection_text.set(f'已选 {len(self.selected_chats)} 个群' + (f'（隐藏 {hidden}）' if hidden else ''))
+        self.update_parse_caption()
+
+    def update_parse_caption(self):
         count = len(self.selected_chats)
-        self.parse_button.configure(text=f'解析所选 {count} 个群（先预览复核）' if count else '解析所选群（先预览复核）')
+        if self.batch_running:
+            text = '正在解析所选群…'
+        elif count:
+            prepared = sum(chat in self.parsed_results for chat in self.selected_chats)
+            text = ('重新解析' if prepared == count else '解析') + f'所选 {count} 群'
+            if 0 < prepared < count:
+                text += '（含重解析）'
+        elif self.search.get().strip() and not self.tree.selection():
+            text = '解析搜索结果'
+        elif self.active_chat:
+            text = '重新解析当前群' if self.active_chat in self.parsed_results else '解析当前群'
+        else:
+            text = '解析搜索结果' if self.search.get().strip() else '先选择需要解析的群'
+        self.parse_button.configure(text=text)
 
     def toggle_group(self, chat):
         if self.busy or self.batch_running or self.closing or not self.tree.exists(chat):
@@ -650,6 +731,12 @@ class ChatApp:
             self.root.clipboard_append('\n'.join(selected))
             self.status.set(f'已复制 {len(selected)} 个群 ID，每行一个。')
 
+    def copy_current_group_id(self):
+        if self.active_chat:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(self.active_chat)
+            self.status.set('已复制当前查看群的 ID。')
+
     def choose_search_result(self, _event=None):
         if self.busy or self.batch_running:
             return
@@ -659,8 +746,9 @@ class ChatApp:
         query = self.search.get().strip()
         if not query:
             selected = self.tree.selection()
-            if selected:
-                self.start_parse(selected[0])
+            chat = selected[0] if selected else self.active_chat
+            if chat:
+                self.start_parse(chat)
             else:
                 self.group_hint.set('请先选择要解析的群 ID。')
             return
@@ -1069,6 +1157,7 @@ class ChatApp:
         dialog.geometry('740x660')
         dialog.transient(self.root)
         dialog.grab_set()
+        dialog.bind('<Escape>', lambda _event: dialog.destroy())
         box = ttk.Frame(dialog, padding=16)
         box.pack(fill='both', expand=True)
         ttk.Label(box, text='请核对本次账号、群 ID 与解析结果', font=('Microsoft YaHei UI', 14, 'bold')).pack(anchor='w')
@@ -1076,8 +1165,14 @@ class ChatApp:
         review_controls = ttk.Frame(box)
         review_controls.pack(side='bottom', fill='x')
         report = self.auto_parse_result['report']
-        text = tk.Text(box, height=11, wrap='word')
-        text.pack(fill='both', expand=True, pady=10)
+        report_box = ttk.Frame(box)
+        report_box.pack(fill='both', expand=True, pady=10)
+        report_scroll = ttk.Scrollbar(report_box, orient='vertical')
+        report_scroll.pack(side='right', fill='y')
+        text = tk.Text(report_box, height=11, wrap='word', relief='flat', borderwidth=1, padx=8, pady=6,
+                       yscrollcommand=report_scroll.set)
+        text.pack(side='left', fill='both', expand=True)
+        report_scroll.configure(command=text.yview)
         text.insert('end', f"客户端：{summary['client']}\n账号目录：{summary['accountDirectory']}\n本人 ID：{summary['selfId'] or '未知'}\n"
                     f"群名称：{summary['chat']['name']}\n群 ID：{summary['chat']['id']}\n副本时间：{summary['snapshotTime']}\n"
                     f"日期：{summary['startDate'] or '不限'} 至 {summary['endDate'] or '不限'}（北京时间）\n源记录：{summary['exportedRows']} 条\n"
@@ -1120,7 +1215,7 @@ class ChatApp:
                       self.review_ready)
 
         ttk.Button(buttons, text='返回检查', command=dialog.destroy).pack(side='left')
-        confirm_button = ttk.Button(buttons, text='确认复核完成', command=confirm)
+        confirm_button = ttk.Button(buttons, text='确认复核完成', style='Accent.TButton', command=confirm)
         confirm_button.pack(side='right')
         def update_checks(*_):
             count = sum(variable.get() for variable in checks.values())

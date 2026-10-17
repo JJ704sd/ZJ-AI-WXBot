@@ -237,9 +237,23 @@ def approve(chat):
     assert not (base/'exports').exists(),'saving checklist exported automatically'
 try:
     pump(lambda:len(app.groups)==2 and not app.busy)
+    assert app.parse_button.instate(['disabled']) and '先勾选' in app.workflow_hint.get()
+    app.search.set(first);root.update()
+    assert app.search_clear_button.instate(['!disabled'])
+    app.search_clear_button.invoke();root.update()
+    assert not app.search.get() and not app.parsed_results
+    app.show_chat(first);app.search.set(second);root.update()
+    assert app.parse_button.cget('text')=='解析搜索结果' and app.parse_button.instate(['!disabled'])
+    app.search.set('no-synthetic-match');root.update()
+    assert app.parse_button.instate(['disabled']),'empty search could parse the previously viewed group'
+    app.search_clear_button.invoke();root.update()
     app.select_visible();root.update()
+    assert app.parse_button.cget('text')=='解析所选 2 群' and '未解析' in app.workflow_hint.get()
     assert all(app.tree.set(c,'review')=='未复核' for c in (first,second))
     app.parse_button.invoke();pump(lambda:not app.busy and not app.batch_running)
+    assert app.parse_button.cget('text')=='重新解析所选 2 群' and '未复核' in app.workflow_hint.get()
+    assert app.current_group_id.get()==app.active_chat
+    app.copy_current_id_button.invoke();assert root.clipboard_get()==app.active_chat
     for size in ('1200x760','1000x700'):
         root.geometry(size);root.update()
         x,y,w,h=app.tree.bbox(first,'review')
@@ -253,6 +267,7 @@ try:
     scope('所选已复核');assert set(app.tree.get_children())=={first}
     app.start_date.set('2099-01-01');root.update()
     assert not app.tree.get_children() and app.current_review_state.get()=='未复核'
+    assert '范围已变' in app.workflow_hint.get()
     assert app.export_button.instate(['disabled'])
     app.start_date.set('');root.update()
     assert set(app.tree.get_children())=={first} and app.current_review_state.get()=='已复核'
@@ -264,6 +279,7 @@ try:
     assert session.review_status(second)=='待复核','cancel saved select-all'
     approve(second)
     assert not app.tree.get_children() and app.current_review_state.get()=='已复核'
+    assert '全部复核' in app.workflow_hint.get()
     assert app.export_button.instate(['!disabled'])
     scope('所选已复核');assert set(app.tree.get_children())=={first,second}
     app.toggle_group(second);root.update()
@@ -280,6 +296,7 @@ try:
     assert all(app.tree.set(c,'review')=='已复核' for c in (first,second))
     assert '已复核 2（含已导出 2）' in app.review_summary.get()
     assert app.current_review_state.get()=='已复核' and '已导出' in app.current_review_hint.get()
+    assert '所选群已导出' in app.workflow_hint.get()
     app.work('reload',lambda:session.open_source(session.settings['source']),app.ready)
     pump(lambda:not app.busy)
     assert all(app.tree.set(c,'review')=='未复核' for c in (first,second))
