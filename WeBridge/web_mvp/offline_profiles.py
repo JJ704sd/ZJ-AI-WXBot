@@ -3,8 +3,60 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import sys
 import tempfile
+
+
+class ClientBindingError(ValueError):
+    """A client-bound Skill must never fall back to another client/profile."""
+
+
+def resolve_client(requested=None):
+    if requested not in (None, 'wechat', 'wecom'):
+        raise ClientBindingError('客户端类型必须为 wechat 或 wecom。')
+    fallback = requested or 'wechat'
+    if not getattr(sys, 'frozen', False):
+        return fallback
+    exe = Path(sys.executable).resolve()
+    root = exe.parent.parent if exe.parent.name.lower() == 'bin' else exe.parent
+    manifest = root/'runtime.json'
+    required = bool(re.fullmatch(r'local-chat-desktop-\d+\.\d+\.\d+\.exe', exe.name, re.I))
+    if not manifest.is_file():
+        if required:
+            raise ClientBindingError('Skill缺少runtime.json，请完整解压或重新导入，不能单独复制bin内EXE。')
+        return fallback
+    try:
+        if manifest.stat().st_size > 65536:
+            raise ValueError('oversized manifest')
+        value = json.loads(manifest.read_text(encoding='utf-8-sig'))
+        relative = value.get('exeRelativePath') if isinstance(value, dict) else None
+        target = (root/relative).resolve() if isinstance(relative, str) else None
+    except (OSError, ValueError):
+        if required:
+            raise ClientBindingError('Skill运行清单无效，请完整解压或重新导入。') from None
+        return fallback
+    if target != exe or not target.is_relative_to(root):
+        if required:
+            raise ClientBindingError('Skill运行清单与当前EXE不匹配，请使用同一完整包。')
+        return fallback
+    bound = value.get('client')
+    if bound is None and not required:
+        return fallback  # Older generic runtimes remain compatible with --client.
+    if bound is None and value.get('clientBinding') == 'selectable':
+        bound = fallback
+    if bound not in ('wechat', 'wecom'):
+        raise ClientBindingError('Skill未声明有效客户端，请使用对应个微或企微完整包。')
+    if requested and requested != bound:
+        raise ClientBindingError('启动客户端与Skill绑定不一致，请使用对应客户端的Skill。')
+    try:
+        with exe.open('rb') as stream:
+            digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+    except OSError:
+        raise ClientBindingError('无法校验Skill程序，请检查文件读取权限。') from None
+    if digest != value.get('exeSha256'):
+        raise ClientBindingError('Skill程序校验不一致，请重新解压完整包，不要混用不同版本文件。')
+    return bound
 
 
 def default_directory(client):

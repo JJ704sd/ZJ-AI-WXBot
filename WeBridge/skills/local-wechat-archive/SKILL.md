@@ -1,10 +1,10 @@
 ---
 name: local-wechat-archive
-description: 用户说“解析某某群”“解析企微某群”“查看微信或企业微信聊天记录”时使用；在Windows本机仅解析指定群、提取PDF/Office附件正文与出处，查看媒体并导出，首次配置后复用，无需安装Python。也可按原消息出处整理业务事项。
+description: 打开个微或企微本地聊天界面，列出群ID与名称供人工多选并批量解析，或解析用户指定群；逐群人工复核确认后导出JSON/JSONL/Markdown，复用已有账号配置，无需安装Python。
 metadata:
-  version: "1.13.0"
-  description_zh: "直接搜索指定群并解析，首次配置后复用。"
-  description_en: "Search and parse only the requested WeChat or WeCom group."
+  version: "1.16.2"
+  description_zh: "打开界面多选群聊、批量解析，逐群人工复核后导出。"
+  description_en: "Select multiple groups, parse locally and review each group before export."
   author: "Local WeChat Archive"
 ---
 
@@ -12,7 +12,21 @@ metadata:
 
 使用包内 EXE，无需安装 Python、pip、Docker 或数据库服务。目标为 Windows 10/11 x64，宿主需支持本机执行和文件访问。账号识别仅查询数据库文件占用与进程元数据，不读内存；解析读取稳定副本，不发消息或补拉云端历史。
 
-## 一句话解析并查看
+## 打开界面，由人工选群
+
+用户说“打开解析工具”“展示全部群让我选”“打开界面后人工介入”时，不要求先提供群名，调用一次：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "技能根目录\scripts\run.ps1" -Mode Desktop
+```
+
+程序复用已保存的本客户端账号配置，列出全部本地群ID和名称。返回 `started` 只说明窗口已启动；请用户在窗口确认账号，勾选一个或多个群，点击“解析所选 N 个群（先预览复核）”。支持全选当前结果、清空选择，搜索后勾选仍保留并显示隐藏数量；批量复制ID每行一个。单击群名只查看，解析队列可在当前群结束后停止，已完成结果保留，失败群单独标记。宿主不替用户勾选不明确的群，不扩展到其他群正文。
+
+群列表前部直接显示“未复核/已复核”，当前群顶部也显示状态；可筛选“所选群聊/所选未复核/所选已复核”，筛选保留勾选。已导出仍属于已复核，导出数量在底部另列。
+
+批量解析后逐群查看，使用“下一个未复核群”切换；点击“复核当前群”完成四项检查。首次打开默认全部未勾选，用户可点击“全选复核项”或“清空勾选”，旁边显示当前群勾选数量；少于四项时不能确认。这两个快捷按钮仅修改当前窗口，不保存、不导出、不影响其他群；仍须用户点击“确认复核完成”保存当前群复核结果。所有所选群均已复核后，由用户点击“一键导出所选群”，分别生成三格式、复核记录与缺口说明，并生成batch.json和导出清单.md；“打开批次目录”查看。未解析、未复核或已失效的所选群阻止导出，已导出群保留原结果且不重复生成；部分失败保留成功结果，可重试剩余群。切换群保留各自批次，重新解析只替换对应群，刷新或切换账号使全部旧复核失效。宿主不能代点全选、确认或导出，也不能把一个群的完成回执当成全部群已导出；命名请求回执只对应原群。
+
+## 指定群解析并等待人工复核
 
 用户说“解析某某群”时，从请求取得群名，以本文件实际所在目录定位脚本，只调用一次：
 
@@ -22,21 +36,24 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "技能根目录\scripts
 
 普通请求不填写 `-DataDir`、数据路径或密钥路径，也不要求用户复制命令。脚本从 `runtime.json` 定位并校验随包 EXE，默认复用当前用户 `%LOCALAPPDATA%\LocalWechatArchive` 配置。群名先精确匹配，再尝试去掉请求末尾类别词“群/群聊”后的唯一名称；不猜选相似群或重复名称。
 
-直接传入目标群；不先执行 Groups，不遍历各群导出或读取正文。搜索只查群索引；空白启动、恢复最近群、单击候选不解析。桌面输入群名按 Enter，重名时选择后点“解析此群并导出”；没有目标时先询问群名。
+直接传入目标群；不先遍历各群导出或读取正文。搜索只查群索引；空白启动、恢复最近群、单击候选不解析。名称重复时使用用户选定的真实ID，以 `-Chat` 替代 `-ChatName`。没有指定群且希望人工选群时使用上面的 Desktop 入口。
 
-用户明确说“企微/企业微信”时，群名去掉这个客户端限定词，并为同一命令加入 `-Client WeCom`，例如 `-Client WeCom -ChatName "请求中的群名"`。列群和Export等模式也必须带此参数。企微配置独立保存在 `%LOCALAPPDATA%\LocalWeComArchive`；未指定客户端的既有请求仍使用个微。不得因某个客户端找不到群而改读另一个账号或客户端。桌面版可双击 `Start-WeCom.cmd`。企微5.0.12.6018已在本机验证取钥和群解析，其他版本不作已通过承诺；企微未知类型和未缓存原件明确标记。
+用户明确说“企微/企业微信”时，群名去掉这个客户端限定词，并为同一命令加入 `-Client WeCom`，例如 `-Client WeCom -ChatName "请求中的群名"`。列群等模式也必须带此参数。企微配置独立保存在 `%LOCALAPPDATA%\LocalWeComArchive`；未指定客户端的既有请求仍使用个微。不得因某个客户端找不到群而改读另一个账号或客户端。桌面版可双击 `Start-WeCom.cmd`。企微5.0.12.6018已在本机验证取钥和群解析，其他版本不作已通过承诺；企微未知类型和未缓存原件明确标记。
 
-**脚本会等待解析结束，直接返回最终 JSON。** 不另写等待循环、不猜测回执文件名。宿主命令时限应覆盖最多5分钟的等待；若命令工具转为后台任务，使用该工具的任务结果接口等它结束。
+**脚本会等待解析预览结束或需要人工介入，返回本次 JSON。** 不猜测回执文件名、不启动重复请求。宿主命令时限覆盖最多5分钟；命令转为后台任务时，使用该工具的任务结果接口等它结束。
 
-- `completed`：已定位并解析指定群的本地记录、打开阅读窗口；按返回的 `chatName`、条数和 `output` 报告完成。
+- `awaiting_review`：解析预览完成，等待人工。即使 `ok=false` 也不是解析失败；报告群名、条数及程序给出的缺口，保持窗口打开并停止自动操作。**不得调用直接Export、重新解析、代勾复核项或自动点击确认导出。** 尚无正式导出，不调用 `present_files` 呈现预览JSON/JSONL/MD为已确认文件，不自动读取正文给宿主模型。
+- `completed`：仅当 `humanReview.status=confirmed` 且含本次 `exportFiles` 才表示人工确认后导出完成；使用下面的固定汇报与文件入口。缺少复核记录属于旧版结果，不能当作新版已复核导出。
 - `needs_source`：在已打开的设置窗口完成首次配置；原请求会自动继续，无需重发。
-- `needs_chat`：在窗口搜索并选中正确群，点“解析此群并导出”继续。
+- `needs_chat`：在窗口按群ID选择，点“解析所选群（先预览复核）”继续。
 - `waiting`：继续读取返回的完整 `resultFile` 路径，保持扩展名原样；不要启动另一个相同请求。
 - `failed`：报告实际错误，不自动转为取钥。
 
+人工完成四项检查、填写备注并点击“确认复核完成”，随后勾选所需群，点击“一键导出所选群”。保存复核后的回执仍为awaiting_review，可增加reviewConfirmed=true；这只表示复核已保存，尚未导出，宿主不能代点一键导出。用户之后要求查看结果时，只读取本次完整resultFile；仍为awaiting_review就继续等待，不以重调Parse或Export代替人工操作。Desktop未指定群时没有解析回执，不承诺宿主已取得导出结果。
+
 ## 完成后的固定汇报与文件入口
 
-收到 `completed`，或 Export 返回 `ok=true` 后：
+收到具备人工确认记录和三格式文件的 `completed` 后：
 
 1. 读取 `reporting.markdownFile` 指向的程序生成汇报；最终答复原样使用其内容，与 `reporting.replyMarkdown` 相同。媒体数量、状态及附件类型全部来自程序，不根据聊天正文、文件目录或记忆重新计数，不在末尾另写媒体解释。缺失图片、缩略图、本地预览、未加载不可互换；没有程序统计的类型不补写数量。
 2. **在 WorkBuddy 调用 `present_files`**，参数原样使用 `reporting.presentation` 的 `cwd`、`explanation`、`files`。其中 JSONL、JSON、MD 三种文件每次都要提供，普通“解析某群”也一样，不能只展示MD和HTML。呈现完成后保留固定汇报中的三格式链接；工具不可用或失败时如实说明，并仍提供这些本地文件链接，不能声称已展示成功。
@@ -50,11 +67,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "技能根目录\scripts
 
 初始化窗口没有倒计时，needs_source表示等待用户，settings.local.json只在校验成功后生成，不能凭没有配置文件认定程序已退出。普通启动不得使用--check-launch或--check-export-chat等自动退出测试参数。启动异常查看窗口的“打开诊断日志”；日志在%LOCALAPPDATA%/LocalChatArchiveDiagnostics/客户端下，仅含阶段、错误类型和代码位置。不要仅凭代理变量名称推断根因，也不清理全局代理；宿主启动受影响时可让用户双击包内Start.cmd完成配置，再复用原请求。
 
-## 列群和独立导出
+## 列群和导出边界
 
 导出同时生成 `messages.jsonl`、`messages.json`、`messages.md`。JSONL逐行，JSON为相同字段及顺序的数组；MD保留发送人、时间、出处、转发和媒体链接及缺口。
 
-用户说“导出某群为JSONL/JSON/MD”时用下述Export入口。`exportFiles`含三格式完整路径，按固定汇报流程全部呈现。MD须与 `assets/` 一起保留；完整字段以JSONL/JSON为准。
+用户说“导出某群为JSONL/JSON/MD”时，先打开或解析该群进入人工复核。Skill不允许直接使用 `-Mode Export` 绕过复核；该入口会明确拒绝且不创建导出。`exportFiles`只从人工确认后的回执取得。MD须与 `assets/` 一起保留；完整字段以JSONL/JSON为准。
 
 用户明确要求列群时：
 
@@ -62,17 +79,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "技能根目录\scripts
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "技能根目录\scripts\run.ps1" -Mode Groups
 ```
 
-日期过滤或机器可读导出：
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "技能根目录\scripts\run.ps1" -Mode Export -ChatName "实际群名" -StartDate "2026-01-01" -EndDate "2026-01-31"
-```
-
-日期为北京时间 `YYYY-MM-DD`；省略时读取所选群全部本地记录。名称不唯一时，从本次列表选实际 ID，用 `-Chat` 替代 `-ChatName`。这些独立模式可接收 `-Source`、`-Keys`、`-ImageKeys` 文件路径；只传路径，不传密钥正文。`-NoMedia` 仅在用户明确不要媒体时使用。检查 JSON 的 `ok`；未成功不得作为已解析结果。
+日期和媒体选项在桌面窗口设置；日期为北京时间 `YYYY-MM-DD`，留空为全部本地记录。只传已有密钥的文件路径，不传密钥正文。Groups只读取本地群索引，不解析正文。
 
 ## 图片、附件、转发和业务整理
 
-右侧阅读区底部固定提供“解析此群并导出”、JSONL/JSON/MD格式选择、“查看所选格式”和“打开导出目录”；完成解析已经生成三种文件，不需要为每种格式重复解析。
+右侧底部提供“复核当前群”和“一键导出所选群”，显示所选、未复核、已复核数量（其中包含已导出数量）。已复核群可点“查看/修改复核”。保存复核不生成正式文件；一键导出使用已确认的同一批缓存。导出后直接点击“JSON”“JSONL”“Markdown”查看对应文件，或“文件所在目录”打开当前群三种文件的保存目录；底部路径同步显示该群目录。切换群后入口同步切换，未导出或缺少文件时对应按钮禁用；无文件关联时尝试系统记事本。批次总目录另有独立入口。不为每种格式重复解析。
 
 桌面窗口可直接看图片、放大、打开附件、展开嵌套转发。使用“图片总览”或导出目录的 `images.html` 集中查看普通、转发和引用图片，并定位原始消息。保留完整导出目录和 `assets/`。原图、缩略图、本地预览、缺失、未加载分别标注；不把缩略图当原图，表情不强求。
 

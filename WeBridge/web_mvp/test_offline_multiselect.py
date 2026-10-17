@@ -1,0 +1,334 @@
+"""Multi-group workflow on invented records; no real accounts or human conclusions."""
+from contextlib import closing
+import json
+import os
+from pathlib import Path
+import sqlite3
+import subprocess
+import sys
+import tempfile
+import unittest
+
+from offline_chat import ArchiveError
+from offline_desktop import DesktopSession
+from offline_review import REVIEW_CHECKS
+from test_database_adapter import create_metadata, create_shard, GROUP, MIXED
+from test_wecom_archive import fixture
+
+
+def multi_group_fixture(source, client):
+    if client == 'wechat':
+        source.mkdir()
+        create_metadata(source)
+        create_shard(source, rows=[{'text': '群一合成正文'}])
+        create_shard(source, 'message/message_1.db', group=MIXED, rows=[{'text': '群二合成正文'}])
+        with closing(sqlite3.connect(source / 'contact/contact.db')) as db, db:
+            db.execute('update contact set remark=?', ('同名合成群',))
+        return [GROUP, MIXED]
+    fixture(source)
+    second = 'R:synthetic-second'
+    with closing(sqlite3.connect(source / 'session.db')) as db, db:
+        db.execute('insert into conversation_table values(?,?,?,?)', (second, '企微合成群', '', 1700000000))
+    with closing(sqlite3.connect(source / 'message.db')) as db, db:
+        db.execute('insert into message_table select message_id+100,server_id+100,sequence+100,sender_id,?,content_type,send_time,flag,content,extra_content,local_extra_content from message_table', (second,))
+    return ['R:synthetic', second]
+
+
+UI_SETUP = '''
+import json,sys,time,threading,tkinter as tk
+from pathlib import Path
+from local_chat_app import ChatApp
+from offline_desktop import DesktopSession
+base=Path(sys.argv[1]);client,first,second=sys.argv[2:]
+root=tk.Tk();session=DesktopSession(base,client=client)
+def pump(predicate):
+    deadline=time.monotonic()+15
+    while not predicate():
+        assert time.monotonic()<deadline,'UI timed out'
+        root.update();time.sleep(.01)
+def widgets(parent):
+    result=[]
+    for child in parent.winfo_children():result.append(child);result.extend(widgets(child))
+    return result
+def button(parent,text):return next(w for w in widgets(parent) if w.winfo_class()=='TButton' and w.cget('text')==text)
+'''
+
+
+class MultiGroupTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='synthetic-multiselect-')
+        self.addCleanup(self.temp.cleanup)
+        self.base = Path(self.temp.name)
+
+    def test_review_batches_are_independent_and_reload_invalidates_all(self):
+        for client in ('wechat', 'wecom'):
+            with self.subTest(client=client):
+                source = self.base / client
+                first, second = multi_group_fixture(source, client)
+                session = DesktopSession(self.base / (client + '-profile'), client=client)
+                session.open_source({'sourceRoot': str(source)})
+                a = session.prepare_review(first, copy_media=False)
+                b = session.prepare_review(second, copy_media=False)
+                checks = {key: True for key in REVIEW_CHECKS}
+                with self.assertRaises(ArchiveError):
+                    session.confirm_export(a['review']['reviewId'], checks, chat=first)
+                session.activate_review(first)
+                self.assertEqual(session.pending_review['summary'], a['review'])
+                session.prepare_review(second, start='2099-01-01', copy_media=False)
+                with self.assertRaises(ArchiveError):
+                    session.confirm_export(b['review']['reviewId'], checks, chat=second)
+                session.activate_review(first)
+                exported = session.confirm_export(a['review']['reviewId'], checks, '合成多选测试', chat=first)
+                session.activate_review(second)
+                self.assertEqual(session.pending_review['summary']['exportedRows'], 0)
+                self.assertIsNone(session.last_export)
+                session.activate_review(first)
+                self.assertIsNone(session.pending_review)
+                self.assertEqual(session.last_export, Path(exported['output']))
+                session.open_source({'sourceRoot': str(source)})
+                for chat in (first, second):
+                    session.activate_review(chat)
+                    self.assertIsNone(session.pending_review)
+                    self.assertIsNone(session.last_export)
+
+    def run_ui(self, client, code):
+        source = self.base / client
+        ids = multi_group_fixture(source, client)
+        profile = self.base / (client + '-profile')
+        profile.mkdir()
+        (profile / 'settings.local.json').write_text(json.dumps({'version': 1, 'client': client,
+            'source': {'sourceRoot': str(source)}}), encoding='utf8')
+        project = Path(__file__).resolve().parents[1]
+        env = os.environ.copy()
+        env['PYTHONPATH'] = os.pathsep.join(str(project / p) for p in ('.runtime/offline-build-deps', 'web_mvp', 'scripts'))
+        process = subprocess.run([sys.executable, '-c', UI_SETUP + code, str(profile), client, *ids],
+                                 env=env, capture_output=True, timeout=40)
+        self.assertEqual(process.returncode, 0, process.stderr.decode('utf8', errors='replace'))
+
+    def test_windows_keep_picks_across_search_and_review_each_group(self):
+        code = '''
+receipt=base/'requests/named.json'
+app=ChatApp(root,session,open_chat=first,open_result=receipt)
+parsed_ready=app.parsed_ready
+def finish_group(value):
+    parsed_ready(value)
+    assert app.batch_running and not app.busy
+    app.choose_kind('全部');app.read_page()
+    assert not app.busy,'reading shortcut interrupted the batch between groups'
+app.parsed_ready=finish_group
+def review(chat,confirm):
+    app.tree.selection_set(chat);app.selection();app.review_button.invoke();root.update()
+    dialog=next(w for w in root.winfo_children() if isinstance(w,tk.Toplevel))
+    checks=[w for w in widgets(dialog) if w.winfo_class()=='TCheckbutton']
+    assert len(checks)==4 and not any(root.getvar(w.cget('variable')) for w in checks)
+    if not confirm:
+        button(dialog,'返回检查').invoke();root.update();return
+    for w in checks:w.invoke()
+    [w for w in widgets(dialog) if w.winfo_class()=='Text'][-1].insert('end','合成自动化测试，不代表真实人工复核')
+    button(dialog,'确认复核完成').invoke()
+    pump(lambda:not app.busy)
+try:
+    pump(lambda:len(app.parsed_results)==1 and not app.busy and not app.batch_running)
+    original=app.parsed_results[first]['review']['reviewId']
+    app.search.set(first);root.update();app.tree.see(first);root.update()
+    x,y,w,h=app.tree.bbox(first,'pick')
+    app.tree.event_generate('<Button-1>',x=x+w//2,y=y+h//2);root.update()
+    assert app.selected_chats=={first},'checkbox did not select group'
+    app.tree.focus_force();app.tree.event_generate('<space>');root.update()
+    assert not app.selected_chats,'space did not clear checkbox'
+    app.tree.event_generate('<space>');root.update()
+    assert app.selected_chats=={first}
+    app.search.set(second);root.update();app.select_all_button.invoke()
+    assert app.selected_chats=={first,second},'search lost hidden picks'
+    assert '隐藏 1' in app.selection_text.get()
+    app.copy_group_id()
+    assert set(root.clipboard_get().splitlines())=={first,second}
+    app.parse_button.invoke()
+    pump(lambda:not app.busy and not app.batch_running)
+    root.update()
+    assert app.active_chat==first,'completed queue displayed a different group'
+    assert set(app.parsed_results)=={first,second}
+    assert app.parsed_results[first]['review']['reviewId']!=original
+    assert all(app.parse_states[c]=='待复核' for c in (first,second))
+    assert not (base/'exports').exists(),'parse auto-exported before confirmation'
+    assert json.loads(receipt.read_text(encoding='utf8'))['chatId']==first
+    assert json.loads(receipt.read_text(encoding='utf8'))['state']=='awaiting_review'
+    app.search.set('');root.update();review(first,False)
+    assert not (base/'exports').exists(),'cancel exported a group'
+    first_review=app.parsed_results[first]['review']['reviewId']
+    app.tree.selection_set(second);app.selection()
+    assert session.pending_review['summary']['chat']['id']==second
+    app.next_review_button.invoke();root.update()
+    assert app.active_chat==first and session.pending_review['summary']['reviewId']==first_review
+    review(second,True)
+    assert not (base/'exports').exists(),'saving review unexpectedly exported'
+    assert app.parse_states[second]=='已复核'
+    assert app.export_button.instate(['disabled']),'unreviewed selected group was ignored'
+    assert json.loads(receipt.read_text(encoding='utf8'))['state']=='awaiting_review','other group overwrote named receipt'
+    app.tree.selection_set(first);app.selection()
+    assert session.last_export is None and session.pending_review['summary']['reviewId']==first_review
+    assert all(b.instate(['disabled']) for b in app.export_file_buttons.values()),'other group export leaked'
+    review(first,True)
+    assert not (base/'exports').exists(),'last review automatically exported'
+    assert app.export_button.instate(['!disabled'])
+    app.export_button.invoke();pump(lambda:not app.busy)
+    assert len(list((base/'exports').iterdir()))==1,'one click did not create a single batch'
+    result=json.loads(receipt.read_text(encoding='utf8'))
+    assert result['state']=='completed' and result['chatId']==first
+    for record in (base/'exports').rglob('review.json'):
+        output=record.parent
+        data=json.loads((output/'review.json').read_text(encoding='utf8'))
+        rows=json.loads((output/'messages.json').read_text(encoding='utf8'))
+        assert all(row['chatId']==data['chat']['id'] for row in rows)
+        assert (output/'messages.jsonl').is_file() and (output/'messages.md').is_file()
+    assert len(list((base/'exports').rglob('review.json')))==2
+    opened=[]
+    import local_chat_app
+    local_chat_app.os.startfile=opened.append
+    for chat in (first,second):
+        app.show_chat(chat)
+        expected=session.last_export
+        for kind in ('JSON','JSONL','Markdown'):app.export_file_buttons[kind].invoke()
+        app.folder_button.invoke()
+        assert all(Path(p).parent==expected for p in opened[-4:-1]) and Path(opened[-1])==expected,'file links belong to another group'
+        assert str(expected) in app.result_text.get(),'displayed path differs from current group buttons'
+    assert app.export_button.instate(['disabled']),'completed groups could be exported twice'
+    app.clear_selection_button.invoke()
+    assert not app.selected_chats
+finally:root.destroy()
+'''
+        for client in ('wechat', 'wecom'):
+            with self.subTest(client=client):
+                self.run_ui(client, code)
+
+    def test_review_shortcuts_and_visible_states_remain_scoped_to_current_group(self):
+        code = '''
+root.tk.call('tk','scaling',1.75)
+app=ChatApp(root,session)
+def scope(value):
+    app.review_filter.set(value)
+    app.review_filter_choice.event_generate('<<ComboboxSelected>>');root.update()
+def dialog_for(chat):
+    app.show_chat(chat);app.review_button.invoke();root.update()
+    dialog=next(w for w in root.winfo_children() if isinstance(w,tk.Toplevel))
+    checks=[w for w in widgets(dialog) if w.winfo_class()=='TCheckbutton']
+    assert len(checks)==4
+    return dialog,checks
+def checked(checks):return sum(root.tk.getboolean(root.getvar(w.cget('variable'))) for w in checks)
+def approve(chat):
+    dialog,checks=dialog_for(chat)
+    assert checked(checks)==0,'another group inherited review checks'
+    assert button(dialog,'确认复核完成').instate(['disabled'])
+    assert button(dialog,'清空勾选').instate(['disabled'])
+    for caption in ('全选复核项','清空勾选','返回检查','确认复核完成'):
+        w=button(dialog,caption)
+        assert w.winfo_ismapped() and 0<=w.winfo_rooty()-dialog.winfo_rooty()<dialog.winfo_height()-w.winfo_height(),caption
+    button(dialog,'全选复核项').invoke();root.update()
+    assert checked(checks)==4 and button(dialog,'确认复核完成').instate(['!disabled'])
+    assert button(dialog,'全选复核项').instate(['disabled'])
+    assert any(w.winfo_class()=='TLabel' and w.cget('text')=='已勾选 4/4 · 仅当前群' for w in widgets(dialog))
+    assert session.review_status(chat)=='待复核' and not (base/'exports').exists(),'select-all saved or exported'
+    button(dialog,'清空勾选').invoke();root.update()
+    assert checked(checks)==0 and button(dialog,'确认复核完成').instate(['disabled'])
+    button(dialog,'全选复核项').invoke();checks[0].invoke();root.update()
+    assert checked(checks)==3 and button(dialog,'确认复核完成').instate(['disabled'])
+    button(dialog,'全选复核项').invoke()
+    button(dialog,'确认复核完成').invoke();pump(lambda:not app.busy)
+    assert not (base/'exports').exists(),'saving checklist exported automatically'
+try:
+    pump(lambda:len(app.groups)==2 and not app.busy)
+    app.select_visible();root.update()
+    assert all(app.tree.set(c,'review')=='未复核' for c in (first,second))
+    app.parse_button.invoke();pump(lambda:not app.busy and not app.batch_running)
+    for size in ('1200x760','1000x700'):
+        root.geometry(size);root.update()
+        x,y,w,h=app.tree.bbox(first,'review')
+        assert w>0 and 0<=x<x+w<=app.tree.winfo_width(),'review column requires horizontal scrolling'
+        assert app.current_review_badge.winfo_ismapped() and app.review_filter_choice.winfo_ismapped()
+    assert app.current_review_state.get()=='未复核'
+    approve(first)
+    assert app.tree.set(first,'review')=='已复核' and app.tree.set(second,'review')=='未复核'
+    assert app.current_review_state.get()=='已复核'
+    assert '未复核 1' in app.review_summary.get() and '已复核 1' in app.review_summary.get()
+    scope('所选已复核');assert set(app.tree.get_children())=={first}
+    app.start_date.set('2099-01-01');root.update()
+    assert not app.tree.get_children() and app.current_review_state.get()=='未复核'
+    assert app.export_button.instate(['disabled'])
+    app.start_date.set('');root.update()
+    assert set(app.tree.get_children())=={first} and app.current_review_state.get()=='已复核'
+    app.next_review_button.invoke();root.update()
+    assert app.active_chat==second and app.review_filter.get()=='所选未复核'
+    assert app.selected_chats=={first,second} and set(app.tree.get_children())=={second}
+    dialog,checks=dialog_for(second)
+    button(dialog,'全选复核项').invoke();button(dialog,'返回检查').invoke();root.update()
+    assert session.review_status(second)=='待复核','cancel saved select-all'
+    approve(second)
+    assert not app.tree.get_children() and app.current_review_state.get()=='已复核'
+    assert app.export_button.instate(['!disabled'])
+    scope('所选已复核');assert set(app.tree.get_children())=={first,second}
+    app.toggle_group(second);root.update()
+    assert set(app.tree.get_children())=={first} and app.selected_chats=={first}
+    assert app.current_review_state.get()=='已复核' and '未勾选' in app.current_review_hint.get()
+    scope('全部群聊');app.toggle_group(second);root.update()
+    dialog,checks=dialog_for(first)
+    assert checked(checks)==4,'saved review was not restored'
+    button(dialog,'返回检查').invoke();root.update()
+    app.start_parse(first);pump(lambda:not app.busy and not app.batch_running)
+    assert app.tree.set(first,'review')=='未复核' and app.tree.set(second,'review')=='已复核'
+    assert app.export_button.instate(['disabled'])
+    approve(first);app.export_button.invoke();pump(lambda:not app.busy)
+    assert all(app.tree.set(c,'review')=='已复核' for c in (first,second))
+    assert '已复核 2（含已导出 2）' in app.review_summary.get()
+    assert app.current_review_state.get()=='已复核' and '已导出' in app.current_review_hint.get()
+    app.work('reload',lambda:session.open_source(session.settings['source']),app.ready)
+    pump(lambda:not app.busy)
+    assert all(app.tree.set(c,'review')=='未复核' for c in (first,second))
+    assert not app.selected_chats and app.current_review_state.get()=='未选群'
+finally:root.destroy()
+'''
+        for client in ('wechat', 'wecom'):
+            with self.subTest(client=client):
+                self.run_ui(client, code)
+
+    def test_queue_continues_after_error_and_stops_after_current_group(self):
+        code = '''
+app=ChatApp(root,session)
+original=session.prepare_review
+gate=threading.Event()
+try:
+    pump(lambda:bool(app.groups) and not app.busy)
+    def fail(chat,**kwargs):
+        if chat==first:raise PermissionError('private-error-do-not-display')
+        return original(chat,**kwargs)
+    session.prepare_review=fail
+    app.start_batch([first,second,second])
+    pump(lambda:not app.batch_running and not app.busy)
+    assert app.parse_states[first]=='失败' and app.parse_states[second]=='待复核'
+    assert len(app.parsed_results)==1
+    assert 'private-error' not in app.parse_errors[first]
+    def delayed(chat,**kwargs):
+        assert gate.wait(10),'test failed to release current group'
+        return original(chat,**kwargs)
+    session.prepare_review=delayed
+    app.start_batch([first,second])
+    assert app.busy and app.cancel_batch_button.instate(['!disabled'])
+    app.cancel_batch_button.invoke();gate.set()
+    pump(lambda:not app.batch_running and not app.busy)
+    assert app.parse_states[first]=='待复核' and app.parse_states[second]=='待复核'
+    assert len(app.parsed_results)==2,'stopping lost earlier preview'
+    assert not (base/'exports').exists()
+    app.clear_selection();app.search.set('');root.update();app.select_visible()
+    assert app.selected_chats
+    app.work('reload',lambda:session.open_source(session.settings['source']),app.ready)
+    pump(lambda:not app.busy)
+    assert not app.selected_chats and not app.parsed_results and not app.parse_states
+    assert session.pending_review is None
+finally:gate.set();root.destroy()
+'''
+        for client in ('wechat', 'wecom'):
+            with self.subTest(client=client):
+                self.run_ui(client, code)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -29,14 +29,37 @@ def inventory(root):
     return result
 
 
-def publish_review(pending, destination, checks, note=''):
+def approve_review(pending, checks, note=''):
     if not isinstance(checks, dict) or set(checks) != set(REVIEW_CHECKS) or any(value is not True for value in checks.values()):
         raise ArchiveError('请由人工完成全部复核检查后再确认导出。')
     if not isinstance(note, str) or len(note) > 4000:
         raise ArchiveError('复核备注须为不超过4000字的文本。')
-    root, destination = pending['root'], Path(destination)
-    if inventory(root) != pending['files']:
+    if inventory(pending['root']) != pending['files']:
         raise ArchiveError('待复核文件已变化，请重新解析并复核。')
+    return {**pending['summary'], 'status': 'confirmed',
+            'confirmedAt': datetime.now(BEIJING).isoformat(timespec='seconds'),
+            'confirmationBasis': 'explicit_review_checklist', 'checks': dict(checks), 'note': note,
+            'reviewedArtifacts': pending['files']}
+
+
+def validated_approval(pending):
+    review = pending.get('approval')
+    checks = review.get('checks', {}) if isinstance(review, dict) else {}
+    if (not isinstance(review, dict) or review.get('reviewId') != pending['summary']['reviewId'] or
+            review.get('chat') != pending['summary']['chat'] or review.get('status') != 'confirmed' or
+            review.get('reviewedArtifacts') != pending['files'] or
+            not isinstance(checks, dict) or set(checks) != set(REVIEW_CHECKS) or
+            any(value is not True for value in checks.values())):
+        raise ArchiveError('所选群尚未完成人工复核，请逐群复核后再一键导出。')
+    if inventory(pending['root']) != pending['files']:
+        pending.pop('approval', None)
+        raise ArchiveError('已复核文件已变化，请重新解析并复核。')
+    return review
+
+
+def publish_review(pending, destination, checks=None, note=''):
+    review = approve_review(pending, checks, note) if checks is not None else validated_approval(pending)
+    root, destination = pending['root'], Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
         raise ArchiveError('导出目录已存在，请使用新的目录。')
@@ -46,11 +69,6 @@ def publish_review(pending, destination, checks, note=''):
         if inventory(stage) != pending['files']:
             raise ArchiveError('复制期间解析结果发生变化，请重新解析并复核。')
         report = json.loads((stage / 'manifest.json').read_text(encoding='utf8'))
-        review = {**pending['summary'], 'status': 'confirmed',
-                  'confirmedAt': datetime.now(BEIJING).isoformat(timespec='seconds'),
-                  'confirmationBasis': 'explicit_review_checklist',
-                  'checks': dict(checks), 'note': note,
-                  'reviewedArtifacts': pending['files']}
         write_json(stage / 'review.json', review)
         report['humanReview'] = {'status': 'confirmed', 'reviewId': review['reviewId'], 'file': 'review.json'}
         report['reporting'] = completion_report(destination, report)

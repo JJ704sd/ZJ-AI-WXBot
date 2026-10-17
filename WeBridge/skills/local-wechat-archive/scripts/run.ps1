@@ -16,6 +16,9 @@ param(
     [switch]$NoMedia
 )
 $ErrorActionPreference = 'Stop'
+if ($Mode -eq 'Export') {
+    throw 'Direct export is disabled in Skill. Open -Mode Desktop, review the parsed group and confirm in the window.'
+}
 $skillDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not [Environment]::Is64BitOperatingSystem) { throw 'Windows x64 is required.' }
 $runtimePath = Join-Path $skillDirectory 'runtime.json'
@@ -57,7 +60,7 @@ function Write-JsonResult($value) {
     } finally { [Console]::OutputEncoding = $previousEncoding }
 }
 if ($Mode -in @('Parse','Desktop') -and ($Source -or $Keys -or $ImageKeys -or $SelfId -or $StartDate -or $EndDate -or $NoMedia)) {
-    throw 'Select source/key paths in Desktop settings. For filtered exports use -Mode Export.'
+    throw 'Select source/key paths and date/media filters in the Desktop window, then review before export.'
 }
 if ($Mode -in @('Parse','Desktop') -and $Chat -and $ChatName) { throw 'Select exactly one of -Chat or -ChatName.' }
 if ($Mode -eq 'Export' -and ((-not $Chat -and -not $ChatName) -or ($Chat -and $ChatName))) {

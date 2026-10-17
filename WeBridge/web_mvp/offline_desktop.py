@@ -43,6 +43,9 @@ class DesktopSession:
         self.source_status = ''
         self.views = {}
         self.pending_review = None
+        self._reviews = {}
+        self._exports = {}
+        self.last_batch_root = None
 
     def _settings(self):
         try:
@@ -204,9 +207,21 @@ class DesktopSession:
         return {'status': 'ready', 'groups': self.groups, 'message': self.source_status,
                 'snapshotTime': info['createdAt'], 'coverage': self.archive.coverage()}
 
-    def discard_review(self):
+    def discard_review(self, chat=None):
+        if chat is None:
+            self._reviews.clear()
+            self._exports.clear()
+            self.last_batch_root = None
+        else:
+            self._reviews.pop(chat, None)
+            self._exports.pop(chat, None)
         self.pending_review = None
         self.last_export = None
+
+    def activate_review(self, chat):
+        """Switch reading targets without losing other groups' unconfirmed batches."""
+        self.pending_review = self._reviews.get(chat)
+        self.last_export = self._exports.get(chat)
 
     def prepare_review(self, chat, start=None, end=None, copy_media=True, *, page_size=100):
         """Parse into a private reading cache; no final export or human conclusion."""
@@ -216,7 +231,7 @@ class DesktopSession:
         selected = self.archive.select_chat(chat_id=chat)
         if selected['conversationKind'] != 'group':
             raise ArchiveError('请选择当前账号的群聊 ID。')
-        self.discard_review()
+        self.discard_review(chat)
         review_id = uuid.uuid4().hex
         output = self.directory / 'reviews' / review_id
         report = self.archive.export(output, chat_id=chat, start=start, end=end, copy_media=copy_media)
@@ -237,27 +252,106 @@ class DesktopSession:
         view = self.views[chat].page(kind='business', page_size=page_size)
         self.pending_review = {'archive': self.archive, 'root': output,
                                'files': inventory(output), 'summary': summary}
+        self._reviews[chat] = self.pending_review
         self._save(last_chat=chat)
         return {'chat': selected, 'report': report, 'view': view,
                 'review': summary, 'reviewChecks': dict(REVIEW_CHECKS), 'state': 'awaiting_review'}
 
     def confirm_export(self, review_id, checks, note='', *, chat=None):
         """Export an unchanged reviewed batch; never parse a newer result here."""
-        from offline_review import publish_review
+        self.approve_review(review_id, checks, note, chat=chat)
+        pending = self.pending_review
+        output = self.directory / 'exports' / (datetime.now().strftime('%Y%m%d-%H%M%S-%f') + '-' + review_id[:8])
+        return self._publish_pending(pending, output)
+
+    def approve_review(self, review_id, checks, note='', *, chat=None):
+        from offline_review import approve_review
         pending = self.pending_review
         if (not pending or pending['archive'] is not self.archive or
                 pending['summary']['reviewId'] != review_id or
                 (chat is not None and pending['summary']['chat']['id'] != chat)):
             raise ArchiveError('复核目标已失效，请重新解析当前账号和群聊。')
         self.archive._check()
-        output = self.directory / 'exports' / (datetime.now().strftime('%Y%m%d-%H%M%S-%f') + '-' + review_id[:8])
-        result = publish_review(pending, output, checks, note)
+        pending['approval'] = approve_review(pending, checks, note)
+        return {'state': 'reviewed', 'review': pending['approval'], 'chat': pending['summary']['chat']}
+
+    def review_status(self, chat):
+        if chat in self._exports:
+            return '已导出'
+        pending = self._reviews.get(chat)
+        return ('已复核' if pending.get('approval') else '待复核') if pending else '未解析'
+
+    def _publish_pending(self, pending, output):
+        from offline_review import publish_review
+        self.archive._check()
+        result = publish_review(pending, output)
         self.last_export = output
-        self.pending_review = None
+        selected = pending['summary']['chat']['id']
+        self._exports[selected] = output
+        self._reviews.pop(selected, None)
+        if self.pending_review is pending:
+            self.pending_review = None
         return {'output': str(output), 'report': result, 'humanReview': result['humanReview'],
                 'mediaSummary': result['mediaSummary'], 'mediaSummaryText': result['mediaSummaryText'],
                 'reporting': result['reporting'],
                 'exportFiles': {kind: str(output / name) for kind, name in result['messageExports'].items()}}
+
+    def export_reviewed(self, chats):
+        """Preflight every selected batch, then publish each once with a batch index."""
+        from offline_chat import write_json
+        from offline_review import validated_approval
+        if not isinstance(chats, (list, tuple)) or not chats or any(not isinstance(chat, str) for chat in chats):
+            raise ArchiveError('请先勾选需要导出的群聊。')
+        chats = list(dict.fromkeys(chats))
+        if self.archive is None:
+            raise ArchiveError('请先加载数据。')
+        self.archive._check()
+        selected = []
+        already = []
+        for chat in chats:
+            if chat in self._exports:
+                already.append({'chatId': chat, 'output': str(self._exports[chat])})
+                continue
+            pending = self._reviews.get(chat)
+            if not pending or pending['archive'] is not self.archive:
+                raise ArchiveError('所选群中有未解析或已失效的群，请先解析并逐群复核。')
+            validated_approval(pending)
+            selected.append(pending)
+        result = {'version': 1, 'state': 'completed', 'output': None, 'exports': [], 'failed': [],
+                  'alreadyExported': already, 'selectedChatIds': chats}
+        if not selected:
+            return result
+        root = self.directory/'exports'/(datetime.now().strftime('%Y%m%d-%H%M%S-%f')+'-batch-'+uuid.uuid4().hex[:8])
+        root.mkdir(parents=True)
+        self.last_batch_root = root
+        result['output'] = str(root)
+        for index, pending in enumerate(selected, 1):
+            summary = pending['summary']
+            destination = root/(f'{index:02d}-'+summary['reviewId'][:8])
+            try:
+                exported = self._publish_pending(pending, destination)
+                result['exports'].append(exported)
+            except Exception as error:
+                result['failed'].append({'chatId': summary['chat']['id'], 'chatName': summary['chat']['name'],
+                                         'error': safe_issue(error)})
+        result['state'] = 'partial' if result['failed'] else 'completed'
+        index = {'version': 1, 'state': result['state'], 'selectedChatIds': chats, 'alreadyExported': already,
+                 'failed': result['failed'], 'groups': [{'chat': item['report']['chat'],
+                    'rows': item['report']['exportedRows'], 'reviewId': item['humanReview']['reviewId'],
+                    'directory': Path(item['output']).relative_to(root).as_posix(),
+                    'files': {kind: Path(path).relative_to(root).as_posix() for kind, path in item['exportFiles'].items()}}
+                    for item in result['exports']]}
+        write_json(root/'batch.json', index)
+        lines = ['# 群聊导出清单', '', f'本次导出 {len(index["groups"])} 个群，失败 {len(result["failed"])} 个，已导出跳过 {len(already)} 个。', '']
+        for group in index['groups']:
+            lines += [group['chat']['name']+' · '+group['chat']['id']+' · '+str(group['rows'])+' 条',
+                      ' / '.join('['+kind.upper()+']('+path+')' for kind, path in group['files'].items()), '']
+        for item in result['failed']:
+            lines += ['未完成：'+item['chatName']+' · '+item['chatId']+' · '+item['error'], '']
+        for item in already:
+            lines += ['已导出保留原结果：'+item['chatId']+' · '+item['output'], '']
+        (root/'导出清单.md').write_text('\n'.join(lines), encoding='utf8')
+        return result
 
     def scan(self):
         if self.client == 'wecom':

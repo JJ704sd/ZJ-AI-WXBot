@@ -9,6 +9,74 @@ from unittest.mock import patch
 
 
 class ProfileMigrationTests(unittest.TestCase):
+    def test_generic_skill_can_still_select_client_explicitly(self):
+        import hashlib
+        from local_chat_app import main
+        with tempfile.TemporaryDirectory() as folder:
+            base=Path(folder)
+            exe=base/'package/bin/local-chat-desktop-1.15.1.exe'
+            exe.parent.mkdir(parents=True)
+            exe.write_bytes(b'synthetic generic executable')
+            (exe.parent.parent/'runtime.json').write_text(json.dumps({'clientBinding':'selectable',
+                'exeRelativePath':'bin/'+exe.name,'exeSha256':hashlib.sha256(exe.read_bytes()).hexdigest()}),encoding='utf8')
+            for client in ('wechat','wecom'):
+                with self.subTest(client=client), patch.object(sys,'frozen',True,create=True), \
+                        patch.object(sys,'executable',str(exe)), patch('offline_batch.run_file',return_value=0) as batch:
+                    main(['--client',client,'--task-json',str(base/'request.json'),'--result-json',str(base/'result.json')])
+                    self.assertEqual(batch.call_args.kwargs['client'],client)
+
+    def test_broken_or_conflicting_skill_binding_never_opens_another_profile(self):
+        import hashlib
+        import io
+        from contextlib import redirect_stderr
+        from local_chat_app import main
+        with tempfile.TemporaryDirectory() as folder:
+            base=Path(folder)
+            exe=base/'package/bin/local-chat-desktop-1.15.1.exe'
+            exe.parent.mkdir(parents=True)
+            exe.write_bytes(b'synthetic executable')
+            manifest=exe.parent.parent/'runtime.json'
+            valid={'client':'wecom','exeRelativePath':'bin/'+exe.name,
+                   'exeSha256':hashlib.sha256(exe.read_bytes()).hexdigest()}
+            cases=[(valid,['--client','wechat']), (None,[]), ({**valid,'client':'unknown'},[]),
+                   ({**valid,'exeSha256':'0'*64},[]), ({**valid,'exeRelativePath':'../outside.exe'},[])]
+            for value, extra in cases:
+                if value is None:
+                    manifest.unlink(missing_ok=True)
+                else:
+                    manifest.write_text(json.dumps(value),encoding='utf8')
+                with self.subTest(value=value,extra=extra), redirect_stderr(io.StringIO()), \
+                        patch.dict(os.environ, {'LOCALAPPDATA':str(base/'user')}), \
+                        patch.object(sys,'frozen',True,create=True), patch.object(sys,'executable',str(exe)), \
+                        patch('offline_batch.run_file') as batch:
+                    with self.assertRaises(SystemExit) as raised:
+                        main(extra+['--task-json',str(base/'task.json'),'--result-json',str(base/'result.json')])
+                    self.assertEqual(raised.exception.code,2)
+                    batch.assert_not_called()
+                    self.assertFalse((base/'user').exists())
+
+    def test_double_clicked_skill_exe_selects_packaged_client_before_profile(self):
+        import hashlib
+        from local_chat_app import main
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)
+            # Random package names prove binding does not depend on folder labels.
+            for client, name in (('wechat', 'LocalWechatArchive'), ('wecom', 'LocalWeComArchive')):
+                package = base/client/'arbitrary-renamed-folder'
+                exe = package/'bin/local-chat-desktop-1.15.1.exe'
+                exe.parent.mkdir(parents=True)
+                exe.write_bytes(b'synthetic executable')
+                (package/'runtime.json').write_text(json.dumps({'client': client,
+                    'exeRelativePath': 'bin/'+exe.name,
+                    'exeSha256': hashlib.sha256(exe.read_bytes()).hexdigest()}), encoding='utf8')
+                with self.subTest(client=client), patch.dict(os.environ, {'LOCALAPPDATA': str(base/'user')}), \
+                        patch.object(sys, 'frozen', True, create=True), patch.object(sys, 'executable', str(exe)), \
+                        patch('offline_batch.run_file', return_value=0) as batch:
+                    self.assertEqual(main(['--task-json', str(base/'request.json'),
+                                           '--result-json', str(base/'result.json')]), 0)
+                    self.assertEqual(batch.call_args.kwargs['client'], client)
+                    self.assertEqual(Path(batch.call_args.args[2]).resolve(), (base/'user'/name).resolve())
+
     def test_desktop_and_skill_use_same_profile_after_executable_moves(self):
         from local_chat_app import main
         with tempfile.TemporaryDirectory() as folder:

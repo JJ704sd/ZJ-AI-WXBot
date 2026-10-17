@@ -39,7 +39,7 @@ for geometry in ('1200x760','1000x700'):
  app.date_toggle_button.invoke()
  root.update()
  assert app.date_frame.winfo_ismapped() and app.browser.winfo_height()<folded_height
- for widget in (app.export_button,app.export_format_picker,app.format_button,app.folder_button,*app.date_controls,app.first_button,app.last_button,app.message_search_button):
+ for widget in (app.export_button,app.review_button,app.batch_folder_button,*app.export_file_buttons.values(),app.folder_button,*app.date_controls,app.first_button,app.last_button,app.message_search_button):
   x,y=widget.winfo_rootx()-root.winfo_rootx(),widget.winfo_rooty()-root.winfo_rooty()
   assert widget.winfo_ismapped() and 0<=x and 0<=y and x+widget.winfo_width()<=root.winfo_width() and y+widget.winfo_height()<=root.winfo_height(),(geometry,widget.cget('text') if 'text' in widget.keys() else 'format',x,y)
 output=session.directory/'synthetic-export';output.mkdir(parents=True)
@@ -49,10 +49,19 @@ app.update_buttons()
 opened=[]
 import local_chat_app
 local_chat_app.os.startfile=opened.append
-for label in ('JSONL','JSON','MD'):
- app.export_format.set(label)
- app.format_button.invoke()
+for label in ('JSONL','JSON','Markdown'):
+ app.export_file_buttons[label].invoke()
 assert [Path(p).name for p in opened]==['messages.jsonl','messages.json','messages.md']
+app.folder_button.invoke()
+assert Path(opened[-1])==output
+# An absent association falls back to the built-in viewer for this exact file.
+from unittest.mock import patch
+with patch('local_chat_app.os.startfile',side_effect=OSError),patch('local_chat_app.subprocess.Popen') as launch:
+ app.export_file_buttons['JSONL'].invoke()
+ assert Path(launch.call_args.args[0][-1])==output/'messages.jsonl'
+(output/'messages.json').unlink();app.update_buttons()
+assert app.export_file_buttons['JSON'].instate(['disabled'])
+assert app.export_file_buttons['JSONL'].instate(['!disabled'])
 app.start_date.set('2026-10-10')
 picker=app.choose_date(app.start_date,'开始')
 picker.update()

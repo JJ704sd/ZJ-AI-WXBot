@@ -53,7 +53,9 @@ class Fixture {
             if (receipt==null) return;
             File.WriteAllText(receipt, "{\"state\":\"starting\"}");
             Thread.Sleep(1200);
-            File.WriteAllText(receipt, "{\"state\":\"completed\",\"ok\":true,\"exportedRows\":2}");
+            string name = JsonString(File.ReadAllText(launch), "chatName");
+            string final = name == "Awaiting review" ? "{\"state\":\"awaiting_review\",\"ok\":false,\"exportedRows\":2}" : "{\"state\":\"completed\",\"ok\":true,\"exportedRows\":2}";
+            File.WriteAllText(receipt, final);
             return;
         }
         if (path==null) return;
@@ -78,3 +80,28 @@ class Fixture {
             receipt = Path(output['resultFile'])
             self.assertEqual(receipt.parent, root / 'profile/requests')
             self.assertEqual(json.loads(receipt.read_text())['state'], 'completed')
+            result = subprocess.run([str(powershell), '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                '-File', str(root / 'scripts/run.ps1'), '-ChatName', 'Awaiting review',
+                '-DataDir', str(root / 'review-profile')], capture_output=True, timeout=30)
+            self.assertEqual(result.returncode, 0, result.stderr.decode(errors='replace'))
+            pending = json.loads(result.stdout.decode('utf-8-sig'))
+            self.assertEqual(pending['state'], 'awaiting_review')
+            self.assertFalse(pending['ok'])
+            self.assertEqual(json.loads(Path(pending['resultFile']).read_text())['state'], 'awaiting_review')
+            self.assertNotIn('exportFiles', pending)
+            self.assertFalse((root / 'review-profile/exports').exists())
+
+
+
+    def test_direct_export_is_rejected_before_profile_or_runtime_access(self):
+        project = Path(__file__).resolve().parents[1]
+        powershell = Path(os.environ['SYSTEMROOT']) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
+        with tempfile.TemporaryDirectory(prefix='synthetic-skill-gate-') as folder:
+            profile = Path(folder) / 'profile'
+            result = subprocess.run([str(powershell), '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                '-File', str(project / 'skills/local-wechat-archive/scripts/run.ps1'),
+                '-Mode', 'Export', '-ChatName', 'Synthetic sample', '-DataDir', str(profile)],
+                capture_output=True, timeout=10)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('Direct export is disabled', result.stderr.decode(errors='replace'))
+            self.assertFalse(profile.exists())
