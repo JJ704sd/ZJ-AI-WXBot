@@ -40,7 +40,7 @@ for geometry in ('1200x760','1000x700'):
  app.date_toggle_button.invoke()
  root.update()
  assert app.date_frame.winfo_ismapped() and app.browser.winfo_height()<folded_height
- for widget in (app.export_button,app.review_button,app.batch_folder_button,*app.export_file_buttons.values(),app.folder_button,*app.date_controls,app.first_button,app.last_button,app.message_search_button,app.search_clear_button,app.group_id_entry,app.copy_current_id_button,app.next_review_button):
+ for widget in (app.export_button,app.review_button,app.batch_folder_button,*app.export_file_buttons.values(),app.folder_button,*app.date_controls,app.first_button,app.last_button,app.message_search_button,app.search_clear_button,app.group_id_entry,app.copy_current_id_button,app.next_review_button,app.parse_button,app.reparse_button):
   x,y=widget.winfo_rootx()-root.winfo_rootx(),widget.winfo_rooty()-root.winfo_rooty()
   assert widget.winfo_ismapped() and 0<=x and 0<=y and x+widget.winfo_width()<=root.winfo_width() and y+widget.winfo_height()<=root.winfo_height(),(geometry,widget.cget('text') if 'text' in widget.keys() else 'format',x,y)
 output=session.directory/'synthetic-export';output.mkdir(parents=True)
@@ -302,6 +302,9 @@ try:
     assert app.tree.get_children()==(GROUP,)
     app.search_entry.focus_force();root.update()
     app.search_entry.event_generate('<Return>')
+    root.update()
+    assert app.active_chat==GROUP and not app.parsed_results and not app.busy,'search Enter unexpectedly parsed records'
+    app.parse_button.invoke()
     pump(lambda:session.settings.get('lastChat')==GROUP and not app.busy)
     app.search.set('不存在的关键词');root.update()
     assert not app.tree.get_children()

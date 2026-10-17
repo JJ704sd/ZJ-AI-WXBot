@@ -25,7 +25,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v27'
+GUI_RELEASE = 'v28'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -63,6 +63,7 @@ class ChatApp:
         self.batch_queue = []
         self.batch_ids = []
         self.batch_running = False
+        self.batch_reused = 0
         self.batch_cancel_requested = False
         self.receipt_chat = None
         self.batch_output = None
@@ -195,9 +196,13 @@ class ChatApp:
         self.search_clear_button.pack(side='right', padx=(4, 0))
         self.search_entry = ttk.Entry(search_bar, textvariable=self.search)
         self.search_entry.pack(side='left', fill='x', expand=True)
-        self.search_entry.bind('<Return>', self.choose_search_result)
-        self.parse_button = ttk.Button(self.sidebar, text='先选择需要解析的群', style='Accent.TButton', command=self.choose_search_result, state='disabled')
-        self.parse_button.pack(fill='x', pady=6)
+        self.search_entry.bind('<Return>', self.locate_search_result)
+        parse_bar = ttk.Frame(self.sidebar)
+        parse_bar.pack(fill='x', pady=6)
+        self.reparse_button = ttk.Button(parse_bar, text='重新解析', command=self.reparse_targets, state='disabled')
+        self.reparse_button.pack(side='right', padx=(4, 0))
+        self.parse_button = ttk.Button(parse_bar, text='先选择群聊', style='Accent.TButton', command=self.choose_search_result, state='disabled')
+        self.parse_button.pack(side='left', fill='x', expand=True)
         picks = ttk.Frame(self.sidebar)
         picks.pack(fill='x')
         self.select_all_button = ttk.Button(picks, text='全选当前结果', command=self.select_visible)
@@ -457,12 +462,17 @@ class ChatApp:
         self.search_entry.configure(state=state)
         self.search_clear_button.configure(state=state if self.search.get() else 'disabled')
         self.review_filter_choice.configure(state='readonly' if state == 'normal' else 'disabled')
-        target = self.selected_chats or (self.tree.get_children() if self.search.get().strip() else self.active_chat)
-        self.parse_button.configure(state=state if self.groups and target else 'disabled')
+        targets, needed = self.parse_plan()
+        self.parse_button.configure(state=state if targets else 'disabled')
+        self.reparse_button.configure(state=state if any(chat in self.parsed_results for chat in targets) else 'disabled')
         self.select_all_button.configure(state=state if self.tree.get_children() else 'disabled')
         self.clear_selection_button.configure(state=state if self.selected_chats else 'disabled')
         self.cancel_batch_button.configure(state='normal' if self.batch_running and not self.batch_cancel_requested and not self.closing else 'disabled')
-        self.next_review_button.configure(state=state if any(key != self.active_chat for key in self.review_targets()) else 'disabled')
+        pending = self.review_targets()
+        self.next_review_button.configure(state=state if any(key != self.active_chat for key in pending) else 'disabled',
+            text=f'下一个未复核群 · {len(pending)}' if len(pending) > 1 else
+                 '查看待复核群 · 1' if pending and pending[0] != self.active_chat else
+                 '当前群待复核' if pending else '暂无待复核群')
         self.tree.state(['disabled'] if state == 'disabled' else ['!disabled'])
         readable = self.active_chat and self.parsed_chat == self.active_chat
         self.kind_choice.configure(state='readonly' if state == 'normal' and readable else 'disabled')
@@ -496,7 +506,7 @@ class ChatApp:
         elif not self.selected_chats:
             hint = '先勾选群聊，解析后逐群复核。'
         elif unparsed:
-            hint = f'还有 {unparsed} 群未解析，请点击左侧解析按钮。'
+            hint = f'还有 {unparsed} 群未解析；其他已有结果将复用。'
         elif waiting:
             hint = f'还有 {waiting} 群未复核，请查看后点击“复核当前群”。'
         elif ready:
@@ -598,7 +608,7 @@ class ChatApp:
             choices = [group for group in choices if self.review_label(group['id']) == label]
         self.group_title.set(f'{scope} · {len(choices)} 个' if scope != '全部群聊' else
                              f'匹配群聊 · {len(choices)} 个' if query else f'全部本地群聊 · {len(choices)} 个')
-        self.group_hint.set('单击查看，空格勾选；Ctrl+A 全选当前结果。搜索和筛选保留勾选。' if choices else '没有匹配群聊；切换“全部群聊”或清除搜索。已有勾选保留。')
+        self.group_hint.set('回车定位；解析会复用已有结果。\n重新解析将重置对应群复核。' if choices else '没有匹配群聊；切换“全部群聊”或清除搜索。已有勾选保留。')
         for group in choices:
             name = ('上次查看 · ' if group['recent'] else '') + group['choiceLabel']
             count = group.get('localMessageCount', '有记录' if group.get('hasLocalMessages') else '暂无')
@@ -667,21 +677,43 @@ class ChatApp:
         self.update_parse_caption()
 
     def update_parse_caption(self):
-        count = len(self.selected_chats)
+        targets, needed = self.parse_plan()
         if self.batch_running:
-            text = '正在解析所选群…'
-        elif count:
-            prepared = sum(chat in self.parsed_results for chat in self.selected_chats)
-            text = ('重新解析' if prepared == count else '解析') + f'所选 {count} 群'
-            if 0 < prepared < count:
-                text += '（含重解析）'
-        elif self.search.get().strip() and not self.tree.selection():
-            text = '解析搜索结果'
-        elif self.active_chat:
-            text = '重新解析当前群' if self.active_chat in self.parsed_results else '解析当前群'
+            text = f'正在解析 {len(self.batch_ids) - len(self.batch_queue)}/{len(self.batch_ids)}'
+        elif needed:
+            text = f'解析待处理 {len(needed)} 群' if self.selected_chats else '解析搜索结果' if self.search.get().strip() else '解析当前群'
+        elif targets:
+            text = '查看待复核群' if any(self.session.review_status(chat) == '待复核' for chat in targets) else '查看已有结果'
         else:
-            text = '解析搜索结果' if self.search.get().strip() else '先选择需要解析的群'
+            text = '先选择群聊'
         self.parse_button.configure(text=text)
+
+    def parse_targets(self):
+        if self.selected_chats:
+            return [group['id'] for group in self.groups if group['id'] in self.selected_chats]
+        query = self.search.get().strip()
+        selected = self.tree.selection()
+        if not query:
+            chat = selected[0] if selected else self.active_chat
+            return [chat] if chat and any(group['id'] == chat for group in self.groups) else []
+        choices = self.tree.get_children()
+        if selected:
+            return [selected[0]]
+        exact = [group['id'] for group in self.groups if group['id'] in choices and
+                 (group['name'] == query or group['id'] == query)]
+        matches = exact or list(choices)
+        return [matches[0]] if len(matches) == 1 else []
+
+    def parse_plan(self):
+        targets = self.parse_targets()
+        options = (self.start_date.get().strip() or None, self.end_date.get().strip() or None, self.copy_media.get())
+        needed = []
+        for chat in targets:
+            summary = self.parsed_results.get(chat, {}).get('review')
+            if (not summary or self.session.review_status(chat) == '未解析' or options !=
+                    (summary['startDate'], summary['endDate'], summary['copyMediaRequested'])):
+                needed.append(chat)
+        return targets, needed
 
     def toggle_group(self, chat):
         if self.busy or self.batch_running or self.closing or not self.tree.exists(chat):
@@ -737,38 +769,43 @@ class ChatApp:
             self.root.clipboard_append(self.active_chat)
             self.status.set('已复制当前查看群的 ID。')
 
-    def choose_search_result(self, _event=None):
-        if self.busy or self.batch_running:
-            return
-        if self.selected_chats:
-            self.start_batch([group['id'] for group in self.groups if group['id'] in self.selected_chats])
-            return
+    def locate_search_result(self, _event=None):
+        if self.busy or self.batch_running or self.closing:
+            return 'break'
         query = self.search.get().strip()
-        if not query:
-            selected = self.tree.selection()
-            chat = selected[0] if selected else self.active_chat
-            if chat:
-                self.start_parse(chat)
-            else:
-                self.group_hint.set('请先选择要解析的群 ID。')
-            return
         choices = self.tree.get_children()
-        selected = self.tree.selection()
-        if selected:
-            self.start_parse(selected[0])
-            return
-        exact = [row['id'] for row in self.groups if row['id'] in choices and
-                 (row['name'] == query or row['id'] == query)]
+        exact = [group['id'] for group in self.groups if group['id'] in choices and
+                 (group['name'] == query or group['id'] == query)] if query else []
         matches = exact or list(choices)
         if len(matches) == 1:
-            self.start_parse(matches[0])
-        elif choices:
-            selected = self.tree.selection()
-            if selected:
-                self.start_parse(selected[0])
+            self.focus_chat(matches[0])
+        elif matches:
+            self.group_hint.set(f'找到 {len(matches)} 个候选；请按群 ID 勾选或单击查看。')
+            self.status.set('搜索只定位群聊；请确认群 ID 后点击解析。')
+            self.tree.focus_set()
+        else:
+            self.status.set('没有匹配群聊，请修改搜索或点击“清除”。')
+        return 'break'
+
+    def choose_search_result(self, _event=None):
+        if self.busy or self.batch_running or self.closing:
+            return
+        targets, needed = self.parse_plan()
+        if needed:
+            self.start_batch(needed, reused=len(targets) - len(needed))
+        elif targets:
+            pending = [chat for chat in targets if self.session.review_status(chat) == '待复核']
+            if pending:
+                chat = pending[(pending.index(self.active_chat) + 1) % len(pending)] if self.active_chat in pending else pending[0]
             else:
-                self.group_hint.set(f'找到 {len(choices)} 个群，请按群 ID 选择。')
-                self.tree.focus_set()
+                chat = self.active_chat if self.active_chat in targets else targets[0]
+            self.focus_chat(chat)
+        else:
+            self.locate_search_result()
+
+    def reparse_targets(self):
+        if not self.busy and not self.batch_running and not self.closing:
+            self.start_batch(self.parse_targets())
 
     def selection(self, _event=None):
         if self.busy or self.batch_running:
@@ -810,7 +847,7 @@ class ChatApp:
     def start_parse(self, chat):
         self.start_batch([chat])
 
-    def start_batch(self, chats):
+    def start_batch(self, chats, *, reused=0):
         if self.busy or self.batch_running or self.closing:
             return
         known = {group['id'] for group in self.groups}
@@ -824,6 +861,7 @@ class ChatApp:
             self.status.set(str(error))
             return
         self.batch_ids = chats
+        self.batch_reused = reused
         self.batch_queue = list(chats)
         self.batch_options = (start, end, self.copy_media.get(), int(self.page_size.get()))
         self.batch_running = True
@@ -857,7 +895,7 @@ class ChatApp:
             if self.batch_succeeded:
                 self.show_chat(self.batch_succeeded[0])
             self.render_groups()
-            self.status.set(f'本次解析完成 {len(self.batch_succeeded)} 个群，失败 {len(self.batch_failed)} 个，停止 {stopped} 个。逐群查看后人工复核，确认才导出。')
+            self.status.set(f'本次解析完成 {len(self.batch_succeeded)} 个群，复用 {self.batch_reused} 个，失败 {len(self.batch_failed)} 个，停止 {stopped} 个。逐群复核后再导出。')
             self.update_buttons()
             return
         chat = self.batch_queue.pop(0)
@@ -935,10 +973,14 @@ class ChatApp:
         if not pending:
             return
         chat = pending[(pending.index(self.active_chat) + 1) % len(pending)] if self.active_chat in pending else pending[0]
+        self.focus_chat(chat)
+
+    def focus_chat(self, chat):
         if not self.tree.exists(chat):
             self.search.set('')
         if not self.tree.exists(chat):
-            self.review_filter.set('所选未复核' if chat in self.selected_chats else '全部群聊')
+            self.review_filter.set('所选未复核' if chat in self.selected_chats and self.review_label(chat) == '未复核' else
+                                   '所选群聊' if chat in self.selected_chats else '全部群聊')
             self.render_groups()
         self.tree.selection_set(chat)
         self.tree.see(chat)

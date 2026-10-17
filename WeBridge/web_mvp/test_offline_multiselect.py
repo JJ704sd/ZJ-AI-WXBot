@@ -146,9 +146,9 @@ try:
     app.parse_button.invoke()
     pump(lambda:not app.busy and not app.batch_running)
     root.update()
-    assert app.active_chat==first,'completed queue displayed a different group'
+    assert app.active_chat==second,'completed queue did not show the newly parsed group'
     assert set(app.parsed_results)=={first,second}
-    assert app.parsed_results[first]['review']['reviewId']!=original
+    assert app.parsed_results[first]['review']['reviewId']==original,'existing preview was needlessly reparsed'
     assert all(app.parse_states[c]=='待复核' for c in (first,second))
     assert not (base/'exports').exists(),'parse auto-exported before confirmation'
     assert json.loads(receipt.read_text(encoding='utf8'))['chatId']==first
@@ -248,10 +248,10 @@ try:
     assert app.parse_button.instate(['disabled']),'empty search could parse the previously viewed group'
     app.search_clear_button.invoke();root.update()
     app.select_visible();root.update()
-    assert app.parse_button.cget('text')=='解析所选 2 群' and '未解析' in app.workflow_hint.get()
+    assert app.parse_button.cget('text')=='解析待处理 2 群' and '未解析' in app.workflow_hint.get()
     assert all(app.tree.set(c,'review')=='未复核' for c in (first,second))
     app.parse_button.invoke();pump(lambda:not app.busy and not app.batch_running)
-    assert app.parse_button.cget('text')=='重新解析所选 2 群' and '未复核' in app.workflow_hint.get()
+    assert app.parse_button.cget('text')=='查看待复核群' and '未复核' in app.workflow_hint.get()
     assert app.current_group_id.get()==app.active_chat
     app.copy_current_id_button.invoke();assert root.clipboard_get()==app.active_chat
     for size in ('1200x760','1000x700'):
@@ -301,6 +301,47 @@ try:
     pump(lambda:not app.busy)
     assert all(app.tree.set(c,'review')=='未复核' for c in (first,second))
     assert not app.selected_chats and app.current_review_state.get()=='未选群'
+finally:root.destroy()
+'''
+        for client in ('wechat', 'wecom'):
+            with self.subTest(client=client):
+                self.run_ui(client, code)
+
+    def test_default_parse_preserves_reviews_and_reparse_is_explicit(self):
+        code = '''
+from offline_review import REVIEW_CHECKS
+app=ChatApp(root,session)
+try:
+    pump(lambda:len(app.groups)==2 and not app.busy)
+    app.start_parse(first);pump(lambda:not app.busy and not app.batch_running)
+    original=app.parsed_results[first]['review']['reviewId']
+    approval=session.approve_review(original,{k:True for k in REVIEW_CHECKS},'合成复核，不代表真实人工验收',chat=first)
+    app.review_ready(approval);root.update()
+    app.select_visible();root.update()
+    assert app.parse_button.cget('text')=='解析待处理 1 群'
+    app.parse_button.invoke();pump(lambda:not app.busy and not app.batch_running)
+    assert app.batch_ids==[second] and app.batch_reused==1
+    assert app.parsed_results[first]['review']['reviewId']==original and session.review_status(first)=='已复核'
+    second_id=app.parsed_results[second]['review']['reviewId']
+    app.parse_button.invoke();root.update()
+    assert app.active_chat==second and not app.busy and not app.batch_running
+    assert app.parsed_results[second]['review']['reviewId']==second_id
+    app.search.set(first);app.search_entry.focus_force();root.update()
+    app.search_entry.event_generate('<Return>');root.update()
+    assert app.active_chat==first and app.selected_chats=={first,second} and not app.busy
+    assert session.review_status(first)=='已复核' and app.parsed_results[second]['review']['reviewId']==second_id
+    app.search_clear_button.invoke();app.clear_selection();app.toggle_group(first);root.update()
+    app.start_date.set('2099-01-01');root.update()
+    app.parse_button.invoke();pump(lambda:not app.busy and not app.batch_running)
+    assert app.parsed_results[first]['review']['reviewId']!=original and session.review_status(first)=='待复核'
+    assert app.parsed_results[second]['review']['reviewId']==second_id,'range change reparsed an unselected group'
+    app.show_chat(second);app.select_visible();root.update()
+    before={c:app.parsed_results[c]['review']['reviewId'] for c in (first,second)}
+    assert app.reparse_button.instate(['!disabled'])
+    app.reparse_button.invoke();pump(lambda:not app.busy and not app.batch_running)
+    assert all(app.parsed_results[c]['review']['reviewId']!=before[c] for c in (first,second))
+    assert all(session.review_status(c)=='待复核' for c in (first,second))
+    assert not (base/'exports').exists(),'a navigation or reparse action exported before human confirmation'
 finally:root.destroy()
 '''
         for client in ('wechat', 'wecom'):
