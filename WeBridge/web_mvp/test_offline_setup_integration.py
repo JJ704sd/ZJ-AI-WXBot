@@ -53,6 +53,9 @@ for client,child in [('wechat','db_storage'),('wecom','Data')]:
         'databases':[{'path':'session.db' if client=='wecom' else 'session/session.db'}]} for p in (saved,running)]}
     # Only the Windows file-owner boundary is substituted.
     scan=identify_accounts(discovery,client,ownership=lambda paths,_: [(81,100)] if paths[0].is_relative_to(running) else [])
+    for item in scan['accounts']:
+        item['accountNickname']='合成昵称-'+item['directoryLabel']
+        item['profileBasis']='configured_self_id:contact'
     session.scan=lambda:discovery
     boundary=patch('offline_accounts._windows_owners',lambda paths,_: [(81,100)] if paths[0].is_relative_to(running) else [])
     boundary.start()
@@ -69,10 +72,12 @@ for client,child in [('wechat','db_storage'),('wecom','Data')]:
         dialog=app.source_dialog
         chooser=next(w for w in widgets(dialog) if w.winfo_class()=='TCombobox')
         assert '已保存配置' in chooser.get() and 'saved' in chooser.get(),chooser.get()
+        assert '合成昵称-saved' in chooser.get(),chooser.get()
         select=next(w for w in widgets(dialog) if w.winfo_class()=='TButton' and w.cget('text')=='选择已确认的运行账号')
         assert 'disabled' not in select.state()
         select.invoke();root.update()
         assert 'running' in chooser.get() and '运行中' in chooser.get(),chooser.get()
+        assert '合成昵称-running' in chooser.get() and '本地昵称/名称' in app.status.get()
         entries=[w for w in widgets(dialog) if w.winfo_class()=='TEntry']
         assert Path(entries[0].get())==(running/'db_storage' if client=='wechat' else running)
         assert all(not w.get() for w in entries[1:]),'old source key/identity reused across accounts'

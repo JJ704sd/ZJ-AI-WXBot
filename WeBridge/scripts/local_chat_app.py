@@ -20,12 +20,12 @@ if not getattr(sys, 'frozen', False):
 
 from offline_chat import BEIJING, date_range
 from offline_calendar import DatePicker
-from offline_accounts import group_choices, identify_accounts, same_account_source
+from offline_accounts import group_choices, same_account_source
 from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v29'
+GUI_RELEASE = 'v30'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -554,7 +554,8 @@ class ChatApp:
         self.search.set((self.open_request or {}).get('chat_name') or '')
         source = Path(self.session.archive.media_config.get('sourceRoot', ''))
         label = source.parent.name if source.name in ('db_storage', 'Data') else source.name
-        self.account_text.set('当前账号目录：' + label + ' · 全部本地群 ' + str(len(self.groups)) + ' 个 · 按群 ID 选择')
+        nickname = value.get('accountProfile', {}).get('accountNickname') or '昵称未取得'
+        self.account_text.set('当前账号：' + nickname + ' · 目录：' + label + ' · 全部本地群 ' + str(len(self.groups)) + ' 个 · 按群 ID 选择')
         self.render_groups()
         stamp = datetime.fromisoformat(value['snapshotTime']).astimezone(BEIJING).strftime('%Y-%m-%d %H:%M:%S')
         self.subtitle.set(value['message'] + ' · 副本时间 ' + stamp + '（北京时间）')
@@ -1366,8 +1367,7 @@ class ChatApp:
             self.source_settings()
 
     def scan(self):
-        self.work('识别当前微信进程与账号数据库',
-                  lambda: identify_accounts(self.session.scan(), getattr(self.session, 'client', 'wechat')), self.scan_ready)
+        self.work('识别当前客户端占用与本地账号昵称', self.session.scan_accounts, self.scan_ready)
 
     def scan_ready(self, value):
         self.account_scan = value
@@ -1485,6 +1485,15 @@ class ChatApp:
                 detail += '多个账号同时在用，请按账号目录选择。'
             if self.account_scan.get('scanIncomplete'):
                 detail += '部分目录归属未确认，暂不推荐唯一账号。'
+            nickname = item.get('accountNickname')
+            if nickname:
+                basis = '已配置本人ID' if item.get('profileBasis', '').startswith('configured_self_id') else '账号目录ID精确匹配'
+                detail += f'本地昵称/名称：{nickname}；来源：{basis}。'
+            else:
+                if item.get('profileStatus') == 'needs_key':
+                    detail += '昵称未取得：现有密钥不适用于该资料库；请先完成此账号配置，再重新识别。'
+                else:
+                    detail += '昵称未取得；请核对本人ID、资料访问权限或先完成该账号配置，再重新识别。'
             desired = 'normal' if can_choose else 'disabled'
             choose_running.configure(state=desired)
             self.source_controls[:] = [(widget, desired if widget is choose_running else original)
@@ -1517,7 +1526,8 @@ class ChatApp:
             for index, item in enumerate(items):
                 state = states.get(item.get('processState'), '归属未确认')
                 pids = ','.join(str(pid) for pid in item.get('processIds', []))
-                label = f'{index + 1}. {item["directoryLabel"]} · {state}' + (' · PID ' + pids if pids else '')
+                nickname = item.get('accountNickname') or '昵称未取得'
+                label = f'{index + 1}. {nickname} · {item["directoryLabel"]} · {state}' + (' · PID ' + pids if pids else '')
                 if same_account_source(item['sourceRoot'], saved_source, self.session.client):
                     label += ' · 已保存配置'
                 label += f' · {len(item.get("databases", []))}个数据库'

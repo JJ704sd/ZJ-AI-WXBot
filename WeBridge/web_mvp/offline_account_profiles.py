@@ -1,0 +1,171 @@
+"""Read account names from stable contact-only copies with existing local keys.
+
+Names are display metadata, never process ownership or authentication evidence.
+No message database, process memory, key recovery, or persistent profile writes.
+"""
+from contextlib import closing
+from pathlib import Path
+import re
+import sqlite3
+import tempfile
+import time
+import unicodedata
+
+from database_snapshot import (SQLITE_HEADER, SnapshotError, _signature, _copy_file,
+                               _hash_file, _load_keys, _decrypt_database, _quick_check)
+from database_wal import apply_wal
+from offline_accounts import same_account_source
+
+MAX_PROFILE_BYTES = 64 * 1024 * 1024
+
+
+def display_name(value):
+    """Keep display text on one bounded line; never use it as an identifier."""
+    if isinstance(value, bytes):
+        value = value.decode('utf8')
+    if not isinstance(value, str):
+        return ''
+    return ''.join(' ' if unicodedata.category(c).startswith('C') else c for c in value).strip()[:120]
+
+
+def _existing_keys(paths, client):
+    keys = {}
+    for path in list(paths)[:16]:
+        try:
+            if client == 'wecom':
+                from wecom_snapshot import load_keys
+                loaded = load_keys(path)
+            else:
+                loaded = _load_keys(path)
+            for name, values in loaded.items():
+                keys.setdefault(name, []).extend(key for key in values if key not in keys.get(name, []))
+        except (OSError, ValueError):
+            continue
+    return keys
+
+
+def _capture(path, root, temporary):
+    """Copy just one contact DB and its committed WAL; never SQLite-open live data."""
+    def inventory():
+        files = [path]
+        wal = Path(str(path) + '-wal')
+        if wal.exists():
+            files.append(wal)
+        journal = Path(str(path) + '-journal')
+        if journal.exists() and journal.stat().st_size:
+            raise SnapshotError('profile_changing')
+        for item in files:
+            if (item.is_symlink() or not item.resolve().is_relative_to(root)
+                    or not item.is_file() or item.stat().st_size > MAX_PROFILE_BYTES):
+                raise SnapshotError('profile_unavailable')
+        return {p: _signature(p) for p in files}
+    before = inventory()
+    hashes = {p: _copy_file(p, temporary / p.name) for p in before}
+    if (before != inventory() or any(_hash_file(p) != digest for p, digest in hashes.items())
+            or before != inventory()):
+        raise SnapshotError('profile_changing')
+
+
+def _read_profile(path, root, keys, client, ids):
+    with tempfile.TemporaryDirectory(prefix='local-account-info-') as folder:
+        temporary = Path(folder)
+        _capture(path, root, temporary)
+        raw = temporary / path.name
+        plain = temporary / 'profile.sqlite'
+        with raw.open('rb') as stream:
+            first = stream.read(65536)
+        cipher = None
+        if client != 'wecom' or first.startswith(SQLITE_HEADER):
+            if client == 'wechat' and not first.startswith(SQLITE_HEADER) and not keys.get(first[:16]):
+                raise SnapshotError('profile_key_unavailable')
+            size, cipher = _decrypt_database(raw, plain, keys if client == 'wechat' else {})
+        else:
+            from wecom_crypto import WeComCipher, page_size
+            size = page_size(first)
+            cipher = next((WeComCipher(key) for key in keys.get('user.db', []) + keys.get('*', [])
+                           if WeComCipher(key).verifies(first[:size])), None)
+            if cipher is None:
+                raise SnapshotError('profile_key_unavailable')
+            with raw.open('rb') as incoming, plain.open('xb') as outgoing:
+                number = 1
+                while data := incoming.read(size):
+                    if len(data) != size:
+                        raise SnapshotError('profile_incomplete')
+                    outgoing.write(cipher.page(data, number))
+                    number += 1
+        wal = temporary / (path.name + '-wal')
+        if wal.exists():
+            apply_wal(plain, wal, expected_page_size=size, decode_page=cipher.page if cipher else None)
+        _quick_check(plain)
+        with closing(sqlite3.connect(plain.resolve().as_uri() + '?mode=ro&immutable=1', uri=True)) as db:
+            db.execute('PRAGMA query_only=ON')
+            table, identity, fields = ('user_table', 'id', ('name', 'real_name')) if client == 'wecom' else ('contact', 'username', ('nick_name',))
+            columns = {r[1] for r in db.execute('PRAGMA table_info("' + table + '")')}
+            if not {identity, *fields} <= columns:
+                return [], 'unsupported_schema'
+            selected = ','.join('"' + field + '"' for field in (identity, *fields))
+            placeholders = ','.join('?' for _ in ids)
+            rows = db.execute('SELECT ' + selected + ' FROM "' + table + '" WHERE CAST("' + identity + '" AS TEXT) IN (' + placeholders + ') LIMIT 3', ids).fetchall()
+            values = []
+            for row in rows:
+                label = next((display_name(value) for value in row[1:] if display_name(value)), '')
+                if label:
+                    values.append((str(row[0].decode('utf8') if isinstance(row[0], bytes) else row[0]), label))
+            return values, table
+
+
+def account_profiles(discovery, client='wechat', *, key_files=(), configured_source='', configured_self_id=''):
+    """Enrich discovered accounts with names; unknown names never affect selection.
+
+    Uses at most 16 explicitly supplied key files and 32 discovered accounts.
+    Folder-derived IDs only support exact contact lookup, not self-ID assignment.
+    """
+    keys = _existing_keys(key_files, client)
+    rows = []
+    deadline = time.monotonic() + 10
+    for index, item in enumerate(discovery.get('accounts', [])):
+        row = {**item, 'accountNickname': '', 'accountId': '', 'profileStatus': 'unavailable', 'profileBasis': 'none'}
+        try:
+            source = Path(item['sourceRoot'])
+            if source.is_symlink():
+                raise SnapshotError('profile_unavailable')
+            source = source.resolve()
+            child = source / ('Data' if client == 'wecom' else 'db_storage')
+            root = child if child.is_dir() else source
+            account = root.parent if root.name in ('Data', 'db_storage') else root
+            ids = []
+            if configured_self_id and same_account_source(root, configured_source, client):
+                ids = [str(configured_self_id)]
+                basis = 'configured_self_id'
+            else:
+                label = account.name
+                if client == 'wecom' and label.isdigit():
+                    ids = [label]
+                elif client == 'wechat' and re.fullmatch(r'wxid_[A-Za-z0-9_]+', label):
+                    ids = [label]
+                    if re.search(r'_[0-9a-fA-F]{4}$', label):
+                        ids.append(label.rsplit('_', 1)[0])
+                basis = 'directory_id_exact_contact'
+            if not ids:
+                row['profileStatus'] = 'unknown_id'
+            elif index >= 32 or time.monotonic() > deadline:
+                row['profileStatus'] = 'not_checked'
+            else:
+                if root.is_symlink():
+                    raise SnapshotError('profile_unavailable')
+                relative = 'user.db' if client == 'wecom' else 'contact/contact.db'
+                path = root / relative
+                if client == 'wechat' and not path.is_file():
+                    path = root / 'contact.db'
+                values, table = _read_profile(path, root.resolve(), keys, client, ids)
+                unique = set(values)
+                if len(values) == 1 and len(unique) == 1:
+                    row.update(accountId=values[0][0], accountNickname=values[0][1], profileStatus='matched',
+                               profileBasis=basis + ':' + table)
+                else:
+                    row['profileStatus'] = 'ambiguous' if len(values) > 1 else 'name_not_found'
+        except (OSError, ValueError, sqlite3.Error, UnicodeError) as error:
+            # No paths, SQL content, keys or contact values leave error diagnostics.
+            row['profileStatus'] = 'needs_key' if isinstance(error, SnapshotError) and str(error) == 'profile_key_unavailable' else 'unavailable'
+        rows.append(row)
+    return {**discovery, 'accounts': rows}

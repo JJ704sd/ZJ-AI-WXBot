@@ -204,8 +204,10 @@ class DesktopSession:
 
     def ready_info(self):
         info = self.archive.adapter.get_source_info()
+        config = self.archive.media_config
+        profile = self._account_names({'accounts': [{'sourceRoot': config['sourceRoot']}]})['accounts'][0]
         return {'status': 'ready', 'groups': self.groups, 'message': self.source_status,
-                'snapshotTime': info['createdAt'], 'coverage': self.archive.coverage()}
+                'snapshotTime': info['createdAt'], 'coverage': self.archive.coverage(), 'accountProfile': profile}
 
     def discard_review(self, chat=None):
         if chat is None:
@@ -358,6 +360,22 @@ class DesktopSession:
             from wecom_snapshot import discover as discover_wecom
             return discover_wecom()
         return discover()
+
+    def _account_names(self, discovery):
+        from offline_account_profiles import account_profiles
+        config = self.archive.media_config if self.archive else self.settings.get('source', {})
+        paths = [Path(config['keyFile'])] if config.get('keyFile') else []
+        folder = self.directory / 'keys'
+        if folder.is_dir() and not folder.is_symlink() and folder.resolve().parent == self.directory:
+            from itertools import islice
+            paths += [path for path in islice(folder.glob('*.json'), 16) if not path.is_symlink()]
+        return account_profiles(discovery, self.client, key_files=list(dict.fromkeys(paths))[:16],
+                                configured_source=config.get('sourceRoot', ''), configured_self_id=config.get('selfId', ''))
+
+    def scan_accounts(self):
+        """Fresh ownership evidence plus display-only local account names."""
+        from offline_accounts import identify_accounts
+        return self._account_names(identify_accounts(self.scan(), self.client))
 
     def automatic_setup(self, config=None, *, allow_process_read=False):
         """Explicit one-click setup; retain old settings format and source binding."""
