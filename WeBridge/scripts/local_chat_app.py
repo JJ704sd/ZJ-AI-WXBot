@@ -25,7 +25,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v28'
+GUI_RELEASE = 'v29'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -1372,9 +1372,7 @@ class ChatApp:
     def scan_ready(self, value):
         self.account_scan = value
         active = value.get('activeAccountCount', 0)
-        self.status.set(f'发现 {len(value["accounts"])} 个账号目录，确认 {active} 个被当前客户端占用。' +
-                        ('已对应唯一运行账号，确认后点击“一键自动配置”。' if value.get('recommendedSourceRoot') else
-                         '请选择账号；归属未确认时可手动选择副本。'))
+        self.status.set(f'发现 {len(value["accounts"])} 个账号目录，确认 {active} 个目录在用；请核对当前选择。')
         self.source_settings(value['accounts'])
 
     def source_settings(self, accounts=None, *, manual=False):
@@ -1462,6 +1460,38 @@ class ChatApp:
         ttk.Label(picker, text='选择要解析的账号').pack(anchor='w', pady=(0, 6))
         chooser = ttk.Combobox(picker, textvariable=selected, state='readonly', width=72)
         chooser.pack(fill='x')
+        selection_status = tk.StringVar()
+        ttk.Label(picker, textvariable=selection_status, wraplength=720, style='Sub.TLabel').pack(anchor='w', pady=(6, 0))
+        saved_source = self.session.settings.get('source', {}).get('sourceRoot')
+        account_items = []
+        def show_selection(*_):
+            source = entries['sourceRoot'].get()
+            item = next((item for item in account_items if same_account_source(item['sourceRoot'], source, self.session.client)), {})
+            selected.set(next((label for label, path in choices.items() if same_account_source(path, source, self.session.client)), ''))
+            saved = same_account_source(source, saved_source, self.session.client)
+            prefix = ('保留已保存配置；' if saved else '当前选择尚未保存；') if source else '请选择账号；'
+            state = item.get('processState')
+            detail = {'active': '已确认此目录被当前客户端占用。',
+                      'inactive': '当前选择未检测到客户端占用；已有密钥或离线副本仍可加载。',
+                      'ambiguous': '此目录有多个客户端进程占用，不能确定唯一进程；请选择或重新识别。',
+                      'unavailable': '所选目录的进程归属未确认；请重新识别或手动选择副本。'}.get(state, '所选目录的进程归属尚未检查。')
+            if state == 'unavailable' and item.get('processIssue') in ('probe_limit', 'probe_incomplete'):
+                detail = '本次文件占用检查未完成，不能据此判断目录未在使用；请手动核对数据源。'
+            preferred = self.account_scan.get('recommendedSourceRoot')
+            can_choose = bool(preferred and not same_account_source(source, preferred, self.session.client))
+            if can_choose:
+                detail += '已确认另一个运行目录，可点击“选择已确认的运行账号”。'
+            elif self.account_scan.get('activeAccountCount', 0) > 1:
+                detail += '多个账号同时在用，请按账号目录选择。'
+            if self.account_scan.get('scanIncomplete'):
+                detail += '部分目录归属未确认，暂不推荐唯一账号。'
+            desired = 'normal' if can_choose else 'disabled'
+            choose_running.configure(state=desired)
+            self.source_controls[:] = [(widget, desired if widget is choose_running else original)
+                                      for widget, original in self.source_controls]
+            message = prefix + detail
+            selection_status.set(message)
+            self.status.set(f'发现 {len(account_items)} 个账号目录，确认 {self.account_scan.get("activeAccountCount", 0)} 个在用。' + message)
         def select_account(_event=None):
             path = choices.get(selected.get())
             if path and not same_account_source(entries['sourceRoot'].get(), path, self.session.client):
@@ -1469,8 +1499,18 @@ class ChatApp:
                     if key in entries:
                         entries[key].set('')
                 entries['sourceRoot'].set(path)
+            show_selection()
         chooser.bind('<<ComboboxSelected>>', select_account)
+        def select_running():
+            preferred = self.account_scan.get('recommendedSourceRoot')
+            label = next((label for label, path in choices.items() if same_account_source(path, preferred, self.session.client)), None)
+            if label:
+                selected.set(label)
+                select_account()
+        choose_running = ttk.Button(picker, text='选择已确认的运行账号', command=select_running)
+        choose_running.pack(anchor='w', pady=(6, 0))
         def update_accounts(items):
+            account_items[:] = items
             choices.clear()
             states = {'active': '运行中，归属已确认', 'inactive': '未检测到占用',
                       'ambiguous': '多个进程占用', 'unavailable': '归属未确认'}
@@ -1478,6 +1518,8 @@ class ChatApp:
                 state = states.get(item.get('processState'), '归属未确认')
                 pids = ','.join(str(pid) for pid in item.get('processIds', []))
                 label = f'{index + 1}. {item["directoryLabel"]} · {state}' + (' · PID ' + pids if pids else '')
+                if same_account_source(item['sourceRoot'], saved_source, self.session.client):
+                    label += ' · 已保存配置'
                 label += f' · {len(item.get("databases", []))}个数据库'
                 choices[label] = item['sourceRoot']
             chooser.configure(values=list(choices))
@@ -1487,13 +1529,10 @@ class ChatApp:
                     entries['sourceRoot'].set(preferred)
                 elif len(choices) == 1:
                     entries['sourceRoot'].set(next(iter(choices.values())))
-            selected.set('')
-            for label, path in choices.items():
-                if same_account_source(path, entries['sourceRoot'].get(), self.session.client):
-                    selected.set(label)
-                    break
+            show_selection()
         self.account_choices_update = update_accounts
         update_accounts(accounts)
+        entries['sourceRoot'].trace_add('write', show_selection)
         ttk.Label(automatic, text='对应数据库目录', style='Sub.TLabel').pack(anchor='w', pady=(3, 0))
         ttk.Label(automatic, textvariable=entries['sourceRoot'], wraplength=720).pack(anchor='w', pady=(3, 8))
         ttk.Button(automatic, text='重新识别运行账号', command=self.scan).pack(anchor='w', pady=(0, 10))

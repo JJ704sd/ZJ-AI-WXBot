@@ -38,6 +38,30 @@ class AccountChoiceTests(unittest.TestCase):
         self.assertEqual({row['processState'] for row in result['accounts']}, {'unavailable'})
         self.assertNotIn('private-sentinel', str(result))
 
+    def test_one_verified_account_plus_an_unknown_account_is_not_a_unique_recommendation(self):
+        def lookup(paths, _client):
+            if paths[0].parent.parent.name == 'first':
+                return [(81, 100)]
+            raise PermissionError('private-sentinel')
+        result = identify_accounts({'accounts': self.accounts}, ownership=lookup)
+        self.assertEqual(result['activeAccountCount'], 1)
+        self.assertIsNone(result['recommendedSourceRoot'])
+
+    def test_truncated_file_probe_is_unknown_instead_of_inactive(self):
+        account = dict(self.accounts[0])
+        root = Path(account['sourceRoot'])
+        names = [f'part_{i}.db' for i in range(33)]
+        for name in names:
+            (root / name).write_bytes(b'fixture')
+        account['databases'] = [{'path': name} for name in names]
+        result = identify_accounts({'accounts': [account]}, ownership=lambda *_: [])
+        self.assertEqual(result['accounts'][0]['processState'], 'unavailable')
+
+    def test_personal_account_folder_alias_probes_its_database_directory(self):
+        account = {**self.accounts[0], 'sourceRoot': str(Path(self.accounts[0]['sourceRoot']).parent)}
+        result = identify_accounts({'accounts': [account]}, ownership=lambda *_: [(81, 100)])
+        self.assertEqual(result['accounts'][0]['processState'], 'active')
+
     def test_paths_outside_discovered_database_root_are_never_probed(self):
         self.accounts[0]['databases'] = [{'path':'../outside.db'}]
         result = identify_accounts({'accounts':self.accounts[:1]}, ownership=lambda *_: self.fail('escaped database probe'))

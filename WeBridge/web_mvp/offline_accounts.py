@@ -63,43 +63,60 @@ def identify_accounts(discovery, client='wechat', *, ownership=None):
     lookup = ownership or _windows_owners
     rows, seen = [], set()
     for account in discovery.get('accounts', []):
-        row = {**account, 'processState': 'unavailable', 'processIds': []}
+        row = {**account, 'processState': 'unavailable', 'processIds': [], 'processIssue': 'no_database_files'}
         try:
             original = Path(account['sourceRoot'])
             if original.is_symlink():
                 raise OSError('redirected_source')
             source = original.resolve()
-            if source in seen:
-                continue
-            seen.add(source)
-            root = source / 'Data' if client == 'wecom' and (source / 'Data').is_dir() else source
+            child = source / ('Data' if client == 'wecom' else 'db_storage')
+            root = child if child.is_dir() else source
             if root.is_symlink():
                 raise OSError('redirected_source')
+            if root in seen:
+                continue
+            seen.add(root)
             paths = []
+            complete = True
             for database in account.get('databases', []):
                 relative = Path(database['path'])
                 path = root / relative
                 if (relative.is_absolute() or '..' in relative.parts or path.is_symlink()
                         or not path.resolve().is_relative_to(root.resolve()) or path.suffix.lower() != '.db'):
+                    complete = False
                     continue
                 if path.is_file():
                     paths.append(path)
                     wal = Path(str(path) + '-wal')
-                    if wal.is_file() and not wal.is_symlink():
-                        paths.append(wal)
-                if len(paths) >= 32:
+                    if wal.exists():
+                        if wal.is_file() and not wal.is_symlink() and wal.resolve().is_relative_to(root.resolve()):
+                            paths.append(wal)
+                        else:
+                            complete = False
+                else:
+                    complete = False
+                if len(paths) > 32:
+                    complete = False
                     break
             if paths and len(rows) < 32:
                 owners = sorted(set(lookup(paths[:32], client)))
                 row['processIds'] = [int(pid) for pid, _created in owners]
-                row['processState'] = 'active' if len(owners) == 1 else ('ambiguous' if owners else 'inactive')
+                if complete:
+                    row['processState'] = 'active' if len(owners) == 1 else ('ambiguous' if owners else 'inactive')
+                    row['processIssue'] = 'multiple_owners' if len(owners) > 1 else None
+                else:
+                    row['processIssue'] = 'probe_incomplete'
+            elif len(rows) >= 32:
+                row['processIssue'] = 'probe_limit'
         except (OSError, ValueError, KeyError):
-            pass
+            row['processIssue'] = 'metadata_unavailable'
         rows.append(row)
     rows.sort(key=lambda row: (row['processState'] != 'active', row.get('directoryLabel', '').casefold(), row['sourceRoot']))
     active = [row for row in rows if row['processState'] == 'active']
-    recommended = active[0]['sourceRoot'] if len(active) == 1 and not any(row['processState'] == 'ambiguous' for row in rows) else None
-    return {**discovery, 'accounts': rows, 'activeAccountCount': len(active), 'recommendedSourceRoot': recommended}
+    incomplete = bool(discovery.get('issues')) or any(row['processState'] not in ('active', 'inactive') for row in rows)
+    recommended = active[0]['sourceRoot'] if len(active) == 1 and not incomplete else None
+    return {**discovery, 'accounts': rows, 'activeAccountCount': len(active),
+            'scanIncomplete': incomplete, 'recommendedSourceRoot': recommended}
 
 
 def group_choices(groups, query='', last_chat=None):

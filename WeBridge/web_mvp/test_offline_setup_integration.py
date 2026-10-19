@@ -12,6 +12,91 @@ from offline_desktop import DesktopSession
 
 
 class WeComSetupFlowTests(unittest.TestCase):
+    def test_saved_inactive_account_is_explicit_and_running_choice_only_edits_form(self):
+        """Reproduce a saved source differing from the verified live source."""
+        with tempfile.TemporaryDirectory(prefix='setup-saved-live-') as folder:
+            base = Path(folder)
+            from test_database_adapter import create_metadata, create_shard
+            for client in ('wechat', 'wecom'):
+                for name in ('saved', 'running'):
+                    source = base / client / name
+                    source.mkdir(parents=True)
+                    if client == 'wecom':
+                        fixture(source / 'Data')
+                    else:
+                        (source / 'db_storage').mkdir()
+                        create_metadata(source / 'db_storage')
+                        create_shard(source / 'db_storage', rows=[{'text': '账号选择合成记录'}])
+                session = DesktopSession(base / client / 'profile', client=client)
+                session._save({'sourceRoot': str(base / client / 'saved'), 'selfId': 'fixture-own',
+                               'keyFile': str(base / client / 'saved-key.json')})
+            project = Path(__file__).resolve().parents[1]
+            env = os.environ.copy()
+            env['PYTHONPATH'] = os.pathsep.join(str(project / p) for p in ('.runtime/offline-build-deps', 'web_mvp', 'scripts'))
+            code = r'''
+import sys,time,tkinter as tk
+from pathlib import Path
+from local_chat_app import ChatApp
+from offline_desktop import DesktopSession
+from offline_accounts import identify_accounts
+from unittest.mock import patch
+base=Path(sys.argv[1]).resolve()
+def widgets(parent):
+    for child in parent.winfo_children():
+        yield child
+        yield from widgets(child)
+for client,child in [('wechat','db_storage'),('wecom','Data')]:
+    session=DesktopSession(base/client/'profile',client=client)
+    session.bootstrap=lambda:{'status':'needs_source','message':'测试账号设置'}
+    saved=base/client/'saved';running=base/client/'running'
+    discovery={'accounts':[{'sourceRoot':str(p/'db_storage' if client=='wechat' else p), 'directoryLabel':p.name,
+        'databases':[{'path':'session.db' if client=='wecom' else 'session/session.db'}]} for p in (saved,running)]}
+    # Only the Windows file-owner boundary is substituted.
+    scan=identify_accounts(discovery,client,ownership=lambda paths,_: [(81,100)] if paths[0].is_relative_to(running) else [])
+    session.scan=lambda:discovery
+    boundary=patch('offline_accounts._windows_owners',lambda paths,_: [(81,100)] if paths[0].is_relative_to(running) else [])
+    boundary.start()
+    root=tk.Tk();app=ChatApp(root,session)
+    try:
+        deadline=time.monotonic()+10
+        while app.source_dialog is None or app.busy:
+            assert time.monotonic()<deadline
+            root.update();time.sleep(.01)
+        before=session.settings_path.read_bytes()
+        app.scan_ready(scan);root.update()
+        assert '保留已保存配置' in app.status.get(),app.status.get()
+        assert '未检测到' in app.status.get(),app.status.get()
+        dialog=app.source_dialog
+        chooser=next(w for w in widgets(dialog) if w.winfo_class()=='TCombobox')
+        assert '已保存配置' in chooser.get() and 'saved' in chooser.get(),chooser.get()
+        select=next(w for w in widgets(dialog) if w.winfo_class()=='TButton' and w.cget('text')=='选择已确认的运行账号')
+        assert 'disabled' not in select.state()
+        select.invoke();root.update()
+        assert 'running' in chooser.get() and '运行中' in chooser.get(),chooser.get()
+        entries=[w for w in widgets(dialog) if w.winfo_class()=='TEntry']
+        assert Path(entries[0].get())==(running/'db_storage' if client=='wechat' else running)
+        assert all(not w.get() for w in entries[1:]),'old source key/identity reused across accounts'
+        assert '尚未保存' in app.status.get(),app.status.get()
+        assert session.settings_path.read_bytes()==before,'picking a source silently saved settings'
+        assert not (session.directory/'exports').exists()
+        app.update_buttons()
+        assert 'disabled' in select.state(),'generic button refresh undid current source state'
+        chooser.current(next(i for i,label in enumerate(chooser.cget('values')) if '已保存配置' in label))
+        chooser.event_generate('<<ComboboxSelected>>');root.update()
+        assert 'disabled' not in select.state()
+        app.work('重新识别',lambda:scan,app.scan_ready)
+        while app.busy:
+            assert time.monotonic()<deadline
+            root.update();time.sleep(.01)
+        assert '已保存配置' in chooser.get() and 'disabled' not in select.state()
+        assert dialog.winfo_height()<=root.winfo_screenheight(), 'source dialog exceeds screen height'
+    finally:
+        boundary.stop()
+        root.destroy()
+'''
+            result = subprocess.run([sys.executable, '-c', code, str(base)], env=env, capture_output=True, timeout=35)
+            self.assertEqual(result.returncode, 0, result.stderr.decode('utf8', errors='replace'))
+
     def test_new_profile_requires_confirmation_in_workspace_with_an_existing_workbench(self):
         from test_database_adapter import create_metadata, create_shard
         with tempfile.TemporaryDirectory(prefix='setup-startup-source-') as folder:
