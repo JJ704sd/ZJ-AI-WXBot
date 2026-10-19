@@ -217,6 +217,12 @@ try:
     app.start_batch([first,second])
     pump(started.is_set)
     assert app.active_chat==first,'completed group was replaced by the next queued target'
+    assert '已解析 1 个群' in app.completion_text.get() and '刚完成' in app.completion_detail.get()
+    assert app.tree.set(first,'review')=='已解析·未复核' and app.tree.item(first,'tags')==('parsed',)
+    assert app.tree.set(second,'review')=='解析中…'
+    app.completed_groups_button.invoke();root.update()
+    assert app.review_filter.get()=='已解析可查看' and set(app.tree.get_children())=={first}
+    app.review_filter.set('全部群聊');app.render_groups()
     assert app.tree.instate(['!disabled']),'completed groups cannot be selected during parsing'
     original=app.parsed_results[first]['review']['reviewId']
     assert app.browser.rows and all(row['chatId']==first for row in app.browser.rows.values() if 'chatId' in row)
@@ -355,7 +361,7 @@ try:
     app.search_clear_button.invoke();root.update()
     app.select_visible();root.update()
     assert app.parse_button.cget('text')=='解析待处理 2 群' and '未解析' in app.workflow_hint.get()
-    assert all(app.tree.set(c,'review')=='未复核' for c in (first,second))
+    assert all(app.tree.set(c,'review')=='未解析' for c in (first,second))
     app.parse_button.invoke();pump(lambda:not app.busy and not app.batch_running)
     assert app.parse_button.cget('text')=='查看待复核群' and '未复核' in app.workflow_hint.get()
     assert app.current_group_id.get()==app.active_chat
@@ -367,7 +373,7 @@ try:
         assert app.current_review_badge.winfo_ismapped() and app.review_filter_choice.winfo_ismapped()
     assert app.current_review_state.get()=='未复核'
     approve(first)
-    assert app.tree.set(first,'review')=='已复核' and app.tree.set(second,'review')=='未复核'
+    assert app.tree.set(first,'review')=='已复核' and app.tree.set(second,'review')=='已解析·未复核'
     assert app.current_review_state.get()=='已复核'
     assert '未复核 1' in app.review_summary.get() and '已复核 1' in app.review_summary.get()
     scope('所选已复核');assert set(app.tree.get_children())=={first}
@@ -396,7 +402,7 @@ try:
     assert checked(checks)==4,'saved review was not restored'
     button(dialog,'返回检查').invoke();root.update()
     app.start_parse(first);pump(lambda:not app.busy and not app.batch_running)
-    assert app.tree.set(first,'review')=='未复核' and app.tree.set(second,'review')=='已复核'
+    assert app.tree.set(first,'review')=='已解析·未复核' and app.tree.set(second,'review')=='已复核'
     assert app.export_button.instate(['disabled'])
     approve(first);app.export_button.invoke();pump(lambda:not app.busy)
     assert all(app.tree.set(c,'review')=='已复核' for c in (first,second))
@@ -405,7 +411,7 @@ try:
     assert '所选群已导出' in app.workflow_hint.get()
     app.work('reload',lambda:session.open_source(session.settings['source']),app.ready)
     pump(lambda:not app.busy)
-    assert all(app.tree.set(c,'review')=='未复核' for c in (first,second))
+    assert all(app.tree.set(c,'review')=='未解析' for c in (first,second))
     assert not app.selected_chats and app.current_review_state.get()=='未选群'
 finally:root.destroy()
 '''

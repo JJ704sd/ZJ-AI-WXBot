@@ -25,7 +25,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v32'
+GUI_RELEASE = 'v33'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -71,6 +71,7 @@ class ChatApp:
         self.batch_cancel_requested = False
         self.receipt_chat = None
         self.batch_output = None
+        self.last_completed_chat = None
         self.pending_config = {}
         self.source_issue = ''
         self.source_dialog = None
@@ -107,6 +108,9 @@ class ChatApp:
         style.configure('ReviewPending.TLabel', foreground='#9a3412', font=('Microsoft YaHei UI', 10, 'bold'))
         style.configure('ReviewDone.TLabel', foreground='#15803d', font=('Microsoft YaHei UI', 10, 'bold'))
         style.configure('ReviewNone.TLabel', foreground='#64748b', font=('Microsoft YaHei UI', 10, 'bold'))
+        style.configure('Completion.TFrame', background='#e0f2fe')
+        style.configure('Completion.TLabel', background='#e0f2fe', foreground='#075985', font=('Microsoft YaHei UI', 11, 'bold'))
+        style.configure('CompletionDetail.TLabel', background='#e0f2fe', foreground='#075985', font=('Microsoft YaHei UI', 9))
         style.configure('Treeview', rowheight=30, background='#ffffff', fieldbackground='#ffffff', bordercolor='#dbe2ed', font=('Microsoft YaHei UI', 10))
         style.map('Treeview', background=[('selected', '#dbeafe')], foreground=[('selected', '#1e3a8a')])
         style.configure('Treeview.Heading', background='#eaf0f8', padding=(4, 5), font=('Microsoft YaHei UI', 9, 'bold'))
@@ -125,6 +129,8 @@ class ChatApp:
         self.review_filter = tk.StringVar(value='全部群聊')
         self.current_review_state = tk.StringVar(value='未选群')
         self.current_review_hint = tk.StringVar(value='单击群名查看，勾选群聊决定导出范围')
+        self.completion_text = tk.StringVar(value='尚无已解析群')
+        self.completion_detail = tk.StringVar(value='每群完成后可立即查看，人工复核后再正式导出。')
         self.account_text = tk.StringVar(value='确认账号 → 选择群 ID → 解析 → 人工复核 → 导出')
         self.group_hint = tk.StringVar(value='配置账号后，输入要解析的群名。')
         self.chat_title = tk.StringVar(value='输入目标群名后按 Enter')
@@ -229,7 +235,7 @@ class ChatApp:
         self.cancel_batch_button = ttk.Button(selection_bar, text='停止队列', command=self.cancel_batch, state='disabled')
         self.cancel_batch_button.pack(side='right')
         self.review_filter_choice = ttk.Combobox(self.sidebar, textvariable=self.review_filter,
-            values=('全部群聊', '所选群聊', '所选未复核', '所选已复核'), state='readonly')
+            values=('全部群聊', '已解析可查看', '所选群聊', '所选未复核', '所选已复核'), state='readonly')
         self.review_filter_choice.pack(fill='x', pady=(4, 0))
         self.review_filter_choice.bind('<<ComboboxSelected>>', lambda _event: self.render_groups())
         ttk.Label(self.sidebar, textvariable=self.group_hint, wraplength=265, style='Sub.TLabel').pack(fill='x', pady=(4, 8))
@@ -238,8 +244,8 @@ class ChatApp:
         self.tree = ttk.Treeview(tree_frame, columns=('pick', 'review', 'name', 'id', 'count', 'state'), show='headings', selectmode='browse')
         self.tree.heading('pick', text='☐', command=self.toggle_visible)
         self.tree.column('pick', width=36, minwidth=36, stretch=False, anchor='center')
-        self.tree.heading('review', text='复核状态')
-        self.tree.column('review', width=76, minwidth=76, stretch=False, anchor='center')
+        self.tree.heading('review', text='解析 / 复核')
+        self.tree.column('review', width=136, minwidth=128, stretch=False, anchor='center')
         self.tree.heading('name', text='群聊')
         self.tree.column('name', width=120, minwidth=90)
         self.tree.heading('id', text='群 ID')
@@ -249,7 +255,11 @@ class ChatApp:
         self.tree.heading('state', text='解析状态')
         self.tree.column('state', width=85, minwidth=75, stretch=False)
         self.tree.tag_configure('unreviewed', foreground='#334155')
-        self.tree.tag_configure('reviewed', foreground='#15803d')
+        self.tree.tag_configure('reviewed', foreground='#15803d', background='#dcfce7')
+        self.tree.tag_configure('parsed', foreground='#075985', background='#e0f2fe')
+        self.tree.tag_configure('parsing', foreground='#92400e', background='#fef3c7')
+        self.tree.tag_configure('queued', foreground='#64748b')
+        self.tree.tag_configure('failed', foreground='#b91c1c', background='#fee2e2')
         scroll = ttk.Scrollbar(tree_frame, orient='vertical', command=self.tree.yview)
         self.tree.configure(yscrollcommand=scroll.set)
         horizontal = ttk.Scrollbar(tree_frame, orient='horizontal', command=self.tree.xview)
@@ -287,6 +297,20 @@ class ChatApp:
         self.current_hint_row = ttk.Frame(title)
         self.current_hint_row.pack(fill='x', pady=(3, 0))
         ttk.Label(self.current_hint_row, textvariable=self.current_review_hint, style='Sub.TLabel').pack(side='left')
+        self.completion_banner = ttk.Frame(title, padding=(10, 7), style='Completion.TFrame')
+        self.completion_banner.pack(fill='x', pady=(6, 0))
+        notice_top = ttk.Frame(self.completion_banner, style='Completion.TFrame')
+        notice_top.pack(fill='x')
+        self.completed_groups_button = ttk.Button(notice_top, text='查看已解析群', style='Accent.TButton',
+                                                 command=self.show_completed_groups, state='disabled')
+        self.completed_groups_button.pack(side='right', padx=(8, 0))
+        notice_heading = ttk.Label(notice_top, textvariable=self.completion_text, style='Completion.TLabel')
+        notice_heading.pack(side='left', fill='x', expand=True)
+        notice_detail = ttk.Label(self.completion_banner, textvariable=self.completion_detail, style='CompletionDetail.TLabel')
+        notice_detail.pack(fill='x', pady=(2, 0))
+        self.completion_banner.bind('<Configure>', lambda event: (
+            notice_heading.configure(wraplength=max(160, event.width - self.completed_groups_button.winfo_reqwidth() - 36)),
+            notice_detail.configure(wraplength=max(160, event.width - 24))))
         self.root.bind('<Configure>', self.adapt_layout, add='+')
         reading = ttk.Frame(right)
         reading.grid(row=1, column=0, sticky='ew', pady=(0, 6))
@@ -596,6 +620,7 @@ class ChatApp:
             button.configure(state=result_state if exists else 'disabled')
         self.update_review_display()
         self.update_parse_caption()
+        self.update_completion_notice()
 
     def ready(self, value):
         if value['status'] != 'ready':
@@ -617,6 +642,7 @@ class ChatApp:
         self.clear_chat()
         self.selected_chats.clear()
         self.parsed_results.clear()
+        self.last_completed_chat = None
         self.parse_states.clear()
         self.parse_errors.clear()
         self.batch_output = None
@@ -674,7 +700,10 @@ class ChatApp:
         query = self.search.get().strip()
         choices = group_choices(self.groups, query, self.session.settings.get('lastChat'))
         scope = self.review_filter.get()
-        if scope != '全部群聊':
+        if scope == '已解析可查看':
+            available = set(self.completed_groups())
+            choices = [group for group in choices if group['id'] in available]
+        elif scope != '全部群聊':
             choices = [group for group in choices if group['id'] in self.selected_chats]
         if scope in ('所选未复核', '所选已复核'):
             label = '未复核' if scope == '所选未复核' else '已复核'
@@ -687,9 +716,9 @@ class ChatApp:
         for group in choices:
             name = ('上次查看 · ' if group['recent'] else '') + group['choiceLabel']
             count = group.get('localMessageCount', '有记录' if group.get('hasLocalMessages') else '暂无')
-            review = self.review_label(group['id'])
+            review, tag = self.list_status(group['id'])
             self.tree.insert('', 'end', iid=group['id'], values=('☑' if group['id'] in self.selected_chats else '☐', review, name, group['id'], count, self.parse_states.get(group['id'], '未解析')),
-                             tags=('reviewed' if review == '已复核' else 'unreviewed',))
+                             tags=(tag,))
         if selected and self.tree.exists(selected):
             self.tree.selection_set(selected)
         self.update_selection_text()
@@ -700,6 +729,44 @@ class ChatApp:
             return '未复核'
         return '已复核' if self.session.review_status(chat) in ('已复核', '已导出') else '未复核'
 
+    def list_status(self, chat):
+        phase = self.parse_states.get(chat, '未解析')
+        if phase == '解析中':
+            return '解析中…', 'parsing'
+        if phase == '排队中':
+            return phase, 'queued'
+        if phase == '失败':
+            return '解析失败', 'failed'
+        if self.review_label(chat) == '已复核':
+            return '已复核', 'reviewed'
+        if chat in self.parsed_results:
+            return '已解析·未复核', 'parsed'
+        return phase, 'unreviewed'
+
+    def completed_groups(self):
+        return [group['id'] for group in self.groups if group['id'] in self.parsed_results
+                and self.parse_states.get(group['id']) not in ('排队中', '解析中', '失败')]
+
+    def update_completion_notice(self):
+        chats = self.completed_groups()
+        self.completion_text.set(f'✓ 已解析 {len(chats)} 个群，可立即查看' if chats else '尚无已解析群，完成后将在此提示')
+        self.completed_groups_button.configure(text=f'查看已解析群 · {len(chats)}',
+            state='normal' if chats and self.can_browse() else 'disabled')
+        latest = self.parsed_results.get(self.last_completed_chat)
+        if latest and self.last_completed_chat in chats:
+            self.completion_detail.set(f'刚完成：{latest["chat"]["name"]} · {latest["report"]["exportedRows"]} 条。蓝色为已解析未复核，绿色为已复核。')
+        else:
+            self.completion_detail.set('蓝色为已解析未复核，黄色为解析中。完成群可立即阅读，人工复核后再正式导出。')
+
+    def show_completed_groups(self):
+        chats = self.completed_groups()
+        if not chats or not self.can_browse():
+            return
+        self.review_filter.set('已解析可查看')
+        self.search.set('')
+        self.render_groups()
+        self.focus_chat(self.active_chat if self.active_chat in chats else chats[0])
+
     def range_changed(self):
         if self.review_filter.get() in ('所选未复核', '所选已复核'):
             self.render_groups()
@@ -708,9 +775,9 @@ class ChatApp:
 
     def update_review_display(self):
         for chat in self.tree.get_children():
-            label = self.review_label(chat)
+            label, tag = self.list_status(chat)
             self.tree.set(chat, 'review', label)
-            self.tree.item(chat, tags=('reviewed' if label == '已复核' else 'unreviewed',))
+            self.tree.item(chat, tags=(tag,))
         chat = self.active_chat
         self.current_group_id.set(chat or '')
         self.copy_current_id_button.configure(state='normal' if chat and not self.closing else 'disabled')
@@ -1039,6 +1106,7 @@ class ChatApp:
     def parsed_ready(self, value):
         chat = value['chat']['id']
         self.parsed_results[chat] = value
+        self.last_completed_chat = chat
         self.parse_states[chat] = '待复核'
         self.batch_succeeded.append(chat)
         if self.active_chat == chat or not self.active_chat:
