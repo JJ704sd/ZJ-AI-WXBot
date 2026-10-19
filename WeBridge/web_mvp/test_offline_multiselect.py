@@ -113,8 +113,6 @@ parsed_ready=app.parsed_ready
 def finish_group(value):
     parsed_ready(value)
     assert app.batch_running and not app.busy
-    app.choose_kind('全部');app.read_page()
-    assert not app.busy,'reading shortcut interrupted the batch between groups'
 app.parsed_ready=finish_group
 def review(chat,confirm):
     app.tree.selection_set(chat);app.selection();app.review_button.invoke();root.update()
@@ -146,7 +144,7 @@ try:
     app.parse_button.invoke()
     pump(lambda:not app.busy and not app.batch_running)
     root.update()
-    assert app.active_chat==second,'completed queue did not show the newly parsed group'
+    assert app.active_chat==first,'background queue interrupted the existing reading target'
     assert set(app.parsed_results)=={first,second}
     assert app.parsed_results[first]['review']['reviewId']==original,'existing preview was needlessly reparsed'
     assert all(app.parse_states[c]=='待复核' for c in (first,second))
@@ -200,6 +198,114 @@ finally:root.destroy()
         for client in ('wechat', 'wecom'):
             with self.subTest(client=client):
                 self.run_ui(client, code)
+
+    def test_completed_groups_can_be_read_while_the_next_group_is_still_parsing(self):
+        code = '''
+root.withdraw()
+app=ChatApp(root,session)
+gate=threading.Event();started=threading.Event()
+prepare=session.prepare_review
+def delayed(chat,**options):
+    if chat==second:
+        started.set()
+        assert gate.wait(12),'synthetic second group was not released'
+    return prepare(chat,**options)
+session.prepare_review=delayed
+try:
+    pump(lambda:bool(app.groups) and not app.busy)
+    app.selected_chats.update((first,second))
+    app.start_batch([first,second])
+    pump(started.is_set)
+    assert app.active_chat==first,'completed group was replaced by the next queued target'
+    assert app.tree.instate(['!disabled']),'completed groups cannot be selected during parsing'
+    original=app.parsed_results[first]['review']['reviewId']
+    assert app.browser.rows and all(row['chatId']==first for row in app.browser.rows.values() if 'chatId' in row)
+    app.message_search.set('没有匹配的合成词');app.message_search_button.invoke()
+    pump(lambda:app.page_total==0)
+    assert app.batch_running and not gate.is_set(),'reading waited for the entire queue'
+    app.message_clear_button.invoke();pump(lambda:app.page_total>0)
+    app.tree.selection_set(second);app.selection();root.update()
+    assert app.active_chat==second and app.page_total==0
+    app.tree.selection_set(first);app.selection();root.update()
+    assert app.active_chat==first and app.page_total>0
+    app.toggle_group(first)
+    assert first not in app.selected_chats and app.batch_ids==[first,second]
+    gate.set();pump(lambda:not app.batch_running and not app.busy and not app.read_busy)
+    assert app.active_chat==first,'background completion interrupted the group being read'
+    assert app.parsed_results[first]['review']['reviewId']==original
+    assert session.pending_review['summary']['chat']['id']==first
+    assert not (base/'exports').exists(),'reading exported without human review'
+finally:
+    gate.set()
+    if app.busy:pump(lambda:not app.busy)
+    root.destroy()
+'''
+        for client in ('wechat','wecom'):
+            with self.subTest(client=client):
+                self.run_ui(client,code)
+
+    def test_select_all_toggle_and_menu_keep_hidden_choices_scoped(self):
+        code = '''
+root.withdraw();app=ChatApp(root,session)
+try:
+    pump(lambda:bool(app.groups) and not app.busy)
+    all_ids={group['id'] for group in app.groups}
+    app.search.set(first);root.update();app.toggle_group(first)
+    assert app.selected_chats=={first}
+    app.search.set(second);root.update();app.select_all_button.invoke()
+    assert app.selected_chats=={first,second}
+    assert '取消全选' in app.select_all_button.cget('text')
+    app.select_all_button.invoke()
+    assert app.selected_chats=={first},'cancel current results cleared hidden picks or did nothing'
+    assert app.tree.heading('pick','text')=='☐'
+    root.tk.call(app.tree.heading('pick','command'))
+    assert app.selected_chats=={first,second} and app.tree.heading('pick','text')=='☑'
+    app.selection_menu.invoke('反选当前结果')
+    assert app.selected_chats=={first}
+    app.selection_menu.invoke('全选全部群聊（含隐藏）')
+    assert app.selected_chats==all_ids
+    app.selection_menu.invoke('取消当前结果勾选')
+    assert app.selected_chats==all_ids-{second}
+    app.search.set('');root.update()
+    assert app.tree.heading('pick','text')=='▣','partial selection is not visible'
+    app.selection_menu.invoke('取消全部勾选')
+    assert not app.selected_chats and app.tree.heading('pick','text')=='☐'
+    assert not (base/'exports').exists()
+finally:root.destroy()
+'''
+        for client in ('wechat','wecom'):
+            with self.subTest(client=client):
+                self.run_ui(client,code)
+
+    def test_late_read_result_cannot_replace_another_group_or_a_newer_search(self):
+        code = '''
+root.withdraw();app=ChatApp(root,session)
+gate=threading.Event();started=threading.Event()
+try:
+    pump(lambda:bool(app.groups) and not app.busy)
+    app.start_batch([first,second]);pump(lambda:not app.busy and not app.batch_running)
+    app.show_chat(first)
+    view=session.views[first];page=view.page
+    def delayed(*args,**options):
+        if options.get('query')=='迟到的合成搜索':
+            started.set();assert gate.wait(8),'synthetic cache read was not released'
+        return page(*args,**options)
+    view.page=delayed
+    app.message_search.set('迟到的合成搜索');app.message_search_button.invoke();pump(started.is_set)
+    app.show_chat(second);expected=app.page_total
+    gate.set();pump(lambda:not app.read_busy)
+    assert app.active_chat==second and app.page_total==expected and app.browser.rows,'stale read replaced another group'
+    app.show_chat(first);gate.clear();started.clear()
+    app.message_search.set('迟到的合成搜索');app.message_search_button.invoke();pump(started.is_set)
+    app.message_clear_button.invoke();gate.set();pump(lambda:not app.read_busy)
+    assert app.page_total>0 and not app.message_search.get(),'older search overwrote the latest request'
+    assert not (base/'exports').exists()
+finally:
+    gate.set()
+    if app.read_busy:pump(lambda:not app.read_busy)
+    root.destroy()
+'''
+        self.run_ui('wechat',code)
 
     def test_review_shortcuts_and_visible_states_remain_scoped_to_current_group(self):
         code = '''
