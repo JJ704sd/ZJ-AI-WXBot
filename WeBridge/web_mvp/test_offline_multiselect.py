@@ -199,6 +199,55 @@ finally:root.destroy()
             with self.subTest(client=client):
                 self.run_ui(client, code)
 
+    def test_bulk_review_dialog_is_explicit_and_keeps_named_receipt_awaiting_export(self):
+        code = '''
+receipt=base/'requests/named.json'
+app=ChatApp(root,session,open_chat=first,open_result=receipt)
+def open_bulk(count):
+    app.batch_review_button.invoke();root.update()
+    dialog=next(w for w in root.winfo_children() if isinstance(w,tk.Toplevel))
+    checks=[w for w in widgets(dialog) if w.winfo_class()=='TCheckbutton']
+    assert len(checks)==4 and not any(root.tk.getboolean(root.getvar(w.cget('variable'))) for w in checks)
+    assert button(dialog,f'确认本次 {count} 群复核').instate(['disabled'])
+    return dialog
+try:
+    pump(lambda:len(app.parsed_results)==1 and not app.busy and not app.batch_running)
+    app.selected_chats.update((first,second));app.selection_changed()
+    assert app.batch_review_button.instate(['disabled']),'unparsed selected group can be approved'
+    app.start_batch([second]);pump(lambda:not app.busy and not app.batch_running)
+    app.search.set(second);root.update()
+    assert '隐藏 1' in app.selection_text.get()
+    dialog=open_bulk(2)
+    report=next(w for w in widgets(dialog) if w.winfo_class()=='Text' and w.cget('state')=='disabled').get('1.0','end')
+    assert first in report and second in report and '解析状态' in report and '本次复核 2 群' in report
+    button(dialog,'全选复核项').invoke();button(dialog,'返回检查').invoke();root.update()
+    assert all(session.review_status(c)=='待复核' for c in (first,second))
+    dialog=open_bulk(2)
+    button(dialog,'全选复核项').invoke()
+    assert not (base/'exports').exists() and all(session.review_status(c)=='待复核' for c in (first,second))
+    next(w for w in widgets(dialog) if w.winfo_class()=='Text' and w.cget('state')=='normal').insert('end','合成批量确认，不代表人工验收')
+    button(dialog,'确认本次 2 群复核').invoke();pump(lambda:not app.busy)
+    assert all(app.parse_states[c]=='已复核' for c in (first,second))
+    assert not (base/'exports').exists() and app.export_button.instate(['!disabled'])
+    result=json.loads(receipt.read_text(encoding='utf8'))
+    assert result['chatId']==first and result['state']=='awaiting_review' and result['reviewConfirmed'] is True
+    app.export_button.invoke();pump(lambda:not app.busy)
+    records=list((base/'exports').rglob('review.json'))
+    assert len(records)==2
+    approvals=[json.loads(p.read_text(encoding='utf8')) for p in records]
+    assert len({r['batchReview']['id'] for r in approvals})==1
+    assert all(r['batchReview']['count']==2 and r['note']=='合成批量确认，不代表人工验收' for r in approvals)
+    original={str(p):p.read_bytes() for p in records}
+    app.start_batch([second]);pump(lambda:not app.busy and not app.batch_running)
+    dialog=open_bulk(1)
+    assert any(w.winfo_class()=='TLabel' and '已复核或已导出 1 群' in w.cget('text') for w in widgets(dialog))
+    button(dialog,'全选复核项').invoke();button(dialog,'确认本次 1 群复核').invoke();pump(lambda:not app.busy)
+    assert all(Path(p).read_bytes()==data for p,data in original.items()),'previous exported review was overwritten'
+    assert json.loads(receipt.read_text(encoding='utf8'))['state']=='completed','another group overwrote named receipt'
+finally:root.destroy()
+'''
+        self.run_ui('wecom',code)
+
     def test_completed_groups_can_be_read_while_the_next_group_is_still_parsing(self):
         code = '''
 root.withdraw()

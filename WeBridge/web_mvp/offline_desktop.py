@@ -315,6 +315,36 @@ class DesktopSession:
         pending = self._reviews.get(chat)
         return ('已复核' if pending.get('approval') else '待复核') if pending else '未解析'
 
+    def approve_reviews(self, review_ids, checks, note=''):
+        """Stage every approval before saving any; bind confirmation to exact previews."""
+        from offline_review import approve_review, validated_approval
+        if (not isinstance(review_ids, dict) or not review_ids or
+                any(not isinstance(chat, str) or not isinstance(rid, str) for chat, rid in review_ids.items())):
+            raise ArchiveError('请先勾选已解析的待复核群聊。')
+        if self.archive is None:
+            raise ArchiveError('请先加载数据。')
+        self.archive._check()
+        staged, already = [], []
+        for chat, rid in review_ids.items():
+            pending = self._reviews.get(chat)
+            if (not pending or pending['archive'] is not self.archive or
+                    pending['summary']['chat']['id'] != chat or pending['summary']['reviewId'] != rid):
+                raise ArchiveError('所选群的复核目标已失效，请重新解析并复核；本次未保存新的复核。')
+            if pending.get('approval'):
+                validated_approval(pending)
+                already.append(chat)
+            else:
+                staged.append((pending, approve_review(pending, checks, note)))
+        batch_id = uuid.uuid4().hex
+        confirmed_ids = [pending['summary']['chat']['id'] for pending, _ in staged]
+        reviews = []
+        for pending, approval in staged:
+            approval.update(confirmationBasis='explicit_batch_review_checklist',
+                            batchReview={'id': batch_id, 'chatIds': confirmed_ids, 'count': len(staged)})
+            pending['approval'] = approval
+            reviews.append({'state': 'reviewed', 'review': approval, 'chat': pending['summary']['chat']})
+        return {'state': 'reviewed', 'reviews': reviews, 'alreadyReviewed': already, 'reviewBatchId': batch_id}
+
     def _publish_pending(self, pending, output):
         from offline_review import publish_review
         self.archive._check()

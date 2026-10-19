@@ -97,4 +97,53 @@ class BatchReviewTests(unittest.TestCase):
         self.assertEqual(session.review_status(chats[1]),'已导出')
         with self.assertRaises(ArchiveError):session.export_reviewed([])
 
+    def test_bulk_review_saves_per_group_evidence_but_never_exports(self):
+        for client in ('wechat', 'wecom'):
+            with self.subTest(client=client):
+                session,chats,parsed=self.prepare(client)
+                ids={chat:parsed[chat]['review']['reviewId'] for chat in chats}
+                result=session.approve_reviews(ids,{key:True for key in REVIEW_CHECKS},'合成批量确认，不代表人工验收')
+                self.assertEqual(len(result['reviews']),2)
+                self.assertTrue(all(session.review_status(chat)=='已复核' for chat in chats))
+                self.assertFalse((session.directory/'exports').exists())
+                exported=session.export_reviewed(chats)
+                for item in exported['exports']:
+                    review=json.loads((Path(item['output'])/'review.json').read_text(encoding='utf8'))
+                    self.assertEqual(review['confirmationBasis'],'explicit_batch_review_checklist')
+                    self.assertEqual(review['batchReview']['id'],result['reviewBatchId'])
+                    self.assertEqual(review['batchReview']['chatIds'],chats)
+                    self.assertEqual(review['reviewId'],ids[review['chat']['id']])
+                    self.assertIn('mediaSummary',review)
+                    self.assertIn('limitations',review)
+
+    def test_bulk_review_preflights_all_groups_before_saving_any(self):
+        session,chats,parsed=self.prepare('wecom')
+        ids={chat:parsed[chat]['review']['reviewId'] for chat in chats}
+        checks={key:True for key in REVIEW_CHECKS}
+        for invalid in ({}, {**checks,'gaps':False}):
+            with self.assertRaises(ArchiveError):session.approve_reviews(ids,invalid)
+        session.prepare_review(chats[1],copy_media=False)
+        with self.assertRaises(ArchiveError):session.approve_reviews(ids,checks)
+        self.assertEqual(session.review_status(chats[0]),'待复核')
+        self.assertEqual(session.review_status(chats[1]),'待复核')
+        ids[chats[1]]=session.pending_review['summary']['reviewId']
+        (session.pending_review['root']/'messages.jsonl').write_text('changed',encoding='utf8')
+        with self.assertRaises(ArchiveError):session.approve_reviews(ids,checks)
+        self.assertEqual(session.review_status(chats[0]),'待复核')
+        self.assertFalse((session.directory/'exports').exists())
+
+    def test_bulk_review_preserves_previous_confirmation_and_selected_scope(self):
+        session,chats,parsed=self.prepare('wechat')
+        previous=self.approve(session,chats[0],parsed)['review']
+        ids={chat:parsed[chat]['review']['reviewId'] for chat in chats}
+        result=session.approve_reviews(ids,{key:True for key in REVIEW_CHECKS},'新的共同备注')
+        self.assertEqual(result['alreadyReviewed'],[chats[0]])
+        self.assertEqual([item['chat']['id'] for item in result['reviews']],[chats[1]])
+        session.activate_review(chats[0])
+        self.assertEqual(session.pending_review['approval'],previous)
+        self.assertEqual(result['reviews'][0]['review']['batchReview']['chatIds'],[chats[1]])
+        session.prepare_review(chats[1],copy_media=False)
+        session.approve_reviews({chats[1]:session.pending_review['summary']['reviewId']},{key:True for key in REVIEW_CHECKS})
+        self.assertEqual(session.pending_review['approval']['batchReview']['count'],1)
+
 if __name__=='__main__':unittest.main()

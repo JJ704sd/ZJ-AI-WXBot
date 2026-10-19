@@ -26,7 +26,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v37'
+GUI_RELEASE = 'v38'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -126,7 +126,7 @@ class ChatApp:
         self.subtitle = tk.StringVar(value='列群 → 选择群 ID → 解析 → 人工复核 → 导出')
         self.group_title = tk.StringVar(value='当前账号的全部本地群聊')
         self.selection_text = tk.StringVar(value='已选 0 个群')
-        self.review_summary = tk.StringVar(value='勾选群聊 → 解析 → 逐群复核 → 一键导出所选群')
+        self.review_summary = tk.StringVar(value='勾选 → 解析 → 人工复核 → 导出')
         self.workflow_hint = tk.StringVar(value='先勾选需要解析的群聊。')
         self.current_group_id = tk.StringVar()
         self.review_filter = tk.StringVar(value='全部群聊')
@@ -385,12 +385,15 @@ class ChatApp:
         summary.pack(fill='x', pady=(0, 4))
         self.batch_folder_button = ttk.Button(summary, text='打开批次目录', command=self.open_batch, state='disabled')
         self.batch_folder_button.pack(side='right')
+        self.batch_review_button = ttk.Button(summary, text='批量复核所选群', command=self.review_selected, state='disabled')
+        self.batch_review_button.pack(side='right', padx=(0, 6))
         summary_text = ttk.Frame(summary)
         summary_text.pack(side='left', fill='x', expand=True)
         counts = ttk.Label(summary_text, textvariable=self.review_summary, style='Sub.TLabel', wraplength=420)
         counts.pack(anchor='w')
         guidance = ttk.Label(summary_text, textvariable=self.workflow_hint, style='Section.TLabel', wraplength=420)
         guidance.pack(anchor='w')
+        self.review_count_label, self.workflow_hint_label = counts, guidance
         summary_text.bind('<Configure>', lambda event: [label.configure(wraplength=max(180, event.width)) for label in (counts, guidance)])
         actions = ttk.Frame(exports)
         actions.pack(fill='x')
@@ -421,6 +424,10 @@ class ChatApp:
     def adapt_layout(self, event):
         if event.widget is not self.root:
             return
+        if event.height < 760:
+            self.review_count_label.pack_forget()
+        elif not self.review_count_label.winfo_manager():
+            self.review_count_label.pack(anchor='w', before=self.workflow_hint_label)
         if event.height < 840:
             self.current_hint_row.pack_forget()
         elif not self.current_hint_row.winfo_manager():
@@ -641,6 +648,9 @@ class ChatApp:
             self.review_summary.set(self.review_summary.get() + ' · 当前群范围已变，请重新解析并复核')
         eligible = ready > 0 and waiting == 0 and not dirty
         unparsed = sum(chat not in self.parsed_results for chat in self.selected_chats)
+        self.batch_review_button.configure(text=f'批量复核 · {waiting} 群' if waiting else '批量复核所选群',
+            state='normal' if state == 'normal' and waiting and not unparsed and not dirty and
+                  all(self.session.review_status(chat) in ('待复核', '已复核', '已导出') for chat in self.selected_chats) else 'disabled')
         if self.closing:
             hint = '正在完成当前操作，随后关闭窗口。'
         elif self.batch_running:
@@ -652,11 +662,11 @@ class ChatApp:
         elif dirty:
             hint = '当前范围已变，请重新解析并复核。'
         elif not self.selected_chats:
-            hint = '先勾选群聊，解析后逐群复核。'
+            hint = '先勾选群聊，解析后复核。'
         elif unparsed:
             hint = f'还有 {unparsed} 群未解析；其他已有结果将复用。'
         elif waiting:
-            hint = f'还有 {waiting} 群未复核，请查看后点击“复核当前群”。'
+            hint = f'还有 {waiting} 群未复核，可“批量复核”或“复核当前群”。'
         elif ready:
             hint = f'所选群已全部复核，可导出 {ready} 群。'
         else:
@@ -1184,7 +1194,7 @@ class ChatApp:
         elif self.check_report:
             self.finish_check({'ok': True, 'reviewRequired': True})
         else:
-            self.status.set('解析完成。逐群点击“复核当前群”保存确认；所选群全部复核后“一键导出所选群”。')
+            self.status.set('解析完成。可批量复核所选群或复核当前群；确认后再“一键导出所选群”。')
             if self.active_chat == chat:
                 self.result_text.set('待复核群 ID：' + chat + ' · 源记录 ' + str(value['report']['exportedRows']) + ' 条')
             self.root.after(1, self.parse_next)
@@ -1412,7 +1422,6 @@ class ChatApp:
     def review_current(self):
         if not self.active_chat or self.busy or self.batch_running or not self.session.pending_review:
             return
-        from offline_review import REVIEW_CHECKS
         summary = self.session.pending_review['summary']
         chat = self.active_chat
         if summary['chat']['id'] != chat:
@@ -1422,19 +1431,43 @@ class ChatApp:
                 (summary['startDate'], summary['endDate'], summary['copyMediaRequested'])):
             self.status.set('日期或媒体选项已变化，请重新解析并复核。')
             return
+        self.show_review_dialog([chat])
+
+    def review_selected(self):
+        if self.busy or self.read_busy or self.batch_running or self.closing:
+            return
+        selected = [group['id'] for group in self.groups if group['id'] in self.selected_chats]
+        if not selected or any(chat not in self.parsed_results or self.session.review_status(chat) == '未解析' for chat in selected):
+            self.status.set('请先勾选群聊并完成解析，再批量复核。')
+            return
+        if self.active_chat in selected and not self.range_matches():
+            self.status.set('当前群日期或媒体选项已变化，请重新解析并复核。')
+            return
+        targets = [chat for chat in selected if self.session.review_status(chat) == '待复核']
+        if not targets:
+            self.status.set('所选群已全部复核，原确认记录已保留，可一键导出。')
+            return
+        self.show_review_dialog(targets, bulk=True, skipped=len(selected) - len(targets))
+
+    def show_review_dialog(self, chats, *, bulk=False, skipped=0):
+        from offline_review import REVIEW_CHECKS
+        parsed = [self.parsed_results[chat] for chat in chats]
+        chat = chats[0]
+        review_ids = {item['chat']['id']: item['review']['reviewId'] for item in parsed}
         dialog = tk.Toplevel(self.root)
-        dialog.title('人工复核 · 保存确认后可一键导出所选群')
+        dialog.title(f'批量人工复核 · {len(chats)} 群' if bulk else '人工复核 · 保存确认后可一键导出所选群')
         dialog.geometry('740x660')
         dialog.transient(self.root)
         dialog.grab_set()
         dialog.bind('<Escape>', lambda _event: dialog.destroy())
         box = ttk.Frame(dialog, padding=16)
         box.pack(fill='both', expand=True)
-        ttk.Label(box, text='请核对本次账号、群 ID 与解析结果', font=('Microsoft YaHei UI', 12, 'bold')).pack(anchor='w')
-        ttk.Label(box, text='本次仅保存当前群复核结果；全部所选群复核后，点击主窗口“一键导出所选群”。', style='Sub.TLabel').pack(anchor='w')
+        ttk.Label(box, text=f'一次确认下列 {len(chats)} 个群的复核结果' if bulk else '请核对本次账号、群 ID 与解析结果',
+                  font=('Microsoft YaHei UI', 12, 'bold')).pack(anchor='w')
+        ttk.Label(box, text=(f'已复核或已导出 {skipped} 群保留原记录；本次确认不导出。' if bulk else
+                  '本次仅保存当前群复核结果；全部所选群复核后，点击主窗口“一键导出所选群”。'), style='Sub.TLabel').pack(anchor='w')
         review_controls = ttk.Frame(box)
         review_controls.pack(side='bottom', fill='x')
-        report = self.auto_parse_result['report']
         report_box = ttk.Frame(box)
         report_box.pack(fill='both', expand=True, pady=10)
         report_scroll = ttk.Scrollbar(report_box, orient='vertical')
@@ -1443,15 +1476,22 @@ class ChatApp:
                        yscrollcommand=report_scroll.set)
         text.pack(side='left', fill='both', expand=True)
         report_scroll.configure(command=text.yview)
-        text.insert('end', f"客户端：{summary['client']}\n账号目录：{summary['accountDirectory']}\n本人 ID：{summary['selfId'] or '未知'}\n"
+        if bulk:
+            text.insert('end', f'本次复核 {len(chats)} 群，共 {sum(item["review"]["exportedRows"] for item in parsed)} 条源记录。\n'
+                        '下列每群的范围、解析状态和缺口均属于本次确认；共同备注将保存到每个群。\n\n')
+        for index, item in enumerate(parsed, 1):
+            summary, report = item['review'], item['report']
+            if bulk:
+                text.insert('end', f'—— {index}/{len(chats)} · {summary["chat"]["name"]} ——\n')
+            text.insert('end', f"客户端：{summary['client']}\n账号目录：{summary['accountDirectory']}\n本人 ID：{summary['selfId'] or '未知'}\n"
                     f"群名称：{summary['chat']['name']}\n群 ID：{summary['chat']['id']}\n副本时间：{summary['snapshotTime']}\n"
                     f"日期：{summary['startDate'] or '不限'} 至 {summary['endDate'] or '不限'}（北京时间）\n源记录：{summary['exportedRows']} 条\n"
                     + report['mediaSummaryText'] + '\n解析状态：' + json.dumps(report['parseStatuses'], ensure_ascii=False)
                     + '\n解码状态：' + json.dumps(report['decodeStatuses'], ensure_ascii=False)
                     + '\n成员资料：仅为本地已保存资料，不保证当前全量成员。\n'
-                    + '\n'.join(report['warnings'] + report['limitations']))
+                    + '\n'.join(report['warnings'] + report['limitations']) + '\n\n')
         text.configure(state='disabled')
-        approval = self.session.pending_review.get('approval', {})
+        approval = {} if bulk else self.session.pending_review.get('approval', {})
         checks = {key: tk.BooleanVar(value=approval.get('checks', {}).get(key, False)) for key in REVIEW_CHECKS}
         check_actions = ttk.Frame(review_controls)
         check_actions.pack(fill='x', pady=(0, 3))
@@ -1465,8 +1505,11 @@ class ChatApp:
         clear_checks.pack(side='left', padx=6)
         ttk.Label(check_actions, textvariable=check_count, style='Sub.TLabel').pack(side='right')
         for key, label in REVIEW_CHECKS.items():
+            if bulk:
+                label = label.replace('当前账号、群名称与群 ID', '本次所有群的账号、群名称与群 ID')
             ttk.Checkbutton(review_controls, text=label, variable=checks[key]).pack(anchor='w', pady=3)
-        ttk.Label(review_controls, text='复核备注（可记录已接受的缺口）').pack(anchor='w', pady=(8, 0))
+        ttk.Label(review_controls, text=f'共同备注（保存到本次 {len(chats)} 个群，可记录接受的缺口）' if bulk else
+                  '复核备注（可记录已接受的缺口）').pack(anchor='w', pady=(8, 0))
         note = tk.Text(review_controls, height=3, wrap='word')
         note.pack(fill='x', pady=5)
         note.insert('end', approval.get('note', ''))
@@ -1480,16 +1523,20 @@ class ChatApp:
                 return
             comment = note.get('1.0', 'end-1c')
             dialog.destroy()
-            self.work('保存当前群人工复核',
-                      lambda: self.session.approve_review(summary['reviewId'], values, comment, chat=chat),
-                      self.review_ready)
+            if bulk:
+                self.work(f'保存 {len(chats)} 群人工复核',
+                          lambda: self.session.approve_reviews(review_ids, values, comment), self.review_ready,
+                          on_error=self.batch_review_failed)
+            else:
+                self.work('保存当前群人工复核',
+                          lambda: self.session.approve_review(review_ids[chat], values, comment, chat=chat), self.review_ready)
 
         ttk.Button(buttons, text='返回检查', command=dialog.destroy).pack(side='left')
-        confirm_button = ttk.Button(buttons, text='确认复核完成', style='Accent.TButton', command=confirm)
+        confirm_button = ttk.Button(buttons, text=f'确认本次 {len(chats)} 群复核' if bulk else '确认复核完成', style='Accent.TButton', command=confirm)
         confirm_button.pack(side='right')
         def update_checks(*_):
             count = sum(variable.get() for variable in checks.values())
-            check_count.set(f'已勾选 {count}/{len(checks)} · 仅当前群')
+            check_count.set(f'已勾选 {count}/{len(checks)} · ' + (f'应用本次 {len(chats)} 群' if bulk else '仅当前群'))
             check_all.configure(state='disabled' if count == len(checks) else 'normal')
             clear_checks.configure(state='normal' if count else 'disabled')
             confirm_button.configure(state='normal' if count == len(checks) else 'disabled')
@@ -1498,11 +1545,27 @@ class ChatApp:
         update_checks()
 
     def review_ready(self, value):
-        chat = value['chat']['id']
-        self.parse_states[chat] = '已复核'
+        results = value.get('reviews', [value])
+        for item in results:
+            self.parse_states[item['chat']['id']] = '已复核'
         self.render_groups()
-        self.status.set('已保存“' + value['chat']['name'] + '”的人工复核；尚未导出。完成所选群复核后点击“一键导出所选群”。')
-        self.result_text.set('已复核群 ID：' + chat + ' · 确认时间：' + value['review']['confirmedAt'])
+        if 'reviews' in value:
+            self.status.set(f'已保存 {len(results)} 群的人工复核；尚未导出。可点击“一键导出所选群”。')
+            self.result_text.set(f'批量复核 {len(results)} 群 · 原有复核记录保留 · 尚未导出')
+        else:
+            chat = value['chat']['id']
+            self.status.set('已保存“' + value['chat']['name'] + '”的人工复核；尚未导出。完成所选群复核后点击“一键导出所选群”。')
+            self.result_text.set('已复核群 ID：' + chat + ' · 确认时间：' + value['review']['confirmedAt'])
+        for item in results:
+            if item['chat']['id'] == self.receipt_chat:
+                self.publish_review_receipt(item)
+
+    def batch_review_failed(self, issue):
+        self.sync_review_states()
+        self.status.set('批量复核未完成：' + issue)
+
+    def publish_review_receipt(self, value):
+        chat = value['chat']['id']
         if chat == self.receipt_chat:
             parsed = self.parsed_results[chat]
             report = parsed['report']
