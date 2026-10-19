@@ -1,9 +1,9 @@
-"""Read account names from stable contact-only copies with existing local keys.
+"""Read account/company names from stable profile copies with existing local keys.
 
 Names are display metadata, never process ownership or authentication evidence.
 No message database, process memory, key recovery, or persistent profile writes.
 """
-from contextlib import closing
+from contextlib import closing, contextmanager
 from pathlib import Path
 import re
 import sqlite3
@@ -17,6 +17,12 @@ from database_wal import apply_wal
 from offline_accounts import same_account_source
 
 MAX_PROFILE_BYTES = 64 * 1024 * 1024
+COMPANY_FIELDS = ('companyId', 'companyName', 'companyShortName', 'companyStatus', 'companyBasis')
+
+
+def empty_company():
+    return {'companyId': '', 'companyName': '', 'companyShortName': '',
+            'companyStatus': 'unavailable', 'companyBasis': 'none'}
 
 
 def display_name(value):
@@ -66,7 +72,8 @@ def _capture(path, root, temporary):
         raise SnapshotError('profile_changing')
 
 
-def _read_profile(path, root, keys, client, ids):
+@contextmanager
+def _profile_database(path, root, keys, client):
     with tempfile.TemporaryDirectory(prefix='local-account-info-') as folder:
         temporary = Path(folder)
         _capture(path, root, temporary)
@@ -82,7 +89,8 @@ def _read_profile(path, root, keys, client, ids):
         else:
             from wecom_crypto import WeComCipher, page_size
             size = page_size(first)
-            cipher = next((WeComCipher(key) for key in keys.get('user.db', []) + keys.get('*', [])
+            candidates = keys.get(path.name, []) + keys.get('user.db', []) + keys.get('*', [])
+            cipher = next((WeComCipher(key) for key in candidates
                            if WeComCipher(key).verifies(first[:size])), None)
             if cipher is None:
                 raise SnapshotError('profile_key_unavailable')
@@ -99,19 +107,65 @@ def _read_profile(path, root, keys, client, ids):
         _quick_check(plain)
         with closing(sqlite3.connect(plain.resolve().as_uri() + '?mode=ro&immutable=1', uri=True)) as db:
             db.execute('PRAGMA query_only=ON')
-            table, identity, fields = ('user_table', 'id', ('name', 'real_name')) if client == 'wecom' else ('contact', 'username', ('nick_name',))
-            columns = {r[1] for r in db.execute('PRAGMA table_info("' + table + '")')}
-            if not {identity, *fields} <= columns:
-                return [], 'unsupported_schema'
-            selected = ','.join('"' + field + '"' for field in (identity, *fields))
-            placeholders = ','.join('?' for _ in ids)
-            rows = db.execute('SELECT ' + selected + ' FROM "' + table + '" WHERE CAST("' + identity + '" AS TEXT) IN (' + placeholders + ') LIMIT 3', ids).fetchall()
-            values = []
-            for row in rows:
-                label = next((display_name(value) for value in row[1:] if display_name(value)), '')
-                if label:
-                    values.append((str(row[0].decode('utf8') if isinstance(row[0], bytes) else row[0]), label))
-            return values, table
+            yield db
+
+
+def _company_profile(root, keys, corporation):
+    """Match this user's corporation exactly; never choose a cached contact's company."""
+    result = empty_company()
+    if corporation in (None, '', 0, '0'):
+        result['companyStatus'] = 'unknown_id'
+        return result
+    try:
+        company_id = corporation.decode('utf8') if isinstance(corporation, bytes) else str(corporation)
+    except UnicodeError:
+        return result
+    result.update(companyId=company_id, companyBasis='user_table.corp_id')
+    path = root / 'company.db'
+    if not path.exists():
+        result['companyStatus'] = 'missing_database'
+        return result
+    try:
+        with _profile_database(path, root, keys, 'wecom') as db:
+            columns = {row[1] for row in db.execute('PRAGMA table_info("external_company_table_v2")')}
+            if not {'corpany_id', 'name'} <= columns:
+                result['companyStatus'] = 'unsupported_schema'
+                return result
+            short = 'short_name' if 'short_name' in columns else 'NULL'
+            rows = db.execute('SELECT name,' + short + ' FROM external_company_table_v2 '
+                              'WHERE CAST(corpany_id AS TEXT)=? LIMIT 3', (result['companyId'],)).fetchall()
+            if len(rows) != 1:
+                result['companyStatus'] = 'ambiguous' if rows else 'name_not_found'
+            else:
+                name, short_name = (display_name(value) for value in rows[0])
+                result.update(companyName=name, companyShortName=short_name,
+                              companyStatus='matched' if name or short_name else 'name_not_found',
+                              companyBasis='user_table.corp_id->company.db:external_company_table_v2.corpany_id')
+    except (OSError, ValueError, sqlite3.Error, UnicodeError) as error:
+        result['companyStatus'] = ('needs_key' if isinstance(error, SnapshotError)
+                                   and str(error) == 'profile_key_unavailable' else 'unavailable')
+    return result
+
+
+def _read_profile(path, root, keys, client, ids):
+    company = empty_company() if client == 'wecom' else {}
+    with _profile_database(path, root, keys, client) as db:
+        table, identity, fields = ('user_table', 'id', ('name', 'real_name')) if client == 'wecom' else ('contact', 'username', ('nick_name',))
+        columns = {r[1] for r in db.execute('PRAGMA table_info("' + table + '")')}
+        if not {identity, *fields} <= columns:
+            return [], 'unsupported_schema', company
+        has_company = client == 'wecom' and 'corp_id' in columns
+        selected = ','.join('"' + field + '"' for field in (identity, *fields)) + (',corp_id' if has_company else '')
+        placeholders = ','.join('?' for _ in ids)
+        rows = db.execute('SELECT ' + selected + ' FROM "' + table + '" WHERE CAST("' + identity + '" AS TEXT) IN (' + placeholders + ') LIMIT 3', ids).fetchall()
+        values = []
+        for row in rows:
+            label = next((display_name(value) for value in row[1:len(fields) + 1] if display_name(value)), '')
+            if label:
+                values.append((str(row[0].decode('utf8') if isinstance(row[0], bytes) else row[0]), label))
+        if has_company and len(rows) == 1 and len(values) == 1:
+            company = _company_profile(root, keys, rows[0][-1])
+        return values, table, company
 
 
 def account_profiles(discovery, client='wechat', *, key_files=(), configured_source='', configured_self_id=''):
@@ -125,6 +179,8 @@ def account_profiles(discovery, client='wechat', *, key_files=(), configured_sou
     deadline = time.monotonic() + 10
     for index, item in enumerate(discovery.get('accounts', [])):
         row = {**item, 'accountNickname': '', 'accountId': '', 'profileStatus': 'unavailable', 'profileBasis': 'none'}
+        if client == 'wecom':
+            row.update(empty_company())
         try:
             source = Path(item['sourceRoot'])
             if source.is_symlink():
@@ -157,11 +213,12 @@ def account_profiles(discovery, client='wechat', *, key_files=(), configured_sou
                 path = root / relative
                 if client == 'wechat' and not path.is_file():
                     path = root / 'contact.db'
-                values, table = _read_profile(path, root.resolve(), keys, client, ids)
+                values, table, company = _read_profile(path, root.resolve(), keys, client, ids)
                 unique = set(values)
                 if len(values) == 1 and len(unique) == 1:
                     row.update(accountId=values[0][0], accountNickname=values[0][1], profileStatus='matched',
                                profileBasis=basis + ':' + table)
+                    row.update(company)
                 else:
                     row['profileStatus'] = 'ambiguous' if len(values) > 1 else 'name_not_found'
         except (OSError, ValueError, sqlite3.Error, UnicodeError) as error:

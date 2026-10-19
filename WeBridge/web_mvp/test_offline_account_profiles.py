@@ -55,6 +55,49 @@ class AccountProfileTests(unittest.TestCase):
         self.assertEqual([r['accountNickname'] for r in rows], ['指定本人', '另一个昵称'])
         self.assertTrue(rows[0]['profileBasis'].startswith('configured_self_id'))
 
+    def company_account(self, account='22', corporation='200'):
+        root = self.base / account / 'Data'
+        root.mkdir(parents=True)
+        with closing(sqlite3.connect(root / 'user.db')) as db, db:
+            db.execute('CREATE TABLE user_table(id,name,real_name,corp_id,external_corp_name)')
+            db.executemany('INSERT INTO user_table VALUES (?,?,?,?,?)',
+                           [(11, '其他人', '', '100', '不能作为本人的企业'),
+                            (int(account), '同名员工', '', corporation, '不能使用外部联系人企业名')])
+        with closing(sqlite3.connect(root / 'company.db')) as db, db:
+            db.execute('CREATE TABLE external_company_table_v2(corpany_id,name,short_name)')
+            db.executemany('INSERT INTO external_company_table_v2 VALUES (?,?,?)',
+                           [('100', '无关企业', '无关'), (corporation, '所属企业' + corporation, '简称' + corporation)])
+        return root
+
+    def test_wecom_company_is_joined_by_each_own_user_corp_id(self):
+        first = self.company_account()
+        second = self.company_account('33', '300')
+        before = (first / 'company.db').read_bytes()
+        result = account_profiles({'accounts': [{'sourceRoot': str(root)} for root in (first, second)]}, 'wecom')['accounts']
+        self.assertEqual([row['accountNickname'] for row in result], ['同名员工', '同名员工'])
+        self.assertEqual([row['companyName'] for row in result], ['所属企业200', '所属企业300'])
+        self.assertEqual([row['companyShortName'] for row in result], ['简称200', '简称300'])
+        self.assertTrue(all(row['companyStatus'] == 'matched' for row in result))
+        self.assertEqual((first / 'company.db').read_bytes(), before)
+
+    def test_company_missing_key_or_ambiguous_row_keeps_nickname_without_guessing(self):
+        root = self.company_account()
+        path = root / 'company.db'
+        with closing(sqlite3.connect(path)) as db, db:
+            db.execute("INSERT INTO external_company_table_v2 VALUES ('200','另一企业','其他')")
+        row = account_profiles({'accounts': [{'sourceRoot': str(root)}]}, 'wecom')['accounts'][0]
+        self.assertEqual(row['companyStatus'], 'ambiguous')
+        self.assertFalse(row['companyName'])
+        self.assertEqual(row['accountNickname'], '同名员工')
+        path.unlink()
+        row = account_profiles({'accounts': [{'sourceRoot': str(root)}]}, 'wecom')['accounts'][0]
+        self.assertEqual(row['companyStatus'], 'missing_database')
+        self.assertEqual(row['profileStatus'], 'matched')
+        path.write_bytes(b'X' * 4096)
+        row = account_profiles({'accounts': [{'sourceRoot': str(root)}]}, 'wecom')['accounts'][0]
+        self.assertFalse(row['companyName'])
+        self.assertEqual(row['accountNickname'], '同名员工')
+
     def test_missing_nickname_never_falls_back_to_contact_remark_or_other_people(self):
         _, item = self.personal(nick='')
         result = account_profiles({'accounts': [item]})['accounts'][0]
@@ -105,8 +148,8 @@ class AccountProfileTests(unittest.TestCase):
         root.mkdir(parents=True)
         path = root / 'user.db'
         with closing(sqlite3.connect(path)) as db, db:
-            db.execute('CREATE TABLE user_table(id integer,name,real_name)')
-            db.execute("INSERT INTO user_table VALUES (22,'密文资料昵称','本人实名')")
+            db.execute('CREATE TABLE user_table(id integer,name,real_name,corp_id)')
+            db.execute("INSERT INTO user_table VALUES (22,'密文资料昵称','本人实名',200)")
         key = bytes(range(16))
         plain = path.read_bytes()
         size = int.from_bytes(plain[16:18], 'big')
@@ -137,12 +180,29 @@ class AccountProfileTests(unittest.TestCase):
             string_profile_key([(heap_base, len(heap), 0x20000)], read, {'user.db': bytes(encrypted[:size])}, limit=0)
         keys = self.base / 'provided.json'
         keys.write_text(json.dumps({'wecomKeys': [{'database': 'user.db', 'key_hex': key.hex()}]}))
+        with closing(sqlite3.connect(root / 'company.db')) as db, db:
+            db.execute('CREATE TABLE external_company_table_v2(corpany_id,name,short_name)')
+            db.execute("INSERT INTO external_company_table_v2 VALUES (200,'密文企业全称','密文简称')")
+        company_plain = (root / 'company.db').read_bytes()
+        company_encrypted = bytearray()
+        for offset in range(0, len(company_plain), size):
+            number = offset // size + 1
+            page = company_plain[offset:offset + size]
+            pagekey = hashlib.md5(key + struct.pack('<I', number) + b'sAlT').digest()
+            encode = Cipher(algorithms.AES(pagekey), modes.CBC(page_iv(number))).encryptor()
+            payload = encode.update(page[16:] if number == 1 else page) + encode.finalize()
+            company_encrypted.extend(bytes(8) + payload[:8] + page[16:24] + payload[8:] if number == 1 else payload)
+        (root / 'company.db').write_bytes(company_encrypted)
         row = {'sourceRoot': str(root)}
         self.assertEqual(account_profiles({'accounts': [row]}, 'wecom')['accounts'][0]['profileStatus'], 'needs_key')
         result = account_profiles({'accounts': [row]}, 'wecom', key_files=[keys])['accounts'][0]
         self.assertEqual(result['accountNickname'], '密文资料昵称')
         self.assertEqual(result['profileStatus'], 'matched')
+        self.assertEqual(result['companyName'], '密文企业全称')
+        self.assertEqual(result['companyShortName'], '密文简称')
+        self.assertEqual(result['companyStatus'], 'matched')
         self.assertEqual(path.read_bytes(), bytes(encrypted))
+        self.assertEqual((root / 'company.db').read_bytes(), bytes(company_encrypted))
 
 
 if __name__ == '__main__':

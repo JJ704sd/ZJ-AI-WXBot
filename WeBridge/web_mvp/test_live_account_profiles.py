@@ -32,6 +32,40 @@ class LiveProfileTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             read_running_profile(self.account(), 'wechat')
 
+    def test_wecom_known_nickname_still_fetches_missing_company_without_switching_account(self):
+        row = {**self.account(), 'accountNickname': '本地昵称', 'accountId': 'own'}
+        reader = Mock(return_value={'accountNickname': '本地昵称', 'accountId': 'own', 'profileStatus': 'matched',
+                                   'profileBasis': 'live_owner:user_table', 'companyId': '200',
+                                   'companyName': '合成企业\n有限公司', 'companyShortName': '企业简称',
+                                   'companyStatus': 'matched', 'companyBasis': 'synthetic'})
+        result = complete_live_profiles({'accounts': [row]}, 'wecom', allow_process_read=True, reader=reader)['accounts'][0]
+        reader.assert_called_once()
+        self.assertEqual(result['companyName'], '合成企业 有限公司')
+        self.assertEqual(result['companyShortName'], '企业简称')
+        self.assertEqual(result['sourceRoot'], row['sourceRoot'])
+        self.assertNotIn('companyName', row)
+
+    def test_wecom_cached_company_does_not_cross_process_creation_time(self):
+        from offline_desktop import DesktopSession
+        with tempfile.TemporaryDirectory(prefix='company-cache-synthetic-') as folder:
+            session = DesktopSession(Path(folder) / 'profile', client='wecom')
+            row = {**self.account(), 'sourceRoot':str(Path(folder) / 'account'),
+                   'accountNickname':'本地昵称', 'accountId':'own', 'companyId':'200'}
+            session.scan = lambda: {'accounts':[dict(row)]}
+            session._account_names = lambda value: value
+            reader = Mock(return_value={'accountNickname':'本地昵称', 'accountId':'own',
+                                       'profileStatus':'matched', 'profileBasis':'live_owner:user_table',
+                                       'companyId':'200', 'companyName':'所属企业', 'companyStatus':'matched'})
+            with patch('offline_accounts.identify_accounts', side_effect=lambda value, client:value), patch('live_account_profiles.read_running_profile', reader):
+                self.assertEqual(session.scan_accounts(live_names=True)['accounts'][0]['companyName'], '所属企业')
+                self.assertEqual(session.scan_accounts()['accounts'][0]['companyName'], '所属企业')
+                row['companyId'] = '300'
+                self.assertNotIn('companyName', session.scan_accounts()['accounts'][0])
+                row['processIdentities'] = [{'pid':81, 'created':200}]
+                self.assertNotIn('companyName', session.scan_accounts()['accounts'][0])
+            self.assertEqual(reader.call_count, 1)
+            self.assertFalse(session.settings_path.exists())
+
     def test_inactive_ambiguous_and_missing_creation_time_do_not_read_processes(self):
         rows = [self.account(state='inactive'), self.account(state='ambiguous'), self.account()]
         rows[-1].pop('processIdentities')

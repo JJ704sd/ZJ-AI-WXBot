@@ -6,10 +6,10 @@ import re
 import sys
 import tempfile
 
-from offline_account_profiles import _read_profile, display_name
+from offline_account_profiles import _read_profile, display_name, COMPANY_FIELDS
 from offline_accounts import _windows_owners
 
-PROFILE_FIELDS = ('accountNickname', 'accountId', 'profileStatus', 'profileBasis')
+PROFILE_FIELDS = ('accountNickname', 'accountId', 'profileStatus', 'profileBasis') + COMPANY_FIELDS
 
 
 def _source_profile(source, client):
@@ -41,7 +41,7 @@ def _source_profile(source, client):
 
 
 def _profile_worker(source, client, owner, outgoing):
-    """Only name/ID/status crosses IPC; transient key material dies with worker."""
+    """Only account/company display metadata crosses IPC; keys die with worker."""
     with open(os.devnull, 'w') as sink:
         for descriptor in (1, 2):
             try:
@@ -76,7 +76,7 @@ def _profile_worker(source, client, owner, outgoing):
             if _windows_owners(owned, client) != [owner]:
                 raise ValueError('owner_changed')
             stage = 'profile_lookup'
-            values, table = _read_profile(path, root, keys, client, ids)
+            values, table, company = _read_profile(path, root, keys, client, ids)
             del keys
             _root, _path, current_owned, _ids = _source_profile(source, client)
             if current_owned != owned or _windows_owners(current_owned, client) != [owner]:
@@ -84,7 +84,7 @@ def _profile_worker(source, client, owner, outgoing):
             if len(values) != 1:
                 raise ValueError('profile_not_unique')
             outgoing.send({'accountNickname': values[0][1], 'accountId': values[0][0], 'profileStatus': 'matched',
-                           'profileBasis': 'live_owner:' + table})
+                           'profileBasis': 'live_owner:' + table, **company})
         except Exception as error:
             from acquire_database_keys import SAFE_CODES
             code = getattr(error, 'code', None)
@@ -148,12 +148,16 @@ def complete_live_profiles(discovery, client, *, allow_process_read=False, reade
         identities = row.get('processIdentities', [])
         eligible = (row.get('processState') == 'active' and len(identities) == 1
                     and row.get('processIds') == [identities[0].get('pid')] and identities[0].get('created'))
-        if eligible and not row.get('accountNickname'):
+        needs_company = client == 'wecom' and not (row.get('companyName') or row.get('companyShortName'))
+        if eligible and (not row.get('accountNickname') or needs_company):
             try:
                 result = read(row, client)
                 if result.get('profileStatus') == 'matched' and result.get('accountId') and result.get('accountNickname'):
-                    row.update({key: result[key] for key in PROFILE_FIELDS})
+                    row.update({key: result[key] for key in PROFILE_FIELDS if key in result})
                     row['accountNickname'] = display_name(row['accountNickname'])
+                    for field in ('companyName', 'companyShortName'):
+                        if field in row:
+                            row[field] = display_name(row[field])
                 else:
                     row['profileStatus'] = 'live_unavailable'
                     row['profileIssue'] = result.get('profileIssue', 'profile_read_failed')

@@ -26,7 +26,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v34'
+GUI_RELEASE = 'v35'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -190,7 +190,9 @@ class ChatApp:
         info = ttk.Frame(self.root, padding=(12, 0, 12, 3))
         info.grid(row=1, column=0, sticky='ew')
         info.columnconfigure(0, weight=1)
-        ttk.Label(info, textvariable=self.account_text, style='Sub.TLabel').grid(row=0, column=0, sticky='w')
+        account_label = ttk.Label(info, textvariable=self.account_text, style='Sub.TLabel')
+        account_label.grid(row=0, column=0, sticky='w')
+        info.bind('<Configure>', lambda event: account_label.configure(wraplength=max(240, event.width - 150)))
         self.progress = ttk.Progressbar(info, mode='indeterminate', length=100)
         self.progress.grid(row=0, column=1, sticky='e', padx=(12, 0))
         pane = ttk.PanedWindow(self.root, orient='horizontal')
@@ -654,6 +656,9 @@ class ChatApp:
         source = Path(self.session.archive.media_config.get('sourceRoot', ''))
         label = source.parent.name if source.name in ('db_storage', 'Data') else source.name
         nickname = value.get('accountProfile', {}).get('accountNickname') or '昵称未取得'
+        if self.session.client == 'wecom':
+            profile = value.get('accountProfile', {})
+            nickname += ' · ' + (profile.get('companyName') or profile.get('companyShortName') or '企业名称未获取')
         self.account_text.set('当前账号：' + nickname + ' · 目录：' + label + ' · 全部本地群 ' + str(len(self.groups)) + ' 个 · 按群 ID 选择')
         self.render_groups()
         stamp = datetime.fromisoformat(value['snapshotTime']).astimezone(BEIJING).strftime('%Y-%m-%d %H:%M:%S')
@@ -1543,7 +1548,8 @@ class ChatApp:
         self.work('识别当前客户端占用与本地账号昵称', self.session.scan_accounts, self.scan_ready)
 
     def scan_live_names(self):
-        self.work('只读临时取得运行账号资料密钥并识别昵称（不保存密钥）',
+        purpose = '昵称与企业名称' if self.session.client == 'wecom' else '昵称'
+        self.work(f'只读临时取得运行账号资料密钥并识别{purpose}（不保存密钥）',
                   lambda: self.session.scan_accounts(live_names=True), self.scan_ready)
 
     def scan_ready(self, value):
@@ -1663,13 +1669,17 @@ class ChatApp:
             if self.account_scan.get('scanIncomplete'):
                 detail += '部分目录归属未确认，暂不推荐唯一账号。'
             nickname = item.get('accountNickname')
+            if self.session.client == 'wecom':
+                company = item.get('companyName') or item.get('companyShortName')
+                detail += f'企业：{company}。' if company else '企业名称未获取；可点击“识别运行账号昵称与企业”补充。'
             if nickname:
                 basis = ('当前持有进程及资料库校验' if item.get('profileBasis', '').startswith('live_owner:') else
                          '已配置本人ID' if item.get('profileBasis', '').startswith('configured_self_id') else '账号目录ID精确匹配')
                 detail += f'本地昵称/名称：{nickname}；来源：{basis}。'
             else:
                 if state == 'active':
-                    detail += '可点击“临时取资料密钥并识别运行账号昵称”；无需切换或保存账号配置。'
+                    detail += ('可点击“识别运行账号昵称与企业”；' if self.session.client == 'wecom' else
+                               '可点击“临时取资料密钥并识别运行账号昵称”；') + '无需切换或保存账号配置。'
                 elif item.get('profileStatus') == 'needs_key':
                     detail += '昵称未取得：现有密钥不适用于该资料库；请先完成此账号配置，再重新识别。'
                 else:
@@ -1707,6 +1717,8 @@ class ChatApp:
                 state = states.get(item.get('processState'), '归属未确认')
                 pids = ','.join(str(pid) for pid in item.get('processIds', []))
                 nickname = item.get('accountNickname') or '昵称未取得'
+                if self.session.client == 'wecom':
+                    nickname += ' · ' + (item.get('companyShortName') or item.get('companyName') or '企业名称未获取')
                 label = f'{index + 1}. {nickname} · {item["directoryLabel"]} · {state}' + (' · PID ' + pids if pids else '')
                 if same_account_source(item['sourceRoot'], saved_source, self.session.client):
                     label += ' · 已保存配置'
@@ -1728,8 +1740,10 @@ class ChatApp:
         identify_actions = ttk.Frame(automatic)
         identify_actions.pack(fill='x', pady=(0, 6))
         ttk.Button(identify_actions, text='重新识别运行账号', command=self.scan).pack(side='left')
-        ttk.Button(identify_actions, text='临时取资料密钥并识别运行账号昵称', command=self.scan_live_names).pack(side='left', padx=(8, 0))
-        ttk.Label(automatic, text='上方“临时取资料密钥”会只读访问已确认归属的运行进程，仅用于本人昵称，不保存密钥、不读聊天正文。',
+        identify_text = '识别运行账号昵称与企业' if self.session.client == 'wecom' else '临时取资料密钥并识别运行账号昵称'
+        ttk.Button(identify_actions, text=identify_text, command=self.scan_live_names).pack(side='left', padx=(8, 0))
+        purpose = '本人昵称与企业名称' if self.session.client == 'wecom' else '本人昵称'
+        ttk.Label(automatic, text=f'上方识别按钮会临时取资料密钥，只读访问已确认归属的运行进程，仅用于{purpose}，不保存密钥、不读聊天正文。',
                   wraplength=720, style='Sub.TLabel').pack(anchor='w', pady=(0, 8))
         include_media = tk.BooleanVar(value=config.get('includeMedia', True))
         include_voice = tk.BooleanVar(value=config.get('includeVoice', False))

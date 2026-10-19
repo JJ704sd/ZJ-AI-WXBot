@@ -56,6 +56,8 @@ for client,child in [('wechat','db_storage'),('wecom','Data')]:
     for item in scan['accounts']:
         item['accountNickname']='合成昵称-'+item['directoryLabel']
         item['profileBasis']='configured_self_id:contact'
+        if client=='wecom':
+            item.update(companyName='合成企业全称-'+item['directoryLabel'],companyShortName='企业简称-'+item['directoryLabel'])
     session.scan=lambda:discovery
     boundary=patch('offline_accounts._windows_owners',lambda paths,_: [(81,100)] if paths[0].is_relative_to(running) else [])
     boundary.start()
@@ -73,11 +75,15 @@ for client,child in [('wechat','db_storage'),('wecom','Data')]:
         chooser=next(w for w in widgets(dialog) if w.winfo_class()=='TCombobox')
         assert '已保存配置' in chooser.get() and 'saved' in chooser.get(),chooser.get()
         assert '合成昵称-saved' in chooser.get(),chooser.get()
+        if client=='wecom':
+            assert '企业简称-saved' in chooser.get() and '合成企业全称-saved' in app.status.get()
         select=next(w for w in widgets(dialog) if w.winfo_class()=='TButton' and w.cget('text')=='选择已确认的运行账号')
         assert 'disabled' not in select.state()
         select.invoke();root.update()
         assert 'running' in chooser.get() and '运行中' in chooser.get(),chooser.get()
         assert '合成昵称-running' in chooser.get() and '本地昵称/名称' in app.status.get()
+        if client=='wecom':
+            assert '企业简称-running' in chooser.get() and '合成企业全称-running' in app.status.get()
         entries=[w for w in widgets(dialog) if w.winfo_class()=='TEntry']
         assert Path(entries[0].get())==(running/'db_storage' if client=='wechat' else running)
         assert all(not w.get() for w in entries[1:]),'old source key/identity reused across accounts'
@@ -95,7 +101,8 @@ for client,child in [('wechat','db_storage'),('wecom','Data')]:
             root.update();time.sleep(.01)
         assert '已保存配置' in chooser.get() and 'disabled' not in select.state()
         assert dialog.winfo_height()<=root.winfo_screenheight(), 'source dialog exceeds screen height'
-        live_button=next(w for w in widgets(dialog) if w.winfo_class()=='TButton' and w.cget('text')=='临时取资料密钥并识别运行账号昵称')
+        live_text='识别运行账号昵称与企业' if client=='wecom' else '临时取资料密钥并识别运行账号昵称'
+        live_button=next(w for w in widgets(dialog) if w.winfo_class()=='TButton' and w.cget('text')==live_text)
         live_scan={**scan,'accounts':[{**item,'accountNickname':'实时昵称-running' if item['processState']=='active' else item['accountNickname'],
                                      'profileBasis':'live_owner:contact' if item['processState']=='active' else item['profileBasis']} for item in scan['accounts']]}
         with patch.object(session,'scan_accounts',return_value=live_scan) as service:

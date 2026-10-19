@@ -377,6 +377,7 @@ class DesktopSession:
         """Fresh ownership evidence plus display-only local account names."""
         from offline_accounts import identify_accounts
         from live_account_profiles import complete_live_profiles, PROFILE_FIELDS
+        from offline_account_profiles import COMPANY_FIELDS
         scan = self._account_names(identify_accounts(self.scan(), self.client))
         if live_names:
             scan = complete_live_profiles(scan, self.client, allow_process_read=True)
@@ -387,10 +388,16 @@ class DesktopSession:
                 continue
             key = (str(Path(row['sourceRoot']).resolve()), identities[0]['pid'], identities[0]['created'])
             if row.get('profileBasis', '').startswith('live_owner:') and row.get('profileStatus') == 'matched':
-                valid[key] = {field: row[field] for field in PROFILE_FIELDS}
-            elif not live_names and not row.get('accountNickname') and key in self._live_account_names:
-                row.update(self._live_account_names[key])
-                valid[key] = self._live_account_names[key]
+                valid[key] = {field: row[field] for field in PROFILE_FIELDS if field in row}
+            elif not live_names and key in self._live_account_names:
+                cached = self._live_account_names[key]
+                if not row.get('accountNickname'):
+                    row.update(cached)
+                elif (self.client == 'wecom' and row.get('accountId') == cached.get('accountId')
+                      and not (row.get('companyName') or row.get('companyShortName'))
+                      and (not row.get('companyId') or row['companyId'] == cached.get('companyId'))):
+                    row.update({field: cached[field] for field in COMPANY_FIELDS if field in cached})
+                valid[key] = cached
         self._live_account_names = valid
         return scan
 
