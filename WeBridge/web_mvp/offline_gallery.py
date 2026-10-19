@@ -18,7 +18,7 @@ class ImageGallery(ttk.Frame):
         self.card_count = 0
         self.summary = tk.StringVar(value='选择群聊后，在此集中查看图片，包含转发和引用中的图片。')
         self.position = tk.StringVar()
-        top = ttk.Frame(self, padding=(8, 10))
+        top = ttk.Frame(self, padding=(8, 6))
         top.pack(fill='x')
         ttk.Label(top, textvariable=self.summary, wraplength=720).pack(anchor='w')
         ttk.Label(top, text='点图片或“查看大图”放大；“定位原消息”查看上下文。同图多次引用保留出处，缩略图不会补成原图。',
@@ -105,7 +105,7 @@ class ImageGallery(ttk.Frame):
             widget = tk.Label(card, text=value, background='white', anchor='w', justify='left', wraplength=208, **options)
             widget.pack(fill='x', pady=(0, 5))
             return widget
-        text(f'{index:02d}  {label}', foreground=COLORS[state], font=('Microsoft YaHei UI', 10, 'bold'))
+        text(f'{index:02d}  {label}', foreground=COLORS[state], font=('Microsoft YaHei UI', 9, 'bold'))
         preview = tk.Frame(card, width=210, height=148, background='#edf2f7')
         preview.pack(fill='x', pady=5)
         preview.pack_propagate(False)

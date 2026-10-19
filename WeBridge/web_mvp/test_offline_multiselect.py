@@ -371,6 +371,9 @@ try:
         x,y,w,h=app.tree.bbox(first,'review')
         assert w>0 and 0<=x<x+w<=app.tree.winfo_width(),'review column requires horizontal scrolling'
         assert app.current_review_badge.winfo_ismapped() and app.review_filter_choice.winfo_ismapped()
+        assert app.completion_banner.winfo_ismapped() and app.completion_banner.winfo_height()<root.winfo_height()*.16
+        assert app.browser.tree.winfo_height()>=100,'compact layout left too little space for messages'
+        assert 0<=app.export_button.winfo_rooty()-root.winfo_rooty()<root.winfo_height()-app.export_button.winfo_height()
     assert app.current_review_state.get()=='未复核'
     approve(first)
     assert app.tree.set(first,'review')=='已复核' and app.tree.set(second,'review')=='已解析·未复核'

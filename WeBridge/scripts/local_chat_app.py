@@ -13,6 +13,7 @@ import tempfile
 import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+from tkinter import font as tkfont
 
 PROJECT = Path(__file__).resolve().parents[1]
 if not getattr(sys, 'frozen', False):
@@ -25,7 +26,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v33'
+GUI_RELEASE = 'v34'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -93,7 +94,7 @@ class ChatApp:
             style.theme_use('clam')
         root.configure(background='#f4f6fa')
         style.configure('.', background='#f4f6fa', foreground='#1e293b', font=('Microsoft YaHei UI', 9))
-        style.configure('TButton', background='#ffffff', bordercolor='#cbd5e1', padding=(7, 3), width=0)
+        style.configure('TButton', background='#ffffff', bordercolor='#cbd5e1', padding=(6, 2), width=0)
         style.map('TButton', background=[('disabled', '#edf1f6'), ('active', '#e8effa')],
                   foreground=[('disabled', '#94a3b8')])
         style.configure('Accent.TButton', background='#2563eb', foreground='#ffffff', bordercolor='#2563eb')
@@ -101,20 +102,22 @@ class ChatApp:
                   foreground=[('disabled', '#8a9bb8'), ('!disabled', '#ffffff')])
         style.configure('TEntry', fieldbackground='#ffffff', padding=2)
         style.configure('TCombobox', fieldbackground='#ffffff', padding=2)
-        style.configure('Title.TLabel', font=('Microsoft YaHei UI', 20, 'bold'))
-        style.configure('Sub.TLabel', foreground='#64748b', font=('Microsoft YaHei UI', 9))
-        style.configure('Status.TLabel', font=('Microsoft YaHei UI', 10))
+        style.configure('Title.TLabel', font=('Microsoft YaHei UI', 12, 'bold'))
+        style.configure('Sub.TLabel', foreground='#64748b', font=('Microsoft YaHei UI', 8))
+        style.configure('Status.TLabel', font=('Microsoft YaHei UI', 9))
         style.configure('Section.TLabel', foreground='#1d4ed8', font=('Microsoft YaHei UI', 9, 'bold'))
-        style.configure('ReviewPending.TLabel', foreground='#9a3412', font=('Microsoft YaHei UI', 10, 'bold'))
-        style.configure('ReviewDone.TLabel', foreground='#15803d', font=('Microsoft YaHei UI', 10, 'bold'))
-        style.configure('ReviewNone.TLabel', foreground='#64748b', font=('Microsoft YaHei UI', 10, 'bold'))
+        style.configure('ReviewPending.TLabel', foreground='#9a3412', font=('Microsoft YaHei UI', 9, 'bold'))
+        style.configure('ReviewDone.TLabel', foreground='#15803d', font=('Microsoft YaHei UI', 9, 'bold'))
+        style.configure('ReviewNone.TLabel', foreground='#64748b', font=('Microsoft YaHei UI', 9, 'bold'))
         style.configure('Completion.TFrame', background='#e0f2fe')
-        style.configure('Completion.TLabel', background='#e0f2fe', foreground='#075985', font=('Microsoft YaHei UI', 11, 'bold'))
-        style.configure('CompletionDetail.TLabel', background='#e0f2fe', foreground='#075985', font=('Microsoft YaHei UI', 9))
-        style.configure('Treeview', rowheight=30, background='#ffffff', fieldbackground='#ffffff', bordercolor='#dbe2ed', font=('Microsoft YaHei UI', 10))
+        style.configure('Completion.TLabel', background='#e0f2fe', foreground='#075985', font=('Microsoft YaHei UI', 9, 'bold'))
+        style.configure('CompletionDetail.TLabel', background='#e0f2fe', foreground='#075985', font=('Microsoft YaHei UI', 8))
+        row_height = max(24, tkfont.Font(root=root, family='Microsoft YaHei UI', size=9).metrics('linespace') + 6)
+        style.configure('Treeview', rowheight=row_height, background='#ffffff', fieldbackground='#ffffff', bordercolor='#dbe2ed', font=('Microsoft YaHei UI', 9))
         style.map('Treeview', background=[('selected', '#dbeafe')], foreground=[('selected', '#1e3a8a')])
-        style.configure('Treeview.Heading', background='#eaf0f8', padding=(4, 5), font=('Microsoft YaHei UI', 9, 'bold'))
-        root.option_add('*Font', ('Microsoft YaHei UI', 10))
+        style.configure('Treeview.Heading', background='#eaf0f8', padding=(4, 3), font=('Microsoft YaHei UI', 9, 'bold'))
+        style.configure('TNotebook.Tab', padding=(8, 3))
+        root.option_add('*Font', ('Microsoft YaHei UI', 9))
         self.search = tk.StringVar()
         self.start_date = tk.StringVar()
         self.end_date = tk.StringVar()
@@ -169,9 +172,9 @@ class ChatApp:
     def _layout(self):
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(2, weight=1)
-        header = ttk.Frame(self.root, padding=(14, 8, 14, 4))
+        header = ttk.Frame(self.root, padding=(12, 6, 12, 3))
         header.grid(row=0, column=0, sticky='ew')
-        ttk.Label(header, text='本地聊天解析', font=('Microsoft YaHei UI', 15, 'bold')).pack(side='left')
+        ttk.Label(header, text='本地聊天解析', style='Title.TLabel').pack(side='left')
         client = '企业微信' if self.session.client == 'wecom' else '个人微信'
         ttk.Label(header, text=client + ' · ' + GUI_RELEASE, style='Sub.TLabel').pack(side='left', padx=12)
         self.scan_button = ttk.Menubutton(header, text='更多设置')
@@ -184,22 +187,22 @@ class ChatApp:
         self.source_button.pack(side='right', padx=8)
         self.refresh_button = ttk.Button(header, text='刷新此群与媒体', command=self.refresh)
         self.refresh_button.pack(side='right')
-        info = ttk.Frame(self.root, padding=(14, 0, 14, 4))
+        info = ttk.Frame(self.root, padding=(12, 0, 12, 3))
         info.grid(row=1, column=0, sticky='ew')
         info.columnconfigure(0, weight=1)
         ttk.Label(info, textvariable=self.account_text, style='Sub.TLabel').grid(row=0, column=0, sticky='w')
         self.progress = ttk.Progressbar(info, mode='indeterminate', length=100)
         self.progress.grid(row=0, column=1, sticky='e', padx=(12, 0))
         pane = ttk.PanedWindow(self.root, orient='horizontal')
-        pane.grid(row=2, column=0, sticky='nsew', padx=14)
-        self.sidebar = ttk.Frame(pane, width=310, padding=(0, 8, 12, 0))
+        pane.grid(row=2, column=0, sticky='nsew', padx=12)
+        self.sidebar = ttk.Frame(pane, width=292, padding=(0, 5, 10, 0))
         self.sidebar.pack_propagate(False)
-        right = ttk.Frame(pane, padding=(12, 8, 0, 0))
+        right = ttk.Frame(pane, padding=(10, 5, 0, 0))
         pane.add(self.sidebar, weight=0)
         pane.add(right, weight=1)
         right.columnconfigure(0, weight=1)
         right.rowconfigure(3, weight=1)
-        ttk.Label(self.sidebar, textvariable=self.group_title, style='Section.TLabel').pack(anchor='w', pady=(0, 8))
+        ttk.Label(self.sidebar, textvariable=self.group_title, style='Section.TLabel').pack(anchor='w', pady=(0, 5))
         search_bar = ttk.Frame(self.sidebar)
         search_bar.pack(fill='x')
         self.search_clear_button = ttk.Button(search_bar, text='清除', width=4, command=lambda: self.search.set(''), state='disabled')
@@ -238,14 +241,14 @@ class ChatApp:
             values=('全部群聊', '已解析可查看', '所选群聊', '所选未复核', '所选已复核'), state='readonly')
         self.review_filter_choice.pack(fill='x', pady=(4, 0))
         self.review_filter_choice.bind('<<ComboboxSelected>>', lambda _event: self.render_groups())
-        ttk.Label(self.sidebar, textvariable=self.group_hint, wraplength=265, style='Sub.TLabel').pack(fill='x', pady=(4, 8))
+        ttk.Label(self.sidebar, textvariable=self.group_hint, wraplength=265, style='Sub.TLabel').pack(fill='x', pady=(3, 4))
         tree_frame = ttk.Frame(self.sidebar)
         tree_frame.pack(fill='both', expand=True)
         self.tree = ttk.Treeview(tree_frame, columns=('pick', 'review', 'name', 'id', 'count', 'state'), show='headings', selectmode='browse')
         self.tree.heading('pick', text='☐', command=self.toggle_visible)
-        self.tree.column('pick', width=36, minwidth=36, stretch=False, anchor='center')
+        self.tree.column('pick', width=32, minwidth=32, stretch=False, anchor='center')
         self.tree.heading('review', text='解析 / 复核')
-        self.tree.column('review', width=136, minwidth=128, stretch=False, anchor='center')
+        self.tree.column('review', width=118, minwidth=112, stretch=False, anchor='center')
         self.tree.heading('name', text='群聊')
         self.tree.column('name', width=120, minwidth=90)
         self.tree.heading('id', text='群 ID')
@@ -284,7 +287,7 @@ class ChatApp:
         title_line.pack(fill='x')
         self.next_review_button = ttk.Button(title_line, text='下一个未复核群', command=self.next_review, state='disabled')
         self.next_review_button.pack(side='right')
-        ttk.Label(title_line, textvariable=self.chat_title, font=('Microsoft YaHei UI', 13, 'bold')).pack(side='left')
+        ttk.Label(title_line, textvariable=self.chat_title, font=('Microsoft YaHei UI', 11, 'bold')).pack(side='left')
         identity_line = ttk.Frame(title)
         identity_line.pack(fill='x', pady=(4, 0))
         self.copy_current_id_button = ttk.Button(identity_line, text='复制 ID', width=6, command=self.copy_current_group_id, state='disabled')
@@ -297,8 +300,8 @@ class ChatApp:
         self.current_hint_row = ttk.Frame(title)
         self.current_hint_row.pack(fill='x', pady=(3, 0))
         ttk.Label(self.current_hint_row, textvariable=self.current_review_hint, style='Sub.TLabel').pack(side='left')
-        self.completion_banner = ttk.Frame(title, padding=(10, 7), style='Completion.TFrame')
-        self.completion_banner.pack(fill='x', pady=(6, 0))
+        self.completion_banner = ttk.Frame(title, padding=(8, 4), style='Completion.TFrame')
+        self.completion_banner.pack(fill='x', pady=(4, 0))
         notice_top = ttk.Frame(self.completion_banner, style='Completion.TFrame')
         notice_top.pack(fill='x')
         self.completed_groups_button = ttk.Button(notice_top, text='查看已解析群', style='Accent.TButton',
@@ -307,7 +310,7 @@ class ChatApp:
         notice_heading = ttk.Label(notice_top, textvariable=self.completion_text, style='Completion.TLabel')
         notice_heading.pack(side='left', fill='x', expand=True)
         notice_detail = ttk.Label(self.completion_banner, textvariable=self.completion_detail, style='CompletionDetail.TLabel')
-        notice_detail.pack(fill='x', pady=(2, 0))
+        notice_detail.pack(fill='x')
         self.completion_banner.bind('<Configure>', lambda event: (
             notice_heading.configure(wraplength=max(160, event.width - self.completed_groups_button.winfo_reqwidth() - 36)),
             notice_detail.configure(wraplength=max(160, event.width - 24))))
@@ -355,7 +358,7 @@ class ChatApp:
         self.date_frame.grid_remove()
         self.browser = MessageBrowser(right, notify=self.status.set, show_source=self.show_image_source)
         self.browser.grid(row=3, column=0, sticky='nsew')
-        pagination = ttk.Frame(right, padding=(0, 4, 0, 4))
+        pagination = ttk.Frame(right, padding=(0, 3, 0, 3))
         pagination.grid(row=4, column=0, sticky='ew')
         ttk.Label(pagination, textvariable=self.page_text, style='Sub.TLabel').pack(side='left')
         pager = ttk.Frame(pagination)
@@ -370,11 +373,11 @@ class ChatApp:
         self.page_size_choice = ttk.Combobox(pager, textvariable=self.page_size, values=('100','300','500'), width=4, state='readonly')
         self.page_size_choice.pack(side='left')
         self.page_size_choice.bind('<<ComboboxSelected>>', lambda _event: self.read_page())
-        exports = ttk.Frame(right, padding=(0, 8, 0, 0))
+        exports = ttk.Frame(right, padding=(0, 5, 0, 0))
         exports.grid(row=5, column=0, sticky='ew')
-        ttk.Separator(exports).pack(fill='x', pady=(0, 8))
+        ttk.Separator(exports).pack(fill='x', pady=(0, 5))
         summary = ttk.Frame(exports)
-        summary.pack(fill='x', pady=(0, 6))
+        summary.pack(fill='x', pady=(0, 4))
         self.batch_folder_button = ttk.Button(summary, text='打开批次目录', command=self.open_batch, state='disabled')
         self.batch_folder_button.pack(side='right')
         summary_text = ttk.Frame(summary)
@@ -398,7 +401,7 @@ class ChatApp:
             self.export_file_buttons[kind] = button
         self.folder_button = ttk.Button(actions, text='文件所在目录', command=lambda: self.open_result(True), state='disabled')
         self.folder_button.pack(side='left')
-        bottom = ttk.Frame(self.root, padding=(14, 6, 14, 6))
+        bottom = ttk.Frame(self.root, padding=(12, 4, 12, 4))
         bottom.grid(row=3, column=0, sticky='ew')
         bottom.columnconfigure(1, weight=1)
         ttk.Label(bottom, text='状态', style='Sub.TLabel').grid(row=0, column=0, padx=(0, 8))
@@ -413,7 +416,7 @@ class ChatApp:
     def adapt_layout(self, event):
         if event.widget is not self.root:
             return
-        if event.height < 760:
+        if event.height < 840:
             self.current_hint_row.pack_forget()
         elif not self.current_hint_row.winfo_manager():
             self.current_hint_row.pack(fill='x', pady=(3, 0))
@@ -592,7 +595,7 @@ class ChatApp:
         elif self.batch_running:
             position = len(self.batch_ids) - len(self.batch_queue)
             hint = (f'后台解析 {position}/{len(self.batch_ids)} · 已完成 {len(self.batch_succeeded)} 群可查看；'
-                    '本次队列固定，勾选用于下次解析/导出。结束或停止后复核。')
+                    '结束或停止后复核。')
         elif self.busy:
             hint = '正在处理本地数据，请稍候。'
         elif dirty:
@@ -754,9 +757,9 @@ class ChatApp:
             state='normal' if chats and self.can_browse() else 'disabled')
         latest = self.parsed_results.get(self.last_completed_chat)
         if latest and self.last_completed_chat in chats:
-            self.completion_detail.set(f'刚完成：{latest["chat"]["name"]} · {latest["report"]["exportedRows"]} 条。蓝色为已解析未复核，绿色为已复核。')
+            self.completion_detail.set(f'刚完成：{latest["chat"]["name"]} · {latest["report"]["exportedRows"]} 条')
         else:
-            self.completion_detail.set('蓝色为已解析未复核，黄色为解析中。完成群可立即阅读，人工复核后再正式导出。')
+            self.completion_detail.set('蓝色：已解析待复核 · 黄色：解析中 · 绿色：已复核')
 
     def show_completed_groups(self):
         chats = self.completed_groups()
@@ -1373,7 +1376,7 @@ class ChatApp:
         dialog.bind('<Escape>', lambda _event: dialog.destroy())
         box = ttk.Frame(dialog, padding=16)
         box.pack(fill='both', expand=True)
-        ttk.Label(box, text='请核对本次账号、群 ID 与解析结果', font=('Microsoft YaHei UI', 14, 'bold')).pack(anchor='w')
+        ttk.Label(box, text='请核对本次账号、群 ID 与解析结果', font=('Microsoft YaHei UI', 12, 'bold')).pack(anchor='w')
         ttk.Label(box, text='本次仅保存当前群复核结果；全部所选群复核后，点击主窗口“一键导出所选群”。', style='Sub.TLabel').pack(anchor='w')
         review_controls = ttk.Frame(box)
         review_controls.pack(side='bottom', fill='x')
@@ -1584,7 +1587,7 @@ class ChatApp:
         automatic = ttk.Frame(automatic_tab, padding=20)
         automatic.pack(fill='x')
         client_label = '企微' if self.session.client == 'wecom' else '个微'
-        ttk.Label(automatic, text=f'首次使用：登录本人{client_label}后，一键自动配置', font=('Microsoft YaHei UI', 12, 'bold')).pack(anchor='w')
+        ttk.Label(automatic, text=f'首次使用：登录本人{client_label}后，一键自动配置', font=('Microsoft YaHei UI', 10, 'bold')).pack(anchor='w')
         setup_hint = ('只读所选企微账号，尝试恢复并校验数据库密钥；图片附件通过缓存摘要匹配。配置与个微分开保存。'
                       if self.session.client == 'wecom' else '先复用并校验本机已有密钥；没有时，只读尝试从所选账号已登录微信恢复数据库和图片密钥。')
         ttk.Label(automatic, text=setup_hint,
