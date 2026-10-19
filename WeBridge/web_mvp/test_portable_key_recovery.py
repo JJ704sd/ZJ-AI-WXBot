@@ -28,8 +28,9 @@ class PortableRecoveryTests(unittest.TestCase):
     def test_only_authenticated_selected_account_keys_are_saved_and_not_returned(self):
         foreign = {'key_hex': (b'F' * 32).hex(), 'salt_hex': (b'G' * 16).hex()}
         result = {'keys': self.rows + [foreign], 'imageRecovery': 'not_recovered'}
-        with patch('portable_key_recovery._collect', return_value=result):
+        with patch('portable_key_recovery._collect', return_value=result) as collect:
             outcome = recover_key_file(self.source, self.data, allow_process_read=True)
+        collect.assert_called_once_with(self.source, True, 30, 4096 * 1024 * 1024)
         saved = json.loads(Path(outcome['keyFile']).read_text(encoding='utf-8'))
         self.assertCountEqual(saved['keys'], self.rows)
         self.assertEqual(outcome['matchedCount'], 2)

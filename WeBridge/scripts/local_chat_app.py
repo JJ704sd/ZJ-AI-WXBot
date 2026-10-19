@@ -25,7 +25,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v30'
+GUI_RELEASE = 'v31'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -1369,6 +1369,10 @@ class ChatApp:
     def scan(self):
         self.work('识别当前客户端占用与本地账号昵称', self.session.scan_accounts, self.scan_ready)
 
+    def scan_live_names(self):
+        self.work('只读临时取得运行账号资料密钥并识别昵称（不保存密钥）',
+                  lambda: self.session.scan_accounts(live_names=True), self.scan_ready)
+
     def scan_ready(self, value):
         self.account_scan = value
         active = value.get('activeAccountCount', 0)
@@ -1487,10 +1491,13 @@ class ChatApp:
                 detail += '部分目录归属未确认，暂不推荐唯一账号。'
             nickname = item.get('accountNickname')
             if nickname:
-                basis = '已配置本人ID' if item.get('profileBasis', '').startswith('configured_self_id') else '账号目录ID精确匹配'
+                basis = ('当前持有进程及资料库校验' if item.get('profileBasis', '').startswith('live_owner:') else
+                         '已配置本人ID' if item.get('profileBasis', '').startswith('configured_self_id') else '账号目录ID精确匹配')
                 detail += f'本地昵称/名称：{nickname}；来源：{basis}。'
             else:
-                if item.get('profileStatus') == 'needs_key':
+                if state == 'active':
+                    detail += '可点击“临时取资料密钥并识别运行账号昵称”；无需切换或保存账号配置。'
+                elif item.get('profileStatus') == 'needs_key':
                     detail += '昵称未取得：现有密钥不适用于该资料库；请先完成此账号配置，再重新识别。'
                 else:
                     detail += '昵称未取得；请核对本人ID、资料访问权限或先完成该账号配置，再重新识别。'
@@ -1545,7 +1552,12 @@ class ChatApp:
         entries['sourceRoot'].trace_add('write', show_selection)
         ttk.Label(automatic, text='对应数据库目录', style='Sub.TLabel').pack(anchor='w', pady=(3, 0))
         ttk.Label(automatic, textvariable=entries['sourceRoot'], wraplength=720).pack(anchor='w', pady=(3, 8))
-        ttk.Button(automatic, text='重新识别运行账号', command=self.scan).pack(anchor='w', pady=(0, 10))
+        identify_actions = ttk.Frame(automatic)
+        identify_actions.pack(fill='x', pady=(0, 6))
+        ttk.Button(identify_actions, text='重新识别运行账号', command=self.scan).pack(side='left')
+        ttk.Button(identify_actions, text='临时取资料密钥并识别运行账号昵称', command=self.scan_live_names).pack(side='left', padx=(8, 0))
+        ttk.Label(automatic, text='上方“临时取资料密钥”会只读访问已确认归属的运行进程，仅用于本人昵称，不保存密钥、不读聊天正文。',
+                  wraplength=720, style='Sub.TLabel').pack(anchor='w', pady=(0, 8))
         include_media = tk.BooleanVar(value=config.get('includeMedia', True))
         include_voice = tk.BooleanVar(value=config.get('includeVoice', False))
         ttk.Checkbutton(frame, text='包含附件索引（需要对应数据库密钥）', variable=include_media).grid(row=10, column=0, columnspan=3, sticky='w', pady=(12, 5))

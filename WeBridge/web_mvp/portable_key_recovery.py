@@ -84,7 +84,7 @@ def _collect(source, include_media, timeout, budget):
             worker.close()
 
 
-def recover_key_file(source_root, directory, *, allow_process_read=False, include_media=True, timeout=30, budget_mib=512):
+def recover_key_file(source_root, directory, *, allow_process_read=False, include_media=True, timeout=30, budget_mib=4096):
     if allow_process_read is not True:
         raise ArchiveError('恢复密钥需要用户明确选择只读访问本机当前微信进程。')
     if not isinstance(timeout, int) or not 5 <= timeout <= 90 or not isinstance(budget_mib, int) or not 64 <= budget_mib <= 4096:

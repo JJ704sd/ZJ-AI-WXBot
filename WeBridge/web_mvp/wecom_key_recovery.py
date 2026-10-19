@@ -53,7 +53,40 @@ def manager_vtables(image):
         raise SnapshotError('当前企微可执行文件的密钥管理布局暂不支持；可选择已有企微密钥或已解密副本。') from None
 
 
-def recover_key_file(source_root, directory, *, allow_process_read=False, include_media=True, timeout=30, budget_mib=512):
+def string_profile_key(regions, read, pages, *, limit=4096):
+    """Verify bounded MSVC32 string objects when the profile manager is absent.
+
+    The caller supplies a budgeted reader for one already verified owner.
+    Only a key authenticating every explicitly selected database page is returned.
+    """
+    seen = set()
+    for begin, size, kind in regions:
+        if kind != 0x20000:  # Private data, not image or unrelated mapped files.
+            continue
+        for offset in range(0, size, 1024 * 1024):
+            chunk = read(begin + offset, min(1024 * 1024 + 64, size - offset))
+            for marker in re.finditer(b'\x10\x00\x00\x00', chunk):
+                at = marker.start()
+                if at < 16 or at + 8 > len(chunk):
+                    continue
+                capacity = struct.unpack_from('<I', chunk, at + 4)[0]
+                pointer = struct.unpack_from('<I', chunk, at - 16)[0]
+                if not 16 <= capacity <= 255 or pointer < 0x10000:
+                    continue
+                material = read(pointer, 16)
+                if len(material) != 16 or material == bytes(16) or material in seen:
+                    continue
+                seen.add(material)
+                if len(seen) > limit:
+                    raise SnapshotError('密钥候选超过本次上限，未返回任何材料。')
+                for key in (material, password_key(material)):
+                    if pages and all(WeComCipher(key).verifies(page) for page in pages.values()):
+                        return key
+    return None
+
+
+def _recover_key(source_root, directory, *, allow_process_read=False, include_media=True, timeout=30, budget_mib=512,
+                 profile_only=False, expected_owner=None):
     if allow_process_read is not True:
         raise SnapshotError('请通过“一键自动配置”明确选择只读访问本人已登录企微。')
     if os.name != 'nt' or ctypes.sizeof(ctypes.c_void_p) != 8:
@@ -64,7 +97,7 @@ def recover_key_file(source_root, directory, *, allow_process_read=False, includ
     account = source.parent if source.name == 'Data' else source
     if directory == account or directory.is_relative_to(account):
         raise SnapshotError('程序数据和密钥不能写入企微账号目录。')
-    names = [name for name in inventory(source, include_media) if not name.endswith('-wal')]
+    names = ['user.db'] if profile_only else [name for name in inventory(source, include_media) if not name.endswith('-wal')]
     pages = {}
     for name in names:
         with (source / name).open('rb') as stream:
@@ -76,9 +109,11 @@ def recover_key_file(source_root, directory, *, allow_process_read=False, includ
         raise SnapshotError('数据已是明文副本，请直接加载，无需恢复密钥。')
     from acquire_database_keys import WindowsDependencies, declare_windows_apis
     kernel = declare_windows_apis()
-    owned = [source / 'message.db']
+    owned = [source / ('user.db' if profile_only else 'message.db')]
+    if profile_only and Path(str(owned[0]) + '-wal').is_file():
+        owned.append(Path(str(owned[0]) + '-wal'))
     owners = WindowsDependencies._file_owners(owned)
-    if len(owners) != 1:
+    if len(owners) != 1 or (expected_owner is not None and owners != [expected_owner]):
         raise SnapshotError('所选企微数据没有唯一的当前持有进程；请登录对应账号，离线副本需提供已有密钥。')
     pid, created = owners[0]
     kernel.OpenProcess.argtypes, kernel.OpenProcess.restype = [W.DWORD, W.BOOL, W.DWORD], W.HANDLE
@@ -176,6 +211,8 @@ def recover_key_file(source_root, directory, *, allow_process_read=False, includ
                     break
             if verified:
                 break
+        if not verified:
+            verified = string_profile_key(regions, read, pages)
     finally:
         kernel.CloseHandle(handle)
     if not verified or WindowsDependencies._file_owners(owned) != owners:
@@ -184,11 +221,26 @@ def recover_key_file(source_root, directory, *, allow_process_read=False, includ
         with (source / name).open('rb') as stream:
             if not WeComCipher(verified).verifies(stream.read(len(pages[name]))):
                 raise SnapshotError('企微数据库取钥后复核失败，未保存密钥。')
+    return verified, list(pages)
+
+
+def recover_profile_key(source_root, temporary, *, expected_owner, allow_process_read=False, timeout=30, budget_mib=512):
+    """Return one transient user.db key; never write it or open message DBs."""
+    key, _names = _recover_key(source_root, temporary, allow_process_read=allow_process_read,
+                              timeout=timeout, budget_mib=budget_mib, profile_only=True, expected_owner=expected_owner)
+    return key
+
+
+def recover_key_file(source_root, directory, *, allow_process_read=False, include_media=True, timeout=30, budget_mib=512):
+    """Existing explicit setup path: persist only fully verified account keys."""
+    verified, names = _recover_key(source_root, directory, allow_process_read=allow_process_read,
+                                   include_media=include_media, timeout=timeout, budget_mib=budget_mib)
+    directory = Path(directory).resolve()
     folder = directory / 'keys'
     folder.mkdir(parents=True, exist_ok=True)
     if folder.is_symlink() or folder.resolve().parent != directory:
         raise SnapshotError('程序密钥目录存在越界链接。')
     target = folder / ('wecom-' + datetime.now().strftime('%Y%m%d-%H%M%S') + '-' + uuid.uuid4().hex[:8] + '.json')
     with target.open('x', encoding='utf8') as stream:
-        json.dump({'wecomKeys': [{'database': name, 'key_hex': verified.hex()} for name in pages]}, stream)
-    return {'keyFile': str(target), 'databaseCount': len(pages), 'matchedCount': len(pages), 'imageRecovery': 'wecom_cache_no_separate_key'}
+        json.dump({'wecomKeys': [{'database': name, 'key_hex': verified.hex()} for name in names]}, stream)
+    return {'keyFile': str(target), 'databaseCount': len(names), 'matchedCount': len(names), 'imageRecovery': 'wecom_cache_no_separate_key'}

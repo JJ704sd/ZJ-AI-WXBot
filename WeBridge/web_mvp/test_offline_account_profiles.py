@@ -119,6 +119,22 @@ class AccountProfileTests(unittest.TestCase):
             payload = encode.update(page[16:] if number == 1 else page) + encode.finalize()
             encrypted.extend(bytes(8) + payload[:8] + page[16:24] + payload[8:] if number == 1 else payload)
         path.write_bytes(encrypted)
+        from wecom_key_recovery import string_profile_key
+        heap_base, material_address = 0x10000, 0x20000
+        # No manager/vtable object exists: only a normal 16-byte string object.
+        heap = struct.pack('<I', material_address) + bytes(12) + struct.pack('<II', 16, 31) + bytes(64)
+        def read(address, length):
+            return key[:length] if address == material_address else heap[address - heap_base:address - heap_base + length]
+        self.assertEqual(string_profile_key([(heap_base, len(heap), 0x20000)], read, {'user.db': bytes(encrypted[:size])}), key)
+        pages = {'user.db': bytes(encrypted[:size]), 'message.db': bytes(encrypted[:size])}
+        self.assertEqual(string_profile_key([(heap_base, len(heap), 0x20000)], read, pages), key)
+        broken = bytearray(encrypted[:size])
+        broken[24] ^= 1
+        self.assertIsNone(string_profile_key([(heap_base, len(heap), 0x20000)], read,
+                                            {**pages, 'message.db': bytes(broken)}))
+        self.assertIsNone(string_profile_key([(heap_base, len(heap), 0x1000000)], read, {'user.db': bytes(encrypted[:size])}))
+        with self.assertRaises(ValueError):
+            string_profile_key([(heap_base, len(heap), 0x20000)], read, {'user.db': bytes(encrypted[:size])}, limit=0)
         keys = self.base / 'provided.json'
         keys.write_text(json.dumps({'wecomKeys': [{'database': 'user.db', 'key_hex': key.hex()}]}))
         row = {'sourceRoot': str(root)}

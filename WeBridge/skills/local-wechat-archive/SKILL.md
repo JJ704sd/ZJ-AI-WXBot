@@ -2,7 +2,7 @@
 name: local-wechat-archive
 description: 打开个微或企微本地聊天界面，列出群ID与名称供人工多选并批量解析，或解析用户指定群；逐群人工复核确认后导出JSON/JSONL/Markdown，复用已有账号配置，无需安装Python。
 metadata:
-  version: "1.18.0"
+  version: "1.19.0"
   description_zh: "打开界面多选群聊、批量解析，逐群人工复核后导出。"
   description_en: "Select multiple groups, parse locally and review each group before export."
   author: "Local WeChat Archive"
@@ -10,7 +10,7 @@ metadata:
 
 # 本地微信聊天解析
 
-使用包内 EXE，无需安装 Python、pip、Docker 或数据库服务。目标为 Windows 10/11 x64，宿主需支持本机执行和文件访问。账号识别查询数据库文件占用与进程元数据；昵称/名称另用已有密钥读取稳定的联系人或用户资料副本，不读消息库或进程内存，不为补昵称自动取钥。名称注明本人ID或目录ID匹配依据，未取得时明确显示；解析读取稳定副本，不发消息或补拉云端历史。
+使用包内 EXE，无需安装 Python、pip、Docker 或数据库服务。目标为 Windows 10/11 x64，宿主需支持本机执行和文件访问。账号识别查询数据库文件占用与进程元数据；昵称/名称另用已有密钥读取稳定的联系人或用户资料副本，不读消息库或进程内存，不为补昵称自动取钥。用户明确授权临时读取当前进程资料密钥时，可使用账号设置中的“临时取资料密钥并识别运行账号昵称”；该入口只读已确认归属的在用进程，不保存密钥、不读消息、不切换配置。普通打开、列群或解析请求不视作此授权。名称注明本人ID或目录ID匹配依据，未取得时明确显示；解析读取稳定副本，不发消息或补拉云端历史。
 
 ## 打开界面，由人工选群
 

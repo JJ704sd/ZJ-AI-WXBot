@@ -95,6 +95,19 @@ for client,child in [('wechat','db_storage'),('wecom','Data')]:
             root.update();time.sleep(.01)
         assert '已保存配置' in chooser.get() and 'disabled' not in select.state()
         assert dialog.winfo_height()<=root.winfo_screenheight(), 'source dialog exceeds screen height'
+        live_button=next(w for w in widgets(dialog) if w.winfo_class()=='TButton' and w.cget('text')=='临时取资料密钥并识别运行账号昵称')
+        live_scan={**scan,'accounts':[{**item,'accountNickname':'实时昵称-running' if item['processState']=='active' else item['accountNickname'],
+                                     'profileBasis':'live_owner:contact' if item['processState']=='active' else item['profileBasis']} for item in scan['accounts']]}
+        with patch.object(session,'scan_accounts',return_value=live_scan) as service:
+            live_button.invoke()
+            while app.busy:
+                assert time.monotonic()<deadline
+                root.update();time.sleep(.01)
+            service.assert_called_once_with(live_names=True)
+        assert any('实时昵称-running' in label for label in chooser.cget('values'))
+        assert '已保存配置' in chooser.get(),'nickname lookup silently switched configured account'
+        assert session.settings_path.read_bytes()==before
+        assert not (session.directory/'keys').exists() and not (session.directory/'exports').exists()
     finally:
         boundary.stop()
         root.destroy()

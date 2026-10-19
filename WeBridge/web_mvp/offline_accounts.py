@@ -63,7 +63,7 @@ def identify_accounts(discovery, client='wechat', *, ownership=None):
     lookup = ownership or _windows_owners
     rows, seen = [], set()
     for account in discovery.get('accounts', []):
-        row = {**account, 'processState': 'unavailable', 'processIds': [], 'processIssue': 'no_database_files'}
+        row = {**account, 'processState': 'unavailable', 'processIds': [], 'processIdentities': [], 'processIssue': 'no_database_files'}
         try:
             original = Path(account['sourceRoot'])
             if original.is_symlink():
@@ -101,6 +101,7 @@ def identify_accounts(discovery, client='wechat', *, ownership=None):
             if paths and len(rows) < 32:
                 owners = sorted(set(lookup(paths[:32], client)))
                 row['processIds'] = [int(pid) for pid, _created in owners]
+                row['processIdentities'] = [{'pid': int(pid), 'created': int(created)} for pid, created in owners]
                 if complete:
                     row['processState'] = 'active' if len(owners) == 1 else ('ambiguous' if owners else 'inactive')
                     row['processIssue'] = 'multiple_owners' if len(owners) > 1 else None

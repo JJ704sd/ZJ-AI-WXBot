@@ -46,6 +46,7 @@ class DesktopSession:
         self._reviews = {}
         self._exports = {}
         self.last_batch_root = None
+        self._live_account_names = {}
 
     def _settings(self):
         try:
@@ -372,10 +373,26 @@ class DesktopSession:
         return account_profiles(discovery, self.client, key_files=list(dict.fromkeys(paths))[:16],
                                 configured_source=config.get('sourceRoot', ''), configured_self_id=config.get('selfId', ''))
 
-    def scan_accounts(self):
+    def scan_accounts(self, *, live_names=False):
         """Fresh ownership evidence plus display-only local account names."""
         from offline_accounts import identify_accounts
-        return self._account_names(identify_accounts(self.scan(), self.client))
+        from live_account_profiles import complete_live_profiles, PROFILE_FIELDS
+        scan = self._account_names(identify_accounts(self.scan(), self.client))
+        if live_names:
+            scan = complete_live_profiles(scan, self.client, allow_process_read=True)
+        valid = {}
+        for row in scan['accounts']:
+            identities = row.get('processIdentities', [])
+            if row.get('processState') != 'active' or len(identities) != 1:
+                continue
+            key = (str(Path(row['sourceRoot']).resolve()), identities[0]['pid'], identities[0]['created'])
+            if row.get('profileBasis', '').startswith('live_owner:') and row.get('profileStatus') == 'matched':
+                valid[key] = {field: row[field] for field in PROFILE_FIELDS}
+            elif not live_names and not row.get('accountNickname') and key in self._live_account_names:
+                row.update(self._live_account_names[key])
+                valid[key] = self._live_account_names[key]
+        self._live_account_names = valid
+        return scan
 
     def automatic_setup(self, config=None, *, allow_process_read=False):
         """Explicit one-click setup; retain old settings format and source binding."""
