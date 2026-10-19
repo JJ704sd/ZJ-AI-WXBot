@@ -248,6 +248,38 @@ finally:root.destroy()
 '''
         self.run_ui('wecom',code)
 
+    def test_restart_restores_picks_preview_and_review_without_exporting(self):
+        code = '''
+from offline_review import REVIEW_CHECKS
+app=ChatApp(root,session)
+try:
+    pump(lambda:bool(app.groups) and not app.busy)
+    app.select_visible();app.start_batch([first,second]);pump(lambda:not app.busy and not app.batch_running)
+    session.activate_review(first)
+    saved=session.approve_review(app.parsed_results[first]['review']['reviewId'],{key:True for key in REVIEW_CHECKS},'合成历史复核')
+    app.review_ready(saved);app.show_chat(second)
+    old_ids={chat:result['review']['reviewId'] for chat,result in app.parsed_results.items()}
+    for token in root.tk.call('after','info'):root.after_cancel(token)
+    app.close()
+    root=tk.Tk();session=DesktopSession(base,client=client);app=ChatApp(root,session)
+    pump(lambda:len(app.parsed_results)==2 and not app.busy)
+    assert app.selected_chats=={first,second} and app.active_chat==second
+    assert {chat:result['review']['reviewId'] for chat,result in app.parsed_results.items()}==old_ids
+    assert app.parse_states[first]=='已复核' and app.parse_states[second]=='待复核'
+    assert '上次副本' in app.completion_text.get() and '副本时间' in app.completion_detail.get()
+    assert app.browser.rows and session.pending_review['summary']['chat']['id']==second,(len(app.browser.rows),session.pending_review['summary']['chat']['id'] if session.pending_review else None,app.status.get(),app.parsed_results[second]['view'].keys())
+    assert app.export_button.instate(['disabled']) and not (base/'exports').exists()
+    app.batch_review_button.invoke();root.update()
+    dialog=next(w for w in root.winfo_children() if isinstance(w,tk.Toplevel))
+    button(dialog,'全选复核项').invoke();button(dialog,'确认本次 1 群复核').invoke();pump(lambda:not app.busy)
+    app.export_button.invoke();pump(lambda:not app.busy)
+    assert len(list((base/'exports').rglob('review.json')))==2
+finally:
+    if root.winfo_exists():root.destroy()
+'''
+        for client in ('wechat','wecom'):
+            with self.subTest(client=client):self.run_ui(client,code)
+
     def test_completed_groups_can_be_read_while_the_next_group_is_still_parsing(self):
         code = '''
 root.withdraw()

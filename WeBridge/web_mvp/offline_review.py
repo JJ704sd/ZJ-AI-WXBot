@@ -23,6 +23,9 @@ def inventory(root):
     for path in sorted(root.rglob('*')):
         if path.is_symlink() or path.is_junction():
             raise ArchiveError('解析结果包含链接，请重新解析。')
+        if path.relative_to(root).parts[0] == 'opened':
+            # Checked viewer copies are derived from assets, not reviewed source files.
+            continue
         if path.is_file():
             result.append({'path': path.relative_to(root).as_posix(),
                            'bytes': path.stat().st_size, 'sha256': _hash_file(path)})
@@ -65,7 +68,8 @@ def publish_review(pending, destination, checks=None, note=''):
         raise ArchiveError('导出目录已存在，请使用新的目录。')
     stage = Path(tempfile.mkdtemp(prefix='.review-export-', dir=destination.parent))
     try:
-        shutil.copytree(root, stage, dirs_exist_ok=True)
+        shutil.copytree(root, stage, dirs_exist_ok=True,
+                        ignore=lambda folder, names: ['opened'] if Path(folder) == root and 'opened' in names else [])
         if inventory(stage) != pending['files']:
             raise ArchiveError('复制期间解析结果发生变化，请重新解析并复核。')
         report = json.loads((stage / 'manifest.json').read_text(encoding='utf8'))

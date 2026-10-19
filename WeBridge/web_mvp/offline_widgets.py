@@ -8,6 +8,7 @@ from tkinter.scrolledtext import ScrolledText
 from offline_chat import BEIJING, QUOTE_NOTES
 from offline_view import attachment_path, document_path, read_image
 from offline_gallery import ImageGallery
+from offline_images import quote_link_text
 
 KINDS = {'text': '文字', 'image': '图片', 'file': '附件', 'record': '转发聊天', 'quote': '引用',
          'video': '视频', 'voice': '语音', 'emoji': '表情', 'system': '系统', 'link': '链接'}
@@ -185,6 +186,8 @@ class MessageBrowser(ttk.Frame):
             self.detail.insert('end', '结构化 @：' + ', '.join(mentions['ids']) + '\n', 'meta')
         for link in row.get('links', []):
             self.detail.insert('end', link + '\n')
+        if row.get('quote') and quote_link_text(row['quote']):
+            self.detail.insert('end', quote_link_text(row['quote']) + '\n', 'meta')
         if row.get('quote'):
             quote = row['quote']
             self.detail.insert('end', '引用 · ' + quote.get('senderName', '') + '\n', 'meta')

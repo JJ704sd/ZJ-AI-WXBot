@@ -2,6 +2,22 @@
 import hashlib
 
 
+def quote_link_text(quote):
+    status = quote.get('sourceLinkStatus')
+    if not status:
+        return ''
+    labels = {'matched_local_source': '已精确关联当前群的本地原消息',
+              'source_id_unavailable': '缺少可验证的来源标识',
+              'source_not_found': '当前群副本中未找到可验证的来源',
+              'ambiguous_source': '多个候选来源，未自动关联', 'cyclic_source': '循环引用，已停止关联'}
+    line = '引用本地来源：' + labels.get(status, '来源尚未确认')
+    if quote.get('resolutionStatus') == 'embedded':
+        line += '；内嵌原文已保留'
+    elif quote.get('resolutionStatus') == 'embedded_partial':
+        line += '；内嵌原文仅部分适配'
+    return line
+
+
 def image_state(asset):
     if not asset:
         return 'not_loaded', '未加载媒体 · 尚未核对缓存'

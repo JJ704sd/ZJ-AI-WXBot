@@ -15,9 +15,10 @@ OPEN_EXTENSIONS = frozenset(('.pdf', '.csv', '.txt', '.md', '.log', '.json', '.d
 
 
 def has_media_gap(row, kind=None):
-    asset = row.get('asset', {})
-    return ((kind is None or row['kind'] == kind) and (asset.get('status') in ('pending', 'unavailable') or bool(asset.get('previewOnly')))
-            or any(has_media_gap(child, kind) for child in row.get('record', {}).get('items', [])))
+    return any((kind is None or node.get('kind') == kind) and
+               (node.get('asset', {}).get('status') in ('pending', 'unavailable') or
+                bool(node.get('asset', {}).get('previewOnly')))
+               for node, _, _ in message_nodes(row))
 
 
 class ConversationView:
@@ -29,6 +30,7 @@ class ConversationView:
         self.image_index = []
         self.image_counts = Counter()
         self.message_offsets = {}
+        self.quote_offsets = set()
         self.search_cache = None
         with (self.root / 'messages.jsonl').open('rb') as stream:
             while True:
@@ -39,6 +41,8 @@ class ConversationView:
                 row = json.loads(line)
                 self.index.append((offset, row['kind'], has_media_gap(row), has_media_gap(row, 'image')))
                 self.message_offsets[row['id']] = len(self.index) - 1
+                if row['kind'] == 'quote' or any(node.get('quote') for node, _, _ in message_nodes(row)):
+                    self.quote_offsets.add(offset)
                 for number, entry in enumerate(image_references(row)):
                     self.image_index.append((offset, number))
                     self.image_counts[image_state(entry['asset'])[0]] += 1
@@ -86,7 +90,8 @@ class ConversationView:
             matches = self.search_cache[1]
         selected = [position for position, value, gap, image_gap in self.index if
                     (gap if kind == 'missing_media' else image_gap if kind == 'missing_images'
-                     else value != 'emoji' if kind == 'business' else not kind or value == kind)]
+                     else value != 'emoji' if kind == 'business' else
+                     position in self.quote_offsets if kind == 'quote' else not kind or value == kind)]
         if matches is not None:
             matching_offsets = {self.index[index][0] for index in matches}
             selected = [position for position in selected if position in matching_offsets]

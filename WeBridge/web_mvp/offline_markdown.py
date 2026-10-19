@@ -4,7 +4,7 @@ from pathlib import PurePosixPath
 import re
 from urllib.parse import quote, urlsplit
 
-from offline_images import message_anchor
+from offline_images import message_anchor, quote_link_text
 
 KINDS = {'text': '文字', 'image': '图片', 'file': '附件', 'record': '转发聊天',
          'quote': '引用回复', 'voice': '语音', 'video': '视频', 'emoji': '表情', 'system': '系统'}
@@ -105,6 +105,8 @@ def message(row, ordinal):
         refer = value.get('quote', {})
         if refer.get('message'):
             lines.extend(['引用关联状态：' + _text(refer.get('resolutionStatus') or '未知'), ''])
+            if quote_link_text(refer):
+                lines.extend([_text(quote_link_text(refer)), ''])
             lines.extend(['引用发送人 ID：' + _code(refer.get('senderId')) + '；引用 serverId：' + _code(refer.get('serverId')), ''])
             if refer.get('sourceMessageId'):
                 lines.extend(['引用原消息 ID：' + _code(refer['sourceMessageId']), ''])

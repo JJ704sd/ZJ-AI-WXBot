@@ -16,6 +16,7 @@ from database_snapshot import SnapshotError, prepare_snapshot
 from offline_chat import ArchiveError, LocalArchive, discover, workbench_source
 from offline_view import ConversationView
 from offline_accounts import same_account_source
+from offline_progress import ReviewProgress
 
 CONFIG_FIELDS = ('sourceRoot', 'keyFile', 'imageKeyFile', 'selfId', 'includeMedia', 'includeVoice')
 
@@ -48,6 +49,9 @@ class DesktopSession:
         self._exports = {}
         self.last_batch_root = None
         self._live_account_names = {}
+        self._progress = ReviewProgress(self.directory, self.client)
+        self._progress_ui = {'selected': [], 'active': None}
+        self.restored_results = {}
 
     def _settings(self):
         from offline_profiles import reset_requested
@@ -92,8 +96,8 @@ class DesktopSession:
         if self.directory == account or self.directory.is_relative_to(account):
             raise ArchiveError('程序数据目录不能位于微信账号目录内，请将程序移到其他位置运行。')
 
-    def open_source(self, config, *, save=True):
-        self.discard_review()
+    def open_source(self, config, *, save=True, reset_progress=True):
+        self.discard_review(persist=reset_progress)
         if self.settings.get('source') and self.settings.get('client', 'wechat') != self.client:
             raise ArchiveError('当前程序配置属于另一种客户端，请使用各自的启动入口和独立数据目录。')
         config = {name: config[name] for name in CONFIG_FIELDS if name in config}
@@ -119,15 +123,37 @@ class DesktopSession:
         self.views.clear()
         return self.ready_info()
 
-    def bootstrap(self):
+    def bootstrap(self, *, resume=False):
         from offline_profiles import reset_requested
         if reset_requested(self.directory):
             label = '企业微信' if self.client == 'wecom' else '微信'
             return {'status': 'needs_source', 'message': f'首次使用：请重新选择本人{label}账号并配置；旧配置不会自动导入。'}
         saved = self.settings.get('source')
         if isinstance(saved, dict) and saved.get('sourceRoot'):
+            if self.settings.get('client', 'wechat') != self.client:
+                return {'status': 'needs_source', 'message': '当前程序配置属于另一种客户端，请使用对应入口和独立数据目录。'}
+            resume_issue = ''
             try:
-                return self.open_source(saved)
+                restored = self._progress.restore(saved) if resume else None
+                if restored:
+                    self.archive, self._reviews = restored['archive'], restored['reviews']
+                    self.groups = self.archive.groups()['conversations']
+                    ui = restored['ui'] if isinstance(restored['ui'], dict) else {}
+                    self._progress_ui = {'selected': [chat for chat in ui.get('selected', []) if chat in self._reviews],
+                                         'active': ui.get('active') if ui.get('active') in self._reviews else next(iter(self._reviews))}
+                    self.restored_results = {chat: {'chat': pending['summary']['chat'], 'review': pending['summary'],
+                        'report': json.loads((pending['root']/'manifest.json').read_text(encoding='utf8')),
+                        'view': {'viewRoot': str(pending['root'])}} for chat, pending in self._reviews.items()}
+                    self.source_status = f'已恢复 {len(self._reviews)} 群的解析与复核进度；沿用上次副本，新消息请点击刷新'
+                    if restored['rejected']:
+                        self.source_status += f'；{restored["rejected"]} 项未通过校验，需重新检查'
+                    return {**self.ready_info(), 'restoredReviews': len(self._reviews), 'resumeSelection': self._progress_ui['selected'],
+                            'resumeActiveChat': self._progress_ui['active']}
+            except (OSError, ValueError, DatabaseError) as error:
+                resume_issue = safe_issue(error)
+            try:
+                value = self.open_source(saved, reset_progress=resume)
+                return {**value, 'notice': resume_issue} if resume_issue else value
             except (OSError, ValueError, DatabaseError) as error:
                 # Keep the selected source. Never silently switch accounts.
                 return {'status': 'needs_source', 'message': safe_issue(error), 'config': saved}
@@ -241,16 +267,33 @@ class DesktopSession:
         return {'status': 'ready', 'groups': self.groups, 'message': self.source_status,
                 'snapshotTime': info['createdAt'], 'coverage': self.archive.coverage(), 'accountProfile': profile}
 
-    def discard_review(self, chat=None):
+    def discard_review(self, chat=None, *, persist=True):
         if chat is None:
+            if persist:
+                self._progress.clear()
             self._reviews.clear()
             self._exports.clear()
+            self.restored_results.clear()
+            self._progress_ui = {'selected': [], 'active': None}
             self.last_batch_root = None
         else:
             self._reviews.pop(chat, None)
             self._exports.pop(chat, None)
+            self.restored_results.pop(chat, None)
+            self._checkpoint()
         self.pending_review = None
         self.last_export = None
+
+    def _checkpoint(self, reviews=None):
+        if self.archive is not None:
+            self._progress.save(self.archive, self._reviews if reviews is None else reviews, self._progress_ui)
+
+    def remember_selection(self, chats, active=None, *, persist=True):
+        known = {group['id'] for group in self.groups}
+        self._progress_ui = {'selected': list(dict.fromkeys(chat for chat in chats if chat in known)),
+                             'active': active if active in known else None}
+        if persist:
+            self._checkpoint()
 
     def activate_review(self, chat):
         """Switch reading targets without losing other groups' unconfirmed batches."""
@@ -288,6 +331,7 @@ class DesktopSession:
                                'files': inventory(output), 'summary': summary}
         self._reviews[chat] = self.pending_review
         self._save(last_chat=chat)
+        self._checkpoint()
         return {'chat': selected, 'report': report, 'view': view,
                 'review': summary, 'reviewChecks': dict(REVIEW_CHECKS), 'state': 'awaiting_review'}
 
@@ -306,7 +350,9 @@ class DesktopSession:
                 (chat is not None and pending['summary']['chat']['id'] != chat)):
             raise ArchiveError('复核目标已失效，请重新解析当前账号和群聊。')
         self.archive._check()
-        pending['approval'] = approve_review(pending, checks, note)
+        approval = approve_review(pending, checks, note)
+        self._checkpoint({**self._reviews, pending['summary']['chat']['id']: {**pending, 'approval': approval}})
+        pending['approval'] = approval
         return {'state': 'reviewed', 'review': pending['approval'], 'chat': pending['summary']['chat']}
 
     def review_status(self, chat):
@@ -341,13 +387,19 @@ class DesktopSession:
         for pending, approval in staged:
             approval.update(confirmationBasis='explicit_batch_review_checklist',
                             batchReview={'id': batch_id, 'chatIds': confirmed_ids, 'count': len(staged)})
-            pending['approval'] = approval
             reviews.append({'state': 'reviewed', 'review': approval, 'chat': pending['summary']['chat']})
+        projected = dict(self._reviews)
+        projected.update({pending['summary']['chat']['id']: {**pending, 'approval': approval} for pending, approval in staged})
+        self._checkpoint(projected)
+        for pending, approval in staged:
+            pending['approval'] = approval
         return {'state': 'reviewed', 'reviews': reviews, 'alreadyReviewed': already, 'reviewBatchId': batch_id}
 
     def _publish_pending(self, pending, output):
         from offline_review import publish_review
         self.archive._check()
+        pending['exportTarget'] = Path(output).relative_to(self.directory).as_posix()
+        self._checkpoint()
         result = publish_review(pending, output)
         self.last_export = output
         selected = pending['summary']['chat']['id']
@@ -355,6 +407,11 @@ class DesktopSession:
         self._reviews.pop(selected, None)
         if self.pending_review is pending:
             self.pending_review = None
+        try:
+            self._checkpoint()
+        except ArchiveError:
+            # The saved pre-publish intent prevents restoring this completed export.
+            pass
         return {'output': str(output), 'report': result, 'humanReview': result['humanReview'],
                 'mediaSummary': result['mediaSummary'], 'mediaSummaryText': result['mediaSummaryText'],
                 'reporting': result['reporting'],
@@ -541,9 +598,12 @@ class DesktopSession:
         self.archive.select_chat(chat_id=chat)
         self.archive._check()
         if chat not in self.views:
-            suffix = hashlib.sha256(chat.encode()).hexdigest()[:8]
-            output = self.directory / 'views' / (datetime.now().strftime('%Y%m%d-%H%M%S-%f') + '-' + suffix)
-            self.archive.export(output, chat_id=chat, copy_media=True)
+            if chat in self._reviews:
+                output = self._reviews[chat]['root']
+            else:
+                suffix = hashlib.sha256(chat.encode()).hexdigest()[:8]
+                output = self.directory / 'views' / (datetime.now().strftime('%Y%m%d-%H%M%S-%f') + '-' + suffix)
+                self.archive.export(output, chat_id=chat, copy_media=True)
             self.views[chat] = ConversationView(output)
         result = self.views[chat].page(offset, kind, page_size=page_size, query=query)
         self._save(last_chat=chat)

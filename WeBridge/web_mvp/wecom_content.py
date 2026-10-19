@@ -3,6 +3,7 @@ Field mappings are based on Windows 5.0.12 source snapshots, not WeChat types.
 No generated protobuf runtime or network access is required.
 """
 from datetime import datetime, timezone, timedelta
+import hashlib
 import re
 
 MAX_BYTES, MAX_FIELDS, MAX_DEPTH = 4 * 1024 * 1024, 10000, 10
@@ -87,6 +88,20 @@ def leaves(data, depth=0):
     return result
 
 
+def quote_entry(extra):
+    """Observed Windows 5.0.12 quote envelope, never arbitrary protobuf strings."""
+    envelopes = values(extra, 1002)
+    entries = values(envelopes[0], 1) if len(envelopes) == 1 else []
+    if len(entries) != 1:
+        return b''
+    decoded = fields(entries[0])
+    for number in (1, 2, 5):
+        matches = [(wire, val) for field, wire, val in decoded if field == number]
+        if len(matches) != 1 or matches[0][0] != 0:
+            return b''
+    return entries[0]
+
+
 def typed_message(data, kind, *, depth=0, extra=b'', prefix=''):
     result = {'kind': 'unknown', 'text': '', 'links': [], 'parseStatus': 'unsupported_wecom_type', 'baseType': kind, 'subType': 0,
               'mentions': {'ids': [], 'self': None, 'status': 'none'}}
@@ -157,4 +172,32 @@ def typed_message(data, kind, *, depth=0, extra=b'', prefix=''):
     else:
         # Do not treat arbitrary protobuf strings (keys, server IDs) as prose.
         result['text'] = '未适配的企微消息类型 ' + str(kind) + '；原始字段已保留。'
+    if values(extra, 1002):
+        entry = quote_entry(extra)
+        source_type = value(entry, 5, -1, 0)
+        field = FORWARD_FIELDS.get(source_type)
+        payload = value(entry, field) if field else b''
+        source_extra = value(entry, 17)
+        message = typed_message(payload, source_type, depth=depth + 1, extra=source_extra) if payload else {
+            'kind': 'unknown', 'text': '', 'parseStatus': 'unsupported_quote_source', 'links': []}
+        stamp = value(entry, 2, 0, 0)
+        stamp = stamp // 1000 if stamp > 20000000000 else stamp
+        try:
+            iso = datetime.fromtimestamp(stamp, timezone(timedelta(hours=8))).isoformat() if stamp else ''
+        except (ValueError, OSError, OverflowError):
+            iso = ''
+        sender, name = str(value(entry, 1, 0, 0)), text(value(entry, 11))
+        message.update(senderId=sender, senderName=name, timestamp=stamp, time=iso)
+        token = text(value(value(source_extra, 3045), 1))
+        status = ('unsupported_quote_schema' if not entry else 'embedded' if payload and message['parseStatus'] == 'ok'
+                  else 'embedded_partial' if payload else 'source_not_found')
+        result['quote'] = {'senderId': sender, 'senderName': name, 'message': message,
+                           'sourceType': source_type, 'sourceTimestamp': stamp,
+                           'sourceToken': token if re.fullmatch(r'[0-9a-fA-F]{32}', token) else '',
+                           'contentSha256': hashlib.sha256(payload).hexdigest() if payload else '',
+                           'resolutionStatus': status}
+        if result['kind'] == 'text':
+            result['kind'] = 'quote'
+        if result['parseStatus'] == 'ok' and status != 'embedded':
+            result['parseStatus'] = 'partial_quote'
     return result

@@ -18,7 +18,7 @@ from database_adapter import DatabaseAdapter, DatabaseError, _quote, _text
 from database_snapshot import _hash_file, _inventory
 from offline_content import body_text, interpret, mentions
 from offline_media_search import LocalMediaSearch
-from offline_images import image_references, message_anchor
+from offline_images import image_references, message_anchor, quote_link_text
 from offline_media_summary import MediaSummary, summary_text
 from offline_reporting import completion_report, REPORT_FILE
 from offline_image_html import CSS as IMAGE_CSS, image_card, gallery_body
@@ -28,6 +28,8 @@ from offline_documents import AttachmentExtractor, summary_text as document_summ
 BEIJING = timezone(timedelta(hours=8), name='Asia/Shanghai')
 SCHEMA_VERSION = 1
 QUOTE_NOTES = {'source_id_unavailable': '原记录未提供有效的引用来源编号',
+               'embedded_partial': '引用内嵌原文仅部分适配，保留可读取内容',
+               'unsupported_quote_schema': '引用字段布局暂不支持，原始字段已保留',
                'source_not_found': '本地副本未找到对应原消息',
                'ambiguous_source': '引用来源对应多条记录，暂不能确认',
                'source_sender_conflict': '引用来源的发送者信息不一致',
@@ -77,6 +79,8 @@ def business_text(row, depth=0):
             lines.append('附件正文（材料内容）：\n' + document['text'])
     if row.get('quote'):
         lines.append('引用来源：' + row['quote'].get('senderName', ''))
+        if quote_link_text(row['quote']):
+            lines.append(quote_link_text(row['quote']))
         if row['quote'].get('resolutionStatus') not in ('embedded', 'linked_local_source', None):
             lines.append('引用正文未取得：' + QUOTE_NOTES.get(row['quote']['resolutionStatus'], '来源尚未确认'))
         lines.append(business_text(row['quote']['message'], depth + 1))
@@ -163,7 +167,17 @@ class LocalArchive:
     shard/table/local ID provenance. Unknown rows keep original columns.
     """
     def __init__(self, snapshot, self_id='', media_config=None):
-        self.adapter = DatabaseAdapter(snapshot, self_id=self_id)
+        source_info = None
+        manifest = Path(snapshot) / 'manifest.json'
+        try:
+            if manifest.is_file() and not manifest.is_symlink() and manifest.stat().st_size <= 16 * 1024 * 1024:
+                metadata = json.loads(manifest.read_text(encoding='utf8'))
+                stamp = metadata.get('createdAt') if isinstance(metadata, dict) else None
+                if isinstance(stamp, str) and datetime.fromisoformat(stamp).tzinfo is not None:
+                    source_info = {'createdAt': stamp}
+        except (OSError, ValueError):
+            pass
+        self.adapter = DatabaseAdapter(snapshot, self_id=self_id, source_info=source_info)
         self.state = self.adapter._state
         self.root = self.state['root']
         self.media_config = media_config or {}

@@ -1,6 +1,8 @@
 """WeCom data adapter sharing the existing desktop view and export pipeline."""
 from contextlib import closing
+from collections import Counter
 from datetime import datetime
+import hashlib
 import json
 from pathlib import Path
 import sqlite3
@@ -8,8 +10,9 @@ import sqlite3
 from database_adapter import _quote
 from database_snapshot import _hash_file
 from offline_chat import ArchiveError, LocalArchive, BEIJING, json_value
-from wecom_content import typed_message, value, values, FORWARD_FIELDS
+from wecom_content import typed_message, value, values, quote_entry, FORWARD_FIELDS
 from wecom_media import WeComMedia
+from offline_images import message_nodes
 
 TABLES = ('message_table', 'message_small_table', 'kf_message_tableV1')
 REQUIRED = {'message_id', 'server_id', 'sender_id', 'conversation_id', 'content_type', 'send_time', 'content'}
@@ -125,6 +128,11 @@ class WeComArchive(LocalArchive):
         raw = {k: v for k, v in item.items() if k not in ('local_id', 'create_time')}
         stamp, mid, sender = int(item['create_time']), int(item['message_id']), str(item['sender_id'])
         result = typed_message(item['content'], item['content_type'], extra=item.get('extra_content', b''))
+        for node, _, _ in message_nodes(result):
+            quote = node.get('quote')
+            if quote and not quote.get('senderName'):
+                name = self.member_names.get(chat['id'], {}).get(quote['senderId']) or self.contacts.get(quote['senderId'], '')
+                quote['senderName'] = quote['message']['senderName'] = name
         own = bool(self.state['self_id'])
         result['mentions']['self'] = self.state['self_id'] in result['mentions']['ids'] if own else None
         try:
@@ -144,7 +152,62 @@ class WeComArchive(LocalArchive):
                 'provenance': {'database': file, 'table': table, 'localId': mid}}
 
     def _link_quote(self, row, destination, copy_media, visited=None, depth=0):
-        return  # WeCom quote types remain explicitly unsupported until mapped.
+        quote = row.get('quote')
+        if not quote:
+            return
+        token = quote.get('sourceToken')
+        quote['sourceLinkStatus'] = 'source_id_unavailable'
+        if not token or depth >= 10:
+            return
+        chat = row['chatId']
+        cached_chat, index = getattr(self, '_quote_sources', (None, {}))
+        if cached_chat != chat:
+            index = {}
+            with closing(connect(self.root / 'message.db')) as db:
+                available = tables(db)
+                for table in TABLES:
+                    if table not in available:
+                        continue
+                    for item in db.execute('SELECT *,send_time AS create_time FROM '+_quote(table)+' WHERE conversation_id=?', (chat,)):
+                        record = dict(item)
+                        stamp = int(record['send_time'])
+                        record['create_time'] = stamp // 1000 if stamp > 20000000000 else stamp
+                        candidate = value(value(record.get('extra_content', b''), 3045), 1)
+                        if candidate:
+                            index.setdefault(candidate, []).append((record, table))
+            self._quote_sources = chat, index
+        candidates = []
+        for item, table in index.get(token.encode('ascii'), []):
+            stamp = int(item['send_time'])
+            stamp = stamp // 1000 if stamp > 20000000000 else stamp
+            if (int(item['content_type']) != quote['sourceType'] or str(item['sender_id']) != quote['senderId'] or
+                    stamp != quote['sourceTimestamp'] or
+                    (quote.get('contentSha256') and (not isinstance(item['content'], bytes) or
+                     hashlib.sha256(item['content']).hexdigest() != quote['contentSha256']))):
+                continue
+            candidates.append((item, table))
+        if len(candidates) != 1:
+            quote['sourceLinkStatus'] = 'ambiguous_source' if candidates else 'source_not_found'
+            return
+        item, table = candidates[0]
+        source = self._message(item, 'message.db', table, self.select_chat(chat_id=chat))
+        visited = set(visited or ()) | {row['id']}
+        if source['id'] in visited:
+            quote['sourceLinkStatus'] = 'cyclic_source'
+            return
+        quote.update(sourceLinkStatus='matched_local_source', sourceMessageId=source['id'],
+                     sourceLocalId=source['localId'], sourceProvenance=source['provenance'])
+        if quote['resolutionStatus'] == 'embedded' or source['decodeStatus'] != 'ok':
+            return
+        if copy_media:
+            self._media(source, destination, Counter())
+        self._link_quote(source, destination, copy_media, visited, depth + 1)
+        quote.update(resolutionStatus='linked_local_source', embeddedMessage=quote['message'],
+                     message={key: val for key, val in source.items() if key not in ('rawColumns','rawContent','quote')})
+        if source.get('quote'):
+            quote['message']['quote'] = source['quote']
+        if row['parseStatus'] == 'partial_quote':
+            row.update(parseStatus='ok', decodeStatus='ok')
 
     def _media(self, row, destination, media_counts):
         raw = row.get('rawColumns', {}).get('local_extra_content', {})
@@ -152,7 +215,9 @@ class WeComArchive(LocalArchive):
         local = base64.b64decode(raw['data']) if isinstance(raw, dict) and raw.get('encoding') == 'base64' else b''
         raw_content = row.get('rawColumns', {}).get('content', {})
         content = base64.b64decode(raw_content['data']) if isinstance(raw_content, dict) and raw_content.get('encoding') == 'base64' else b''
-        def attach(node, payload, local_hint):
+        raw_extra = row.get('rawColumns', {}).get('extra_content', {})
+        extra = base64.b64decode(raw_extra['data']) if isinstance(raw_extra, dict) and raw_extra.get('encoding') == 'base64' else b''
+        def attach(node, payload, local_hint, extra):
             if node['kind'] in ('image', 'file', 'video', 'voice', 'emoji'):
                 node['asset'] = self.media_search.attach(node, destination, local_hint)
                 media_counts['preview_only' if node['asset'].get('previewOnly') else node['asset']['status']] += 1
@@ -165,5 +230,9 @@ class WeComArchive(LocalArchive):
                         pass
                 entry = entries[index] if index < len(entries) else b''
                 field = FORWARD_FIELDS.get(child.get('dataType'))
-                attach(child, value(entry, field) if field else b'', value(entry, 17))
-        attach(row, content, local)
+                attach(child, value(entry, field) if field else b'', value(entry, 17), value(entry, 17))
+            if node.get('quote'):
+                entry = quote_entry(extra)
+                field = FORWARD_FIELDS.get(node['quote'].get('sourceType'))
+                attach(node['quote']['message'], value(entry, field) if field else b'', value(entry, 17), value(entry, 17))
+        attach(row, content, local, extra)

@@ -26,7 +26,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v38'
+GUI_RELEASE = 'v39'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -73,6 +73,7 @@ class ChatApp:
         self.receipt_chat = None
         self.batch_output = None
         self.last_completed_chat = None
+        self.resumed_snapshot = ''
         self.pending_config = {}
         self.source_issue = ''
         self.source_dialog = None
@@ -152,7 +153,8 @@ class ChatApp:
         root.bind('<Control-f>', lambda _event: self.search_entry.focus_set())
         self.search.trace_add('write', lambda *_: self.render_groups())
         root.after(80, self._drain)
-        root.after(120, lambda: self.work('加载数据', session.bootstrap, self.ready))
+        root.after(120, lambda: self.work('加载数据',
+            lambda: session.bootstrap(resume=not bool(self.open_request or self.check_report)), self.ready))
 
     def publish_open(self, state, **fields):
         if not self.open_result_path:
@@ -548,6 +550,7 @@ class ChatApp:
         self.parse_states.clear()
         self.parse_errors.clear()
         self.last_completed_chat = self.batch_output = self.receipt_chat = None
+        self.resumed_snapshot = ''
         self.batch_ids.clear()
         self.batch_queue.clear()
         self.batch_cancel_requested = False
@@ -573,6 +576,7 @@ class ChatApp:
             if self.source_progress is not None:
                 self.source_progress.stop()
             if self.closing and not self.read_busy:
+                self.save_progress_selection()
                 self.destroyed = True
                 self.root.destroy()
                 return
@@ -597,6 +601,7 @@ class ChatApp:
             self.update_buttons()
         self.drain_view_read()
         if self.closing and not self.busy and not self.read_busy:
+            self.save_progress_selection()
             self.destroyed = True
             self.root.destroy()
             return
@@ -710,6 +715,11 @@ class ChatApp:
         self.parse_states.clear()
         self.parse_errors.clear()
         self.batch_output = None
+        if value.get('restoredReviews'):
+            self.parsed_results.update(self.session.restored_results)
+            self.selected_chats.update(value.get('resumeSelection', []))
+            self.parse_states.update({chat: self.session.review_status(chat) for chat in self.parsed_results})
+            self.last_completed_chat = value.get('resumeActiveChat')
         self.review_filter.set('全部群聊')
         self.search.set((self.open_request or {}).get('chat_name') or '')
         source = Path(self.session.archive.media_config.get('sourceRoot', ''))
@@ -721,6 +731,7 @@ class ChatApp:
         self.account_text.set('当前账号：' + nickname + ' · 目录：' + label + ' · 全部本地群 ' + str(len(self.groups)) + ' 个 · 按群 ID 选择')
         self.render_groups()
         stamp = datetime.fromisoformat(value['snapshotTime']).astimezone(BEIJING).strftime('%Y-%m-%d %H:%M:%S')
+        self.resumed_snapshot = stamp if value.get('restoredReviews') else ''
         self.subtitle.set(value['message'] + ' · 副本时间 ' + stamp + '（北京时间）')
         self.status.set('已列出全部本地群聊；选择群 ID 后解析，人工确认后导出。' + (' ' + value['notice'] if value.get('notice') else ''))
         self.result_text.set('本机工作目录：' + str(self.session.directory))
@@ -745,6 +756,8 @@ class ChatApp:
         elif self.check_report:
             self.finish_check({'ok': True})
         else:
+            if value.get('resumeActiveChat') in self.parsed_results:
+                self.show_chat(value['resumeActiveChat'])
             self.search_entry.focus_set()
 
     def clear_chat(self):
@@ -817,6 +830,8 @@ class ChatApp:
     def update_completion_notice(self):
         chats = self.completed_groups()
         self.completion_text.set(f'✓ 已解析 {len(chats)} 个群，可立即查看' if chats else '尚无已解析群，完成后将在此提示')
+        if chats and self.resumed_snapshot:
+            self.completion_text.set(f'✓ 已恢复 {len(chats)} 个群 · 上次副本')
         self.completed_groups_button.configure(text=f'查看已解析群 · {len(chats)}',
             state='normal' if chats and self.can_browse() else 'disabled')
         latest = self.parsed_results.get(self.last_completed_chat)
@@ -824,6 +839,8 @@ class ChatApp:
             self.completion_detail.set(f'刚完成：{latest["chat"]["name"]} · {latest["report"]["exportedRows"]} 条')
         else:
             self.completion_detail.set('蓝色：已解析待复核 · 黄色：解析中 · 绿色：已复核')
+        if self.resumed_snapshot:
+            self.completion_detail.set(f'副本时间：{self.resumed_snapshot} · 新消息请点击刷新')
 
     def show_completed_groups(self):
         chats = self.completed_groups()
@@ -874,11 +891,19 @@ class ChatApp:
         self.review_button.configure(text='查看/修改复核' if label == '已复核' and self.session.pending_review else '复核当前群')
 
     def selection_changed(self):
+        self.save_progress_selection()
         if self.review_filter.get() != '全部群聊':
             self.render_groups()
         else:
             self.update_selection_text()
             self.update_buttons()
+
+    def save_progress_selection(self):
+        try:
+            self.session.remember_selection([group['id'] for group in self.groups if group['id'] in self.selected_chats],
+                                            self.active_chat, persist=not self.busy)
+        except ValueError as error:
+            self.status.set(safe_issue(error))
 
     def update_selection_text(self):
         visible = set(self.tree.get_children())
@@ -1070,6 +1095,11 @@ class ChatApp:
             self.start_date.set(summary['startDate'] or '')
             self.end_date.set(summary['endDate'] or '')
             self.copy_media.set(summary['copyMediaRequested'])
+            if 'messages' not in result['view']:
+                size = int(self.page_size.get())
+                self.work('恢复已解析群阅读', lambda: self.session.preview(chat, kind='business', page_size=size),
+                          lambda page: self.restored_view_ready(chat, page))
+                return
             self.preview_ready(result['view'])
             self.result_text.set(('当前群文件目录：' + str(self.session.last_export)) if self.session.last_export else
                                  self.review_label(chat) + '群 ID：' + chat + ' · 源记录 ' + str(result['report']['exportedRows']) + ' 条')
@@ -1079,6 +1109,10 @@ class ChatApp:
         else:
             self.status.set(self.parse_errors.get(chat) or ('当前群 ID：' + chat + '。勾选要解析的群后点击解析。'))
         self.update_buttons()
+
+    def restored_view_ready(self, chat, page):
+        self.parsed_results[chat]['view'] = page
+        self.show_chat(chat)
 
     def start_parse(self, chat):
         self.start_batch([chat])
@@ -1090,6 +1124,7 @@ class ChatApp:
         chats = list(dict.fromkeys(chat for chat in chats if chat in known))
         if not chats:
             return
+        self.save_progress_selection()
         start, end = self.start_date.get().strip() or None, self.end_date.get().strip() or None
         try:
             date_range(start, end)
@@ -1997,6 +2032,7 @@ class ChatApp:
 
     def close(self):
         startup.record('window_close_requested', busy=self.busy)
+        self.save_progress_selection()
         if self.busy or self.read_busy:
             self.closing = True
             self.batch_cancel_requested = True
