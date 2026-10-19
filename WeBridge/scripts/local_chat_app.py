@@ -26,7 +26,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v36'
+GUI_RELEASE = 'v37'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -1724,6 +1724,8 @@ class ChatApp:
             if self.session.client == 'wecom':
                 company = item.get('companyName') or item.get('companyShortName')
                 detail += f'企业：{company}。' if company else '企业名称未获取；可点击“识别运行账号昵称与企业”补充。'
+                if company and item.get('companyBasis', '').startswith('self_corp_list_table:'):
+                    detail += '企业来源：本地本人企业列表，账号ID精确匹配；企业信息不代表当前进程在用。'
             if nickname:
                 basis = ('当前持有进程及资料库校验' if item.get('profileBasis', '').startswith('live_owner:') else
                          '已配置本人ID' if item.get('profileBasis', '').startswith('configured_self_id') else '账号目录ID精确匹配')

@@ -98,6 +98,83 @@ class AccountProfileTests(unittest.TestCase):
         self.assertFalse(row['companyName'])
         self.assertEqual(row['accountNickname'], '同名员工')
 
+    def membership_account(self, account='33', corporation='300', referenced_corporation='200', *, invalid=False):
+        from test_wecom_archive import pb
+        root = self.company_account(account, corporation)
+        with closing(sqlite3.connect(root / 'company.db')) as db, db:
+            db.execute('CREATE TABLE self_corp_list_table(corpany_id,self_corp_info)')
+            blob = (pb(1, int(referenced_corporation)) + pb(2, 22) +
+                    pb(3, ('简称' + referenced_corporation).encode('utf8')) +
+                    pb(24, ('对应企业' + referenced_corporation).encode('utf8')) +
+                    pb(5, '企业创建人不是本人昵称'.encode('utf8')))
+            db.execute('INSERT INTO self_corp_list_table VALUES (?,?)',
+                       ('999' if invalid else referenced_corporation, blob))
+        return root
+
+    def encrypted_reference_target(self):
+        root = self.base / '22/Data'
+        root.mkdir(parents=True)
+        payload = bytearray(4096)
+        payload[16:18] = (4096).to_bytes(2, 'big')
+        payload[21:24] = b'\x40\x20\x20'
+        (root / 'user.db').write_bytes(payload)
+        return root
+
+    def test_inactive_company_uses_exact_account_id_from_own_enterprise_list(self):
+        target = self.encrypted_reference_target()
+        reference = self.membership_account()
+        original = (target / 'user.db').read_bytes()
+        discovery = {'accounts':[{'sourceRoot':str(target),'processState':'inactive','processIds':[]},
+                                 {'sourceRoot':str(reference),'processState':'active','processIds':[81]}],
+                     'recommendedSourceRoot':str(reference)}
+        result = account_profiles(discovery, 'wecom')
+        row = result['accounts'][0]
+        self.assertEqual(row['companyName'], '对应企业200')
+        self.assertEqual(row['companyShortName'], '简称200')
+        self.assertFalse(row['accountNickname'])
+        self.assertEqual(row['profileStatus'], 'needs_key')
+        self.assertEqual(row['companyStatus'], 'matched')
+        self.assertTrue(row['companyBasis'].startswith('self_corp_list_table:'))
+        self.assertEqual(row['processState'], 'inactive')
+        self.assertEqual(row['processIds'], [])
+        self.assertEqual(result['recommendedSourceRoot'], str(reference))
+        self.assertEqual((target / 'user.db').read_bytes(), original)
+
+    def test_conflicting_enterprise_memberships_remain_unmatched(self):
+        target = self.encrypted_reference_target()
+        first = self.membership_account()
+        second = self.membership_account('44', '400', '500')
+        result = account_profiles({'accounts':[{'sourceRoot':str(root)} for root in (target, first, second)]}, 'wecom')
+        self.assertFalse(result['accounts'][0]['companyName'])
+        self.assertEqual(result['accounts'][0]['companyStatus'], 'ambiguous_membership')
+
+    def test_enterprise_list_cannot_override_verified_own_profile(self):
+        target = self.company_account()
+        other = self.membership_account('33', '300', '500')
+        rows = account_profiles({'accounts':[{'sourceRoot':str(root)} for root in (target, other)]}, 'wecom')['accounts']
+        self.assertEqual(rows[0]['companyName'], '所属企业200')
+        self.assertEqual(rows[0]['accountNickname'], '同名员工')
+
+    def test_enterprise_membership_requires_matching_sql_and_protobuf_corporation(self):
+        target = self.encrypted_reference_target()
+        other = self.membership_account(invalid=True)
+        rows = account_profiles({'accounts':[{'sourceRoot':str(root)} for root in (target, other)]}, 'wecom')['accounts']
+        self.assertFalse(rows[0]['companyName'])
+
+    def test_enterprise_list_preserves_short_only_name_without_using_creator_as_nickname(self):
+        from test_wecom_archive import pb
+        target = self.encrypted_reference_target()
+        other = self.membership_account()
+        with closing(sqlite3.connect(other / 'company.db')) as db, db:
+            db.execute('UPDATE self_corp_list_table SET self_corp_info=?',
+                       (pb(1, 200) + pb(2, 22) + pb(3, '未命名企业'.encode('utf8')) +
+                        pb(5, '其他创建人'.encode('utf8')),))
+        row = account_profiles({'accounts':[{'sourceRoot':str(root)} for root in (target, other)]}, 'wecom')['accounts'][0]
+        self.assertEqual(row['companyShortName'], '未命名企业')
+        self.assertFalse(row['companyName'])
+        self.assertFalse(row['accountNickname'])
+        self.assertEqual(row['profileStatus'], 'needs_key')
+
     def test_missing_nickname_never_falls_back_to_contact_remark_or_other_people(self):
         _, item = self.personal(nick='')
         result = account_profiles({'accounts': [item]})['accounts'][0]

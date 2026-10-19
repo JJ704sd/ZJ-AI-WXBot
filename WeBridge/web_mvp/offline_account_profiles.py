@@ -170,6 +170,71 @@ def _read_profile(path, root, keys, client, ids):
         return values, table, company
 
 
+def _enterprise_memberships(root, keys):
+    """Windows WeCom self-enterprise list; field 5 is a creator, not our nickname.
+
+    Only the exact account ID (2), corporation ID (1), short name (3) and full
+    name (24) are used. Never infer membership from arbitrary contact records.
+    """
+    from wecom_content import fields
+    with _profile_database(root / 'company.db', root, keys, 'wecom') as db:
+        columns = {row[1] for row in db.execute('PRAGMA table_info("self_corp_list_table")')}
+        if not {'corpany_id', 'self_corp_info'} <= columns:
+            return []
+        rows = db.execute('SELECT CAST(corpany_id AS TEXT),self_corp_info FROM self_corp_list_table '
+                          'WHERE length(self_corp_info)<=65536 LIMIT 33').fetchall()
+        if len(rows) > 32:
+            return []
+        result = []
+        for corporation, blob in rows:
+            decoded = fields(blob)
+            selected = {number: [(wire, value) for field, wire, value in decoded if field == number]
+                        for number in (1, 2, 3, 24)}
+            if (any(len(selected[number]) != 1 or selected[number][0][0] != wire
+                    for number, wire in ((1, 0), (2, 0), (3, 2)))
+                    or len(selected[24]) > 1 or (selected[24] and selected[24][0][0] != 2)):
+                continue
+            corp_id, account_id = selected[1][0][1], selected[2][0][1]
+            if corp_id <= 0 or account_id <= 0 or str(corp_id) != corporation:
+                continue
+            try:
+                short = display_name(selected[3][0][1])
+                name = display_name(selected[24][0][1]) if selected[24] else ''
+            except UnicodeError:
+                continue
+            if name or short:
+                result.append((str(account_id), str(corp_id), name, short))
+        return result
+
+
+def _complete_enterprises(targets, keys, deadline):
+    """Fill missing companies from readable own-enterprise lists, without keys recovery."""
+    observations = {}
+    for root in dict.fromkeys(root for _, root, _ in targets):
+        if time.monotonic() > deadline:
+            break
+        try:
+            for account, corporation, name, short in _enterprise_memberships(root, keys):
+                observations.setdefault(account, set()).add((corporation, name, short))
+        except (OSError, ValueError, sqlite3.Error, UnicodeError):
+            continue
+    for row, _, ids in targets:
+        if row.get('companyStatus') == 'matched' or len(ids) != 1:
+            continue
+        matches = observations.get(ids[0], set())
+        if not matches:
+            continue
+        corporations = {corp for corp, _, _ in matches}
+        names = {name for _, name, _ in matches if name}
+        shorts = {short for _, _, short in matches if short}
+        if len(corporations) != 1 or len(names) > 1 or len(shorts) > 1:
+            row.update(empty_company(), companyStatus='ambiguous_membership')
+        else:
+            row.update(companyId=next(iter(corporations)), companyName=next(iter(names), ''),
+                       companyShortName=next(iter(shorts), ''), companyStatus='matched',
+                       companyBasis='self_corp_list_table:exact_account_id')
+
+
 def account_profiles(discovery, client='wechat', *, key_files=(), configured_source='', configured_self_id=''):
     """Enrich discovered accounts with names; unknown names never affect selection.
 
@@ -178,6 +243,7 @@ def account_profiles(discovery, client='wechat', *, key_files=(), configured_sou
     """
     keys = _existing_keys(key_files, client)
     rows = []
+    targets = []
     deadline = time.monotonic() + 10
     for index, item in enumerate(discovery.get('accounts', [])):
         row = {**item, 'accountNickname': '', 'accountId': '', 'profileStatus': 'unavailable', 'profileBasis': 'none'}
@@ -211,6 +277,8 @@ def account_profiles(discovery, client='wechat', *, key_files=(), configured_sou
             else:
                 if root.is_symlink():
                     raise SnapshotError('profile_unavailable')
+                if client == 'wecom':
+                    targets.append((row, root.resolve(), ids))
                 relative = 'user.db' if client == 'wecom' else 'contact/contact.db'
                 path = root / relative
                 if client == 'wechat' and not path.is_file():
@@ -227,4 +295,6 @@ def account_profiles(discovery, client='wechat', *, key_files=(), configured_sou
             # No paths, SQL content, keys or contact values leave error diagnostics.
             row['profileStatus'] = 'needs_key' if isinstance(error, SnapshotError) and str(error) == 'profile_key_unavailable' else 'unavailable'
         rows.append(row)
+    if client == 'wecom':
+        _complete_enterprises(targets, keys, deadline)
     return {**discovery, 'accounts': rows}
