@@ -90,6 +90,8 @@ def _profile_database(path, root, keys, client):
             from wecom_crypto import WeComCipher, page_size
             size = page_size(first)
             candidates = keys.get(path.name, []) + keys.get('user.db', []) + keys.get('*', [])
+            if path.name == 'company.db':
+                candidates = list(dict.fromkeys(candidates + [key for values in keys.values() for key in values]))
             cipher = next((WeComCipher(key) for key in candidates
                            if WeComCipher(key).verifies(first[:size])), None)
             if cipher is None:

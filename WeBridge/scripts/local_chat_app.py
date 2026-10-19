@@ -26,7 +26,7 @@ from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
 import offline_startup as startup
 
-GUI_RELEASE = 'v35'
+GUI_RELEASE = 'v36'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -181,6 +181,9 @@ class ChatApp:
         menu = tk.Menu(self.scan_button, tearoff=False)
         menu.add_command(label='手动导入数据副本', command=lambda: self.source_settings(manual=True))
         menu.add_command(label='打开诊断日志', command=self.open_diagnostics)
+        menu.add_separator()
+        label = '企微' if self.session.client == 'wecom' else '个微'
+        menu.add_command(label=f'清除{label}账号缓存…', command=self.clear_account_cache)
         self.scan_button.configure(menu=menu)
         self.scan_button.pack(side='right')
         self.source_button = ttk.Button(header, text='账号设置', command=self.scan)
@@ -505,6 +508,52 @@ class ChatApp:
         if path and path.is_file():
             try: os.startfile(str(path))
             except OSError: messagebox.showinfo('诊断日志', str(path), parent=self.root)
+
+    def clear_account_cache(self):
+        if self.busy or self.read_busy or self.batch_running or self.closing:
+            self.status.set('请先等待当前操作完成，或停止解析队列，再清理账号缓存。')
+            return
+        label = '企微' if self.session.client == 'wecom' else '个微'
+        text = (f'清除此工具的{label}账号缓存？\n\n'
+                '将删除本客户端工具中的所有账号配置、缓存密钥、请求记录、解析副本、预览和复核缓存。'
+                '尚未导出的复核结果也会清除。\n\n'
+                '原始微信数据、已导出文件、其他客户端配置和此目录外的文件均保留。\n\n'
+                f'清理目录：{self.session.directory}\n\n请先关闭其他解析工具窗口。清理无法撤销，确认后返回首次配置界面。')
+        if not messagebox.askyesno('清除账号缓存', text, parent=self.source_dialog or self.root, icon='warning'):
+            return
+        self.close_source_settings(reason='cache_reset')
+        self.work('清除' + label + '工具账号缓存', self.session.clear_account_cache, self.cache_cleared)
+
+    def cache_cleared(self, value):
+        # End a named Skill request with a redacted receipt instead of restoring it.
+        self.open_request = None
+        if self.open_result_path:
+            try:
+                self.open_result_path.parent.mkdir(parents=True, exist_ok=True)
+                self.publish_open('failed', error='用户已清除账号缓存，请重新发起任务。', code='profile_reset')
+            except OSError:
+                pass
+        self.open_result_path = None
+        self.groups = []
+        self.clear_chat()
+        self.selected_chats.clear()
+        self.parsed_results.clear()
+        self.parse_states.clear()
+        self.parse_errors.clear()
+        self.last_completed_chat = self.batch_output = self.receipt_chat = None
+        self.batch_ids.clear()
+        self.batch_queue.clear()
+        self.batch_cancel_requested = False
+        self.pending_config = {}
+        self.account_scan = {}
+        self.account_text.set('当前账号未配置 · 请重新选择本人账号')
+        self.search.set('')
+        self.review_filter.set('全部群聊')
+        self.render_groups()
+        self.subtitle.set(value['message'])
+        self.ready({'status': 'needs_source', 'message': value['message']})
+        if not value['ok']:
+            messagebox.showerror('缓存未完全清理', value['message'], parent=self.root)
 
     def _drain(self):
         try:
@@ -1647,6 +1696,9 @@ class ChatApp:
         ttk.Label(picker, textvariable=selection_status, wraplength=720, style='Sub.TLabel').pack(anchor='w', pady=(6, 0))
         saved_source = self.session.settings.get('source', {}).get('sourceRoot')
         account_items = []
+        company_summary = tk.StringVar()
+        if self.session.client == 'wecom':
+            ttk.Label(picker, textvariable=company_summary, wraplength=720, style='Sub.TLabel').pack(anchor='w', pady=(3, 0))
         def show_selection(*_):
             source = entries['sourceRoot'].get()
             item = next((item for item in account_items if same_account_source(item['sourceRoot'], source, self.session.client)), {})
@@ -1711,6 +1763,12 @@ class ChatApp:
         def update_accounts(items):
             account_items[:] = items
             choices.clear()
+            if self.session.client == 'wecom':
+                known = sum(bool(item.get('companyName') or item.get('companyShortName')) for item in items)
+                pending = sum(item.get('processState') == 'active' and not (item.get('companyName') or item.get('companyShortName')) for item in items)
+                company_summary.set(f'企业已识别 {known}/{len(items)}；' +
+                                    (f'运行账号还有 {pending} 个未识别，可点击下方“识别运行账号昵称与企业”。' if pending else
+                                     '其余账号尚无可读企业资料；可重新识别运行账号，或提供对应资料密钥。' if known < len(items) else '可按企业名称选择对应账号。'))
             states = {'active': '运行中，归属已确认', 'inactive': '未检测到占用',
                       'ambiguous': '多个进程占用', 'unavailable': '归属未确认'}
             for index, item in enumerate(items):
@@ -1815,6 +1873,12 @@ class ChatApp:
                     self.source_controls.append((child, str(child.cget('state'))))
                 remember_controls(child)
         remember_controls(dialog)
+        footer = ttk.Frame(dialog, padding=(20, 0, 20, 10))
+        footer.pack(fill='x')
+        label = '企微' if self.session.client == 'wecom' else '个微'
+        clear_button = ttk.Button(footer, text=f'清除{label}账号缓存…', command=self.clear_account_cache)
+        clear_button.pack(side='right')
+        self.source_controls.append((clear_button, 'normal'))
 
     def close_source_settings(self, reason='user'):
         if self.busy:

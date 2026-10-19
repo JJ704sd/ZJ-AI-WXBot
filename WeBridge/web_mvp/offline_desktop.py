@@ -33,6 +33,7 @@ class DesktopSession:
         if client not in ('wechat', 'wecom'):
             raise ArchiveError('客户端类型必须为 wechat 或 wecom。')
         self.client = client
+        self._requested_directory = Path(data_directory).absolute()
         self.directory = Path(data_directory).resolve()
         self.settings_path = self.directory / 'settings.local.json'
         self.workbench = Path(workbench) if workbench else None
@@ -49,6 +50,9 @@ class DesktopSession:
         self._live_account_names = {}
 
     def _settings(self):
+        from offline_profiles import reset_requested
+        if reset_requested(self.directory):
+            return {}
         try:
             if self.settings_path.stat().st_size > 65536:
                 return {}
@@ -74,6 +78,9 @@ class DesktopSession:
             with os.fdopen(fd, 'w', encoding='utf-8') as stream:
                 json.dump(value, stream, ensure_ascii=False, indent=2)
             os.replace(temporary, self.settings_path)
+            if config is not None:
+                from offline_profiles import RESET_MARKER
+                (self.directory / RESET_MARKER).unlink(missing_ok=True)
         finally:
             if Path(temporary).exists():
                 Path(temporary).unlink()
@@ -113,6 +120,10 @@ class DesktopSession:
         return self.ready_info()
 
     def bootstrap(self):
+        from offline_profiles import reset_requested
+        if reset_requested(self.directory):
+            label = '企业微信' if self.client == 'wecom' else '微信'
+            return {'status': 'needs_source', 'message': f'首次使用：请重新选择本人{label}账号并配置；旧配置不会自动导入。'}
         saved = self.settings.get('source')
         if isinstance(saved, dict) and saved.get('sourceRoot'):
             try:
@@ -153,6 +164,26 @@ class DesktopSession:
                 return {'status': 'needs_source', 'message': safe_issue(error)}
         label = '企业微信' if self.client == 'wecom' else '微信'
         return {'status': 'needs_source', 'message': f'首次使用：登录本人{label}后点击“一键自动配置”；已有数据与密钥也可在手动页选择。'}
+
+    def clear_account_cache(self):
+        from offline_profiles import clear_profile_cache
+        if self.settings and self.settings.get('client', 'wechat') != self.client:
+            raise ArchiveError('此数据目录属于另一客户端，未清理；请使用对应客户端的入口。')
+        config = self.archive.media_config if self.archive else self.settings.get('source', {})
+        try:
+            result = clear_profile_cache(self._requested_directory, self.client,
+                                         source_root=config.get('sourceRoot', ''))
+        except ValueError as error:
+            raise ArchiveError(str(error)) from None
+        self.settings = {}
+        self.archive = None
+        self.groups = []
+        self.source_status = ''
+        self.workbench = None
+        self.views.clear()
+        self.discard_review()
+        self._live_account_names.clear()
+        return result
 
     def import_settings(self, path, *, overwrite=True):
         """Validate before publishing; automatic migration never overwrites a user profile."""

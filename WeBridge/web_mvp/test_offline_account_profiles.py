@@ -179,7 +179,9 @@ class AccountProfileTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             string_profile_key([(heap_base, len(heap), 0x20000)], read, {'user.db': bytes(encrypted[:size])}, limit=0)
         keys = self.base / 'provided.json'
-        keys.write_text(json.dumps({'wecomKeys': [{'database': 'user.db', 'key_hex': key.hex()}]}))
+        company_key = bytes(range(16, 32))
+        keys.write_text(json.dumps({'wecomKeys': [{'database': 'user.db', 'key_hex': key.hex()},
+                                               {'database': 'file.db', 'key_hex': company_key.hex()}]}))
         with closing(sqlite3.connect(root / 'company.db')) as db, db:
             db.execute('CREATE TABLE external_company_table_v2(corpany_id,name,short_name)')
             db.execute("INSERT INTO external_company_table_v2 VALUES (200,'密文企业全称','密文简称')")
@@ -188,7 +190,7 @@ class AccountProfileTests(unittest.TestCase):
         for offset in range(0, len(company_plain), size):
             number = offset // size + 1
             page = company_plain[offset:offset + size]
-            pagekey = hashlib.md5(key + struct.pack('<I', number) + b'sAlT').digest()
+            pagekey = hashlib.md5(company_key + struct.pack('<I', number) + b'sAlT').digest()
             encode = Cipher(algorithms.AES(pagekey), modes.CBC(page_iv(number))).encryptor()
             payload = encode.update(page[16:] if number == 1 else page) + encode.finalize()
             company_encrypted.extend(bytes(8) + payload[:8] + page[16:24] + payload[8:] if number == 1 else payload)

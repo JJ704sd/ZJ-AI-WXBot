@@ -115,6 +115,36 @@ for client,child in [('wechat','db_storage'),('wecom','Data')]:
         assert '已保存配置' in chooser.get(),'nickname lookup silently switched configured account'
         assert session.settings_path.read_bytes()==before
         assert not (session.directory/'keys').exists() and not (session.directory/'exports').exists()
+        # Clear is a human action: cancel is harmless, busy work blocks it,
+        # and confirmation resets both disk and the visible account state.
+        with patch('local_chat_app.messagebox.askyesno',return_value=False) as confirm:
+            app.clear_account_cache()
+            confirm.assert_called_once()
+        assert session.settings_path.read_bytes()==before
+        app.busy=True
+        with patch('local_chat_app.messagebox.askyesno') as confirm:
+            app.clear_account_cache()
+            confirm.assert_not_called()
+        app.busy=False
+        (session.directory/'keys').mkdir()
+        (session.directory/'keys/cached.json').write_text('{}')
+        (session.directory/'exports').mkdir()
+        (session.directory/'exports/keep.json').write_text('exported')
+        receipt=session.directory/'requests/current.json';receipt.parent.mkdir()
+        receipt.write_text('{"requestedChatName":"synthetic private group"}')
+        app.open_result_path=receipt;app.open_request={'chat_name':'synthetic private group'}
+        with patch('local_chat_app.messagebox.askyesno',return_value=True):
+            app.clear_account_cache()
+        while app.busy or app.source_dialog is None:
+            assert time.monotonic()<deadline
+            root.update();time.sleep(.01)
+        assert not session.settings_path.exists() and not (session.directory/'keys').exists()
+        assert not app.groups and not app.selected_chats and not app.browser.rows
+        assert '未配置' in app.account_text.get()
+        assert not app.open_request and not app.open_result_path
+        assert 'synthetic private group' not in receipt.read_text(encoding='utf8')
+        assert 'profile_reset' in receipt.read_text(encoding='utf8')
+        assert (session.directory/'exports/keep.json').read_text()=='exported'
     finally:
         boundary.stop()
         root.destroy()

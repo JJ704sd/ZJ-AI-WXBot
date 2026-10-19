@@ -4,8 +4,85 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import sys
 import tempfile
+
+RESET_MARKER = '.profile-reset.json'
+CACHE_ENTRIES = ('settings.local.json', 'keys', 'requests', 'reviews', 'snapshots', 'views')
+
+
+def reset_requested(directory):
+    return os.path.lexists(Path(directory) / RESET_MARKER)
+
+
+def _cache_entry(path, root):
+    if _linked(path) or not path.resolve().is_relative_to(root) or path.resolve() == root:
+        raise ValueError('缓存目录包含越界路径或链接，未清理；请检查程序数据目录。')
+    if path.is_dir():
+        for current, directories, files in os.walk(path, followlinks=False):
+            for name in directories + files:
+                child = Path(current) / name
+                if _linked(child) or not child.resolve().is_relative_to(root):
+                    raise ValueError('缓存中包含外部链接，未清理；请先检查对应缓存目录。')
+
+
+def clear_profile_cache(directory, client, *, source_root=''):
+    """Clear one client's tool cache, retain exports and block automatic legacy import."""
+    if client not in ('wechat', 'wecom'):
+        raise ValueError('不支持的客户端。')
+    original = Path(directory).absolute()
+    if any(_linked(path) for path in (original, *original.parents)):
+        raise ValueError('程序数据目录包含链接，未清理；请使用独立的普通目录。')
+    root = original.resolve()
+    expected = 'LocalWeComArchive' if client == 'wecom' else 'LocalWechatArchive'
+    if (root == Path(root.anchor) or root == Path.home().resolve()
+            or (root.name.casefold() in ('localwecomarchive', 'localwechatarchive') and root.name.casefold() != expected.casefold())):
+        raise ValueError('程序数据目录不适合清理，或属于另一客户端，未执行。')
+    if any((root / name).exists() for name in ('message.db', 'user.db', 'contact.db', 'db_storage', 'Data')):
+        raise ValueError('程序数据目录中存在微信原始数据库，未清理；请先检查目录设置。')
+    paths = [root / name for name in CACHE_ENTRIES]
+    if source_root:
+        source = Path(source_root).resolve()
+        account = source.parent if source.name in ('db_storage', 'Data') else source
+        if any(path.resolve().is_relative_to(account) or account.is_relative_to(path.resolve()) for path in paths):
+            raise ValueError('原始数据与待清理缓存目录重叠，未清理；请先将数据源独立存放。')
+    for path in paths:
+        _cache_entry(path, root)
+    marker = root / RESET_MARKER
+    if _linked(marker) or marker.is_dir():
+        raise ValueError('配置重置标记异常，未清理；请检查程序数据目录。')
+    if marker.is_file():
+        try:
+            previous = json.loads(marker.read_text(encoding='utf8')) if marker.stat().st_size < 1024 else {}
+        except (ValueError, UnicodeError):
+            previous = {}
+        if isinstance(previous, dict) and previous.get('client', client) != client:
+            raise ValueError('此程序数据目录属于另一客户端，未清理。')
+    root.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix='.reset-', dir=root)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf8') as stream:
+            json.dump({'version': 1, 'client': client}, stream)
+        os.replace(temporary, marker)
+    finally:
+        Path(temporary).unlink(missing_ok=True)
+    removed, remaining = [], []
+    for path in paths:
+        if not os.path.lexists(path):
+            continue
+        try:
+            _cache_entry(path, root)
+            shutil.rmtree(path) if path.is_dir() else path.unlink()
+            removed.append(path.name)
+        except (OSError, ValueError):
+            remaining.append(path.name)
+    remaining = [path.name for path in paths if os.path.lexists(path)]
+    label = '企微' if client == 'wecom' else '个微'
+    message = (f'已清除{label}工具账号缓存；原始聊天和已导出文件保留。请重新选择账号并配置。'
+               if not remaining else '部分缓存未清理：' + '、'.join(remaining) + '。请关闭其他解析窗口后重试；尚未完成清理。')
+    return {'ok': not remaining, 'status': 'needs_source', 'removed': removed,
+            'remaining': remaining, 'message': message}
 
 
 class ClientBindingError(ValueError):
