@@ -20,7 +20,7 @@
 - [操作指南](docs/local-chat/操作指南.md)：首次配置、WorkBuddy和桌面操作、更新迁移、三格式导出及常见问题。
 - [版本与验证说明](docs/local-chat/版本与验证说明.md)：当前交付范围与实际验证边界。
 - [企微使用说明](docs/local-chat/企微使用说明.md)：首次自动配置、支持类型与实测边界。
-- [完整交付包 v20](build/WeChat-WeCom-Archive-Windows-Delivery-20261016-v20.zip)：桌面包、个微Skill和企微Skill三个独立ZIP及必要说明，不包含私有数据或密钥。
+- [完整交付包 v34](build/WeChat-WeCom-Archive-Windows-Delivery-20261019-v34.zip)：桌面v34、个微Skill和企微Skill 1.20.2三个独立ZIP及演示说明、许可和校验清单，不包含账号配置、私有数据或密钥。解压总包后，WorkBuddy分别导入里面对应客户端的Skill ZIP。
 - [功能与使用说明](个微聊天记录解析工具说明.md)：完整功能和本地数据输入说明。
 
 ## 网页工作台运行
