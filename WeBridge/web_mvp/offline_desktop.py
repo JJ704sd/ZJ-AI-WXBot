@@ -462,8 +462,17 @@ class DesktopSession:
                     'directory': Path(item['output']).relative_to(root).as_posix(),
                     'files': {kind: Path(path).relative_to(root).as_posix() for kind, path in item['exportFiles'].items()}}
                     for item in result['exports']]}
+        from offline_analysis import build_batch
+        analysed = [group for group in index['groups'] if (root/group['directory']/'analysis'/'index.json').is_file()]
+        if analysed:
+            try:
+                index['analysis'] = result['analysis'] = build_batch(root, analysed)
+            except (OSError, ValueError, KeyError) as error:
+                index['analysisError'] = result['analysisError'] = safe_issue(error)
         write_json(root/'batch.json', index)
         lines = ['# 群聊导出清单', '', f'本次导出 {len(index["groups"])} 个群，失败 {len(result["failed"])} 个，已导出跳过 {len(already)} 个。', '']
+        if index.get('analysis'):
+            lines += ['跨群业务分析索引：['+index['analysis']['readmeFile']+']('+index['analysis']['readmeFile']+')', '']
         for group in index['groups']:
             lines += [group['chat']['name']+' · '+group['chat']['id']+' · '+str(group['rows'])+' 条',
                       ' / '.join('['+kind.upper()+']('+path+')' for kind, path in group['files'].items()), '']

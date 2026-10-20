@@ -24,6 +24,7 @@ from offline_reporting import completion_report, REPORT_FILE
 from offline_image_html import CSS as IMAGE_CSS, image_card, gallery_body
 from offline_markdown import header as markdown_header, message as markdown_message
 from offline_documents import AttachmentExtractor, summary_text as document_summary_text
+from offline_analysis import AnalysisWriter
 
 BEIJING = timezone(timedelta(hours=8), name='Asia/Shanghai')
 SCHEMA_VERSION = 1
@@ -504,6 +505,8 @@ class LocalArchive:
                 csv_writer.writerow(['time', 'chat_id', 'sender_id', 'sender_name', 'direction', 'kind', 'text', 'mention_ids', 'server_id', 'source_id'])
                 page = stack.enter_context((stage / 'chat.html').open('x', encoding='utf-8'))
                 page.write(_html_start(chat['name']))
+                analysis = stack.enter_context(AnalysisWriter(stage, chat, self.members(chat['id'])['members'],
+                                                              self.state['contacts']))
                 order = lambda value: (int(value[0]['create_time']), int(value[0]['local_id']), value[1], value[2])
                 for item, file, table in heapq.merge(*streams, key=order):
                     if limit is not None and count >= limit:
@@ -520,6 +523,7 @@ class LocalArchive:
                     if row['kind'] != 'emoji':
                         business_count += 1
                         reading.write(business_text(row))
+                    analysis.add(row)
                     serialized = json.dumps(row, ensure_ascii=False)
                     data.write(serialized + '\n')
                     json_data.write((',\n' if count else '') + serialized)
@@ -541,6 +545,7 @@ class LocalArchive:
                 json_data.write('\n]\n')
                 markdown.write('共导出 ' + str(count) + ' 条源消息。' + ('已达到条数限制，结果不完整。' if truncated else '当前筛选范围已导出完毕。') + '\n')
                 page.write('</main><footer>本地副本存档。完整原始字段在 messages.jsonl；CSV 和此页为便于阅读的视图。</footer></body></html>')
+                analysis_summary = analysis.finish()
             (stage / 'images.html').write_text(_html_start(chat['name'], gallery=True)
                 + gallery_body(images) + '</main></body></html>', encoding='utf-8')
             self._check()
@@ -555,6 +560,7 @@ class LocalArchive:
                       'localMediaSearch': self.media_search.report(recovered_before),
                       'mediaRecoveryFile': 'media-recovery.jsonl',
                       'businessReadingFile': '业务阅读.txt', 'businessRows': business_count,
+                      'analysis': analysis_summary,
                       'messageExports': {'jsonl': 'messages.jsonl', 'json': 'messages.json', 'md': 'messages.md'},
                       'imageGalleryFile': 'images.html', 'imageReferences': len(images),
                       'businessMediaStatuses': dict(business_media),

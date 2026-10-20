@@ -20,6 +20,10 @@ def completion_report(destination, report):
         unsupported = sum(count for status, count in report['parseStatuses'].items() if status not in ('ok', 'plain_system'))
         partial = sum(count for status, count in report['recordStatuses'].items() if status != 'ok')
         client_note = f'客户端：企业微信。未完整适配的源消息 {unsupported} 条，未完整展开的转发结构 {partial} 个；原始字段保留于JSONL/JSON。\n\n'
+    analysis = report.get('analysis')
+    analysis_text = ('业务分析材料：' + link('使用说明', analysis['readmeFile']) + '，按时间分 '
+                     + str(len(analysis['chunkFiles'])) + ' 段，消息以 #序号 引用，发言人 '
+                     + str(analysis['speakers']) + ' 人。\n\n') if analysis else ''
     markdown = ('已完成“' + name + '”的本地记录解析。\n\n'
                 f'源记录 {report["exportedRows"]} 条，业务阅读 {report["businessRows"]} 条。'
                 + ('已达到条数限制，结果不完整。' if report['truncatedByLimit'] else '当前筛选范围已导出完毕。')
@@ -28,6 +32,7 @@ def completion_report(destination, report):
                 + (report['attachmentTextSummaryText'] + '\n\n' if 'attachmentTextSummaryText' in report else '')
                 + '三种导出文件：' + ' · '.join(link(kind.upper(), path) for kind, path in formats) + '\n\n'
                 + link('阅读视图', 'chat.html') + ' · ' + link('图片总览', report['imageGalleryFile']) + '\n\n'
+                + analysis_text
                 + '缺失图片没有可显示文件；缩略图与本地预览的原图均未取得，分别计数；未加载尚未核查，不能当成缺失。'
                   '表情缺失不阻塞业务阅读。MD须与同目录 assets/ 一起保存；完整原始字段以JSONL/JSON为准。\n')
     return {'version': 1, 'markdownFile': str(destination / REPORT_FILE), 'replyMarkdown': markdown,
@@ -35,4 +40,5 @@ def completion_report(destination, report):
                              'explanation': '展示程序统计及 JSONL、JSON、MD 三种导出文件与阅读入口。',
                              'files': [str(destination / relative) for relative in
                                        [path for _, path in formats] + [REPORT_FILE, 'chat.html',
-                                        report['imageGalleryFile'], report['businessReadingFile']]]}}
+                                        report['imageGalleryFile'], report['businessReadingFile']]
+                                       + ([analysis['readmeFile']] if analysis else [])]}}

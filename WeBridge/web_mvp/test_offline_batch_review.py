@@ -42,6 +42,11 @@ class BatchReviewTests(unittest.TestCase):
                 root=Path(result['output'])
                 index=json.loads((root/'batch.json').read_text(encoding='utf8'))
                 self.assertEqual({x['chat']['id'] for x in index['groups']},set(chats))
+                self.assertEqual(index['analysis']['groups'],2)
+                analysis=json.loads((root/index['analysis']['indexFile']).read_text(encoding='utf8'))
+                self.assertEqual([x['chat']['id'] for x in analysis['groups']],[x['chat']['id'] for x in index['groups']])
+                self.assertTrue(all((root/path).is_file() for x in analysis['groups'] for path in x['chunks']))
+                self.assertIn(index['analysis']['readmeFile'],(root/'导出清单.md').read_text(encoding='utf8'))
                 for original,item in zip((a,b),result['exports']):
                     output=Path(item['output'])
                     review=json.loads((output/'review.json').read_text(encoding='utf8'))
