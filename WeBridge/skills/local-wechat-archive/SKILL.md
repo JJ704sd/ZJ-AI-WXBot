@@ -2,7 +2,7 @@
 name: local-wechat-archive
 description: 打开个微或企微本地聊天界面，列出群ID与名称供人工多选并批量解析，或解析用户指定群；支持逐群或批量人工复核后导出JSON/JSONL/Markdown，复用已有账号配置，无需安装Python。
 metadata:
-  version: "1.26.0"
+  version: "1.27.0"
   description_zh: "打开界面多选群聊、批量解析，逐群或批量人工复核后导出。"
   description_en: "Select groups, parse locally, and review individually or as a batch before export."
   author: "Local WeChat Archive"

@@ -24,9 +24,13 @@ from offline_calendar import DatePicker
 from offline_accounts import group_choices, same_account_source
 from offline_desktop import DesktopSession, safe_issue
 from offline_widgets import MessageBrowser
+from offline_theme import (ACCENT, ACCENT_SOFT, ACCENT_TEXT, BODY, BODY_BOLD, BORDER, BORDER_STRONG,
+                           CANVAS, CAPTION, DISPLAY, INFO, INFO_SOFT, SURFACE, SURFACE_SOFT, TEXT,
+                           TEXT_FAINT, TEXT_MUTED, TITLE, WARNING, WARNING_SOFT, BrandMark,
+                           SearchGlyph, StatusDot, StatusPill, apply_theme, card)
 import offline_startup as startup
 
-GUI_RELEASE = 'v40'
+GUI_RELEASE = 'v41'
 
 FILTERS = {'业务阅读': 'business', '全部': None, '图片': 'image', '附件': 'file', '转发聊天': 'record', '引用': 'quote',
            '视频': 'video', '待补齐图片': 'missing_images', '表情': 'emoji', '待补齐媒体': 'missing_media'}
@@ -90,42 +94,14 @@ class ChatApp:
         root.geometry(f'{width}x{height}+20+20')
         root.minsize(min(1000, width), min(700, height))
         root.protocol('WM_DELETE_WINDOW', self.close)
-        style = ttk.Style(root)
-        if 'clam' in style.theme_names():
-            style.theme_use('clam')
-        root.configure(background='#f4f6fa')
-        style.configure('.', background='#f4f6fa', foreground='#1e293b', font=('Microsoft YaHei UI', 9))
-        style.configure('TButton', background='#ffffff', bordercolor='#cbd5e1', padding=(6, 2), width=0)
-        style.map('TButton', background=[('disabled', '#edf1f6'), ('active', '#e8effa')],
-                  foreground=[('disabled', '#94a3b8')])
-        style.configure('Accent.TButton', background='#2563eb', foreground='#ffffff', bordercolor='#2563eb')
-        style.map('Accent.TButton', background=[('disabled', '#dce5f4'), ('active', '#1d4ed8')],
-                  foreground=[('disabled', '#8a9bb8'), ('!disabled', '#ffffff')])
-        style.configure('TEntry', fieldbackground='#ffffff', padding=2)
-        style.configure('TCombobox', fieldbackground='#ffffff', padding=2)
-        style.configure('Title.TLabel', font=('Microsoft YaHei UI', 12, 'bold'))
-        style.configure('Sub.TLabel', foreground='#64748b', font=('Microsoft YaHei UI', 8))
-        style.configure('Status.TLabel', font=('Microsoft YaHei UI', 9))
-        style.configure('Section.TLabel', foreground='#1d4ed8', font=('Microsoft YaHei UI', 9, 'bold'))
-        style.configure('ReviewPending.TLabel', foreground='#9a3412', font=('Microsoft YaHei UI', 9, 'bold'))
-        style.configure('ReviewDone.TLabel', foreground='#15803d', font=('Microsoft YaHei UI', 9, 'bold'))
-        style.configure('ReviewNone.TLabel', foreground='#64748b', font=('Microsoft YaHei UI', 9, 'bold'))
-        style.configure('Completion.TFrame', background='#e0f2fe')
-        style.configure('Completion.TLabel', background='#e0f2fe', foreground='#075985', font=('Microsoft YaHei UI', 9, 'bold'))
-        style.configure('CompletionDetail.TLabel', background='#e0f2fe', foreground='#075985', font=('Microsoft YaHei UI', 8))
-        row_height = max(24, tkfont.Font(root=root, family='Microsoft YaHei UI', size=9).metrics('linespace') + 6)
-        style.configure('Treeview', rowheight=row_height, background='#ffffff', fieldbackground='#ffffff', bordercolor='#dbe2ed', font=('Microsoft YaHei UI', 9))
-        style.map('Treeview', background=[('selected', '#dbeafe')], foreground=[('selected', '#1e3a8a')])
-        style.configure('Treeview.Heading', background='#eaf0f8', padding=(4, 3), font=('Microsoft YaHei UI', 9, 'bold'))
-        style.configure('TNotebook.Tab', padding=(8, 3))
-        root.option_add('*Font', ('Microsoft YaHei UI', 9))
+        apply_theme(root)
         self.search = tk.StringVar()
         self.start_date = tk.StringVar()
         self.end_date = tk.StringVar()
         self.copy_media = tk.BooleanVar(value=True)
         self.status = tk.StringVar(value='正在查找已有配置并准备本地副本…')
         self.subtitle = tk.StringVar(value='列群 → 选择群 ID → 解析 → 人工复核 → 导出')
-        self.group_title = tk.StringVar(value='当前账号的全部本地群聊')
+        self.group_title = tk.StringVar(value='本地群聊')
         self.selection_text = tk.StringVar(value='已选 0 个群')
         self.review_summary = tk.StringVar(value='勾选 → 解析 → 人工复核 → 导出')
         self.workflow_hint = tk.StringVar(value='先勾选需要解析的群聊。')
@@ -174,12 +150,30 @@ class ChatApp:
     def _layout(self):
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(2, weight=1)
-        header = ttk.Frame(self.root, padding=(12, 6, 12, 3))
-        header.grid(row=0, column=0, sticky='ew')
-        ttk.Label(header, text='本地聊天解析', style='Title.TLabel').pack(side='left')
+
+        # -- application bar ------------------------------------------------
+        appbar = tk.Frame(self.root, background=SURFACE)
+        appbar.grid(row=0, column=0, sticky='ew')
+        self.appbar = appbar
+        appbar.grid_columnconfigure(1, weight=1)
         client = '企业微信' if self.session.client == 'wecom' else '个人微信'
-        ttk.Label(header, text=client + ' · ' + GUI_RELEASE, style='Sub.TLabel').pack(side='left', padx=12)
-        self.scan_button = ttk.Menubutton(header, text='更多设置')
+        mark = BrandMark(appbar, '企' if self.session.client == 'wecom' else '微', background=SURFACE)
+        mark.grid(row=0, column=0, rowspan=2, padx=(16, 12), pady=9)
+        titles = tk.Frame(appbar, background=SURFACE)
+        titles.grid(row=0, column=1, sticky='sw', pady=(9, 0))
+        tk.Label(titles, text='本地聊天解析', font=DISPLAY, background=SURFACE,
+                 foreground=TEXT).pack(side='left')
+        tk.Label(titles, text=client + ' · ' + GUI_RELEASE, font=CAPTION, background=SURFACE_SOFT,
+                 foreground=TEXT_MUTED, padx=9, pady=2).pack(side='left', padx=(10, 0))
+        account_label = tk.Label(appbar, textvariable=self.account_text, font=CAPTION,
+                                 background=SURFACE, foreground=TEXT_MUTED, anchor='w')
+        account_label.grid(row=1, column=1, sticky='nw', pady=(2, 9))
+        self.account_label = account_label
+        actions = tk.Frame(appbar, background=SURFACE)
+        actions.grid(row=0, column=1, rowspan=2, sticky='e', padx=(16, 16), pady=12)
+        self.progress = ttk.Progressbar(actions, mode='indeterminate', length=110)
+        self.progress.pack(side='right', padx=(0, 14))
+        self.scan_button = ttk.Menubutton(actions, text='更多设置 ▾')
         menu = tk.Menu(self.scan_button, tearoff=False)
         menu.add_command(label='手动导入数据副本', command=lambda: self.source_settings(manual=True))
         menu.add_command(label='打开诊断日志', command=self.open_diagnostics)
@@ -188,49 +182,57 @@ class ChatApp:
         menu.add_command(label=f'清除{label}账号缓存…', command=self.clear_account_cache)
         self.scan_button.configure(menu=menu)
         self.scan_button.pack(side='right')
-        self.source_button = ttk.Button(header, text='账号设置', command=self.scan)
+        self.source_button = ttk.Button(actions, text='账号设置', command=self.scan)
         self.source_button.pack(side='right', padx=8)
-        self.refresh_button = ttk.Button(header, text='刷新此群与媒体', command=self.refresh)
+        self.refresh_button = ttk.Button(actions, text='刷新此群与媒体', command=self.refresh)
         self.refresh_button.pack(side='right')
-        info = ttk.Frame(self.root, padding=(12, 0, 12, 3))
-        info.grid(row=1, column=0, sticky='ew')
-        info.columnconfigure(0, weight=1)
-        account_label = ttk.Label(info, textvariable=self.account_text, style='Sub.TLabel')
-        account_label.grid(row=0, column=0, sticky='w')
-        info.bind('<Configure>', lambda event: account_label.configure(wraplength=max(240, event.width - 150)))
-        self.progress = ttk.Progressbar(info, mode='indeterminate', length=100)
-        self.progress.grid(row=0, column=1, sticky='e', padx=(12, 0))
-        pane = ttk.PanedWindow(self.root, orient='horizontal')
-        pane.grid(row=2, column=0, sticky='nsew', padx=12)
-        self.sidebar = ttk.Frame(pane, width=292, padding=(0, 5, 10, 0))
+        tk.Frame(self.root, background=BORDER, height=1).grid(row=1, column=0, sticky='ew')
+
+        # -- body -----------------------------------------------------------
+        body = tk.Frame(self.root, background=CANVAS)
+        body.grid(row=2, column=0, sticky='nsew')
+        body.grid_columnconfigure(1, weight=1)
+        body.grid_rowconfigure(0, weight=1)
+
+        self.sidebar = tk.Frame(body, width=330, background=BORDER)
+        self.sidebar.grid(row=0, column=0, sticky='nsw')
         self.sidebar.pack_propagate(False)
-        right = ttk.Frame(pane, padding=(10, 5, 0, 0))
-        pane.add(self.sidebar, weight=0)
-        pane.add(right, weight=1)
-        right.columnconfigure(0, weight=1)
-        right.rowconfigure(3, weight=1)
-        ttk.Label(self.sidebar, textvariable=self.group_title, style='Section.TLabel').pack(anchor='w', pady=(0, 5))
-        search_bar = ttk.Frame(self.sidebar)
-        search_bar.pack(fill='x')
-        self.search_clear_button = ttk.Button(search_bar, text='清除', width=4, command=lambda: self.search.set(''), state='disabled')
-        self.search_clear_button.pack(side='right', padx=(4, 0))
-        self.search_entry = ttk.Entry(search_bar, textvariable=self.search)
-        self.search_entry.pack(side='left', fill='x', expand=True)
+        panel = tk.Frame(self.sidebar, background=SURFACE)
+        panel.pack(fill='both', expand=True, padx=1, pady=1)
+
+        tk.Label(panel, textvariable=self.group_title, font=TITLE, background=SURFACE,
+                 foreground=TEXT, anchor='w').pack(fill='x', padx=14, pady=(14, 10))
+
+        search_field = tk.Frame(panel, background=BORDER)
+        search_field.pack(fill='x', padx=14)
+        search_inner = tk.Frame(search_field, background=SURFACE)
+        search_inner.pack(fill='both', expand=True, padx=1, pady=1)
+        SearchGlyph(search_inner).pack(side='left', padx=(8, 4))
+        self.search_entry = ttk.Entry(search_inner, textvariable=self.search)
+        self.search_entry.pack(side='left', fill='both', expand=True, padx=(0, 4), ipady=2)
         self.search_entry.bind('<Return>', self.locate_search_result)
-        parse_bar = ttk.Frame(self.sidebar)
-        parse_bar.pack(fill='x', pady=6)
-        self.reparse_button = ttk.Button(parse_bar, text='重新解析', command=self.reparse_targets, state='disabled')
-        self.reparse_button.pack(side='right', padx=(4, 0))
-        self.parse_button = ttk.Button(parse_bar, text='先选择群聊', style='Accent.TButton', command=self.choose_search_result, state='disabled')
+        self.search_clear_button = ttk.Button(search_inner, text='✕', width=2, style='Quiet.TButton',
+                                              command=lambda: self.search.set(''), state='disabled')
+        self.search_clear_button.pack(side='right', padx=(0, 2))
+
+        parse_bar = tk.Frame(panel, background=SURFACE)
+        parse_bar.pack(fill='x', padx=14, pady=(10, 0))
+        self.parse_button = ttk.Button(parse_bar, text='先选择群聊', style='Accent.TButton',
+                                       command=self.choose_search_result, state='disabled')
         self.parse_button.pack(side='left', fill='x', expand=True)
-        picks = ttk.Frame(self.sidebar)
-        picks.pack(fill='x')
-        self.select_all_button = ttk.Button(picks, text='全选当前结果', command=self.toggle_visible)
-        self.select_all_button.pack(side='left')
-        self.clear_selection_button = ttk.Button(picks, text='清空选择', command=self.clear_selection)
-        self.clear_selection_button.pack(side='right')
-        self.selection_menu_button = ttk.Menubutton(picks, text='更多 ▾')
-        self.selection_menu_button.pack(side='right', padx=4)
+        self.reparse_button = ttk.Button(parse_bar, text='重新解析', command=self.reparse_targets, state='disabled')
+        self.reparse_button.pack(side='right', padx=(8, 0))
+
+        picks = tk.Frame(panel, background=SURFACE)
+        picks.pack(fill='x', padx=14, pady=(6, 0))
+        self.select_all_button = ttk.Button(picks, text='全选当前结果', command=self.toggle_visible,
+                                            style='Quiet.TButton')
+        self.select_all_button.pack(side='left', padx=(0, 2))
+        self.clear_selection_button = ttk.Button(picks, text='清空选择', command=self.clear_selection,
+                                                 style='Quiet.TButton')
+        self.clear_selection_button.pack(side='left', padx=(0, 2))
+        self.selection_menu_button = ttk.Menubutton(picks, text='更多 ▾', style='Quiet.TButton')
+        self.selection_menu_button.pack(side='right')
         self.selection_menu = tk.Menu(self.selection_menu_button, tearoff=False)
         self.selection_menu.add_command(label='全选当前结果', command=self.select_visible)
         self.selection_menu.add_command(label='取消当前结果勾选', command=self.deselect_visible)
@@ -239,37 +241,48 @@ class ChatApp:
         self.selection_menu.add_command(label='全选全部群聊（含隐藏）', command=self.select_all_groups)
         self.selection_menu.add_command(label='取消全部勾选', command=self.clear_selection)
         self.selection_menu_button.configure(menu=self.selection_menu)
-        selection_bar = ttk.Frame(self.sidebar)
-        selection_bar.pack(fill='x', pady=(4, 0))
-        ttk.Label(selection_bar, textvariable=self.selection_text, style='Sub.TLabel').pack(side='left')
-        self.cancel_batch_button = ttk.Button(selection_bar, text='停止队列', command=self.cancel_batch, state='disabled')
+
+        selection_bar = tk.Frame(panel, background=SURFACE)
+        selection_bar.pack(fill='x', padx=14, pady=(2, 0))
+        tk.Label(selection_bar, textvariable=self.selection_text, font=CAPTION,
+                 background=SURFACE, foreground=TEXT_MUTED).pack(side='left')
+        self.cancel_batch_button = ttk.Button(selection_bar, text='停止队列', command=self.cancel_batch,
+                                               state='disabled', style='Quiet.TButton')
         self.cancel_batch_button.pack(side='right')
-        self.review_filter_choice = ttk.Combobox(self.sidebar, textvariable=self.review_filter,
+
+        self.review_filter_choice = ttk.Combobox(panel, textvariable=self.review_filter,
             values=('全部群聊', '已解析可查看', '所选群聊', '所选未复核', '所选已复核'), state='readonly')
-        self.review_filter_choice.pack(fill='x', pady=(4, 0))
+        self.review_filter_choice.pack(fill='x', padx=14, pady=(8, 0))
         self.review_filter_choice.bind('<<ComboboxSelected>>', lambda _event: self.render_groups())
-        ttk.Label(self.sidebar, textvariable=self.group_hint, wraplength=265, style='Sub.TLabel').pack(fill='x', pady=(3, 4))
-        tree_frame = ttk.Frame(self.sidebar)
+        tk.Label(panel, textvariable=self.group_hint, wraplength=288, font=CAPTION,
+                 background=SURFACE, foreground=TEXT_FAINT, justify='left').pack(fill='x', padx=14, pady=(6, 8))
+
+        table = tk.Frame(panel, background=BORDER)
+        table.pack(fill='both', expand=True, padx=14)
+        table_inner = tk.Frame(table, background=SURFACE)
+        table_inner.pack(fill='both', expand=True, padx=1, pady=1)
+        tree_frame = tk.Frame(table_inner, background=SURFACE)
         tree_frame.pack(fill='both', expand=True)
-        self.tree = ttk.Treeview(tree_frame, columns=('pick', 'review', 'name', 'id', 'count', 'state'), show='headings', selectmode='browse')
+        self.tree = ttk.Treeview(tree_frame, columns=('pick', 'name', 'review', 'count', 'id', 'state'),
+                                  show='headings', selectmode='browse')
         self.tree.heading('pick', text='☐', command=self.toggle_visible)
-        self.tree.column('pick', width=32, minwidth=32, stretch=False, anchor='center')
+        self.tree.column('pick', width=28, minwidth=28, stretch=False, anchor='center')
+        self.tree.heading('name', text='群聊', anchor='w')
+        self.tree.column('name', width=110, minwidth=84, anchor='w')
         self.tree.heading('review', text='解析 / 复核')
-        self.tree.column('review', width=118, minwidth=112, stretch=False, anchor='center')
-        self.tree.heading('name', text='群聊')
-        self.tree.column('name', width=120, minwidth=90)
-        self.tree.heading('id', text='群 ID')
-        self.tree.column('id', width=210, minwidth=120)
+        self.tree.column('review', width=92, minwidth=84, stretch=False, anchor='center')
         self.tree.heading('count', text='记录')
-        self.tree.column('count', width=62, minwidth=50, stretch=False, anchor='e')
+        self.tree.column('count', width=46, minwidth=40, stretch=False, anchor='e')
+        self.tree.heading('id', text='群 ID', anchor='w')
+        self.tree.column('id', width=150, minwidth=110, anchor='w')
         self.tree.heading('state', text='解析状态')
-        self.tree.column('state', width=85, minwidth=75, stretch=False)
-        self.tree.tag_configure('unreviewed', foreground='#334155')
-        self.tree.tag_configure('reviewed', foreground='#15803d', background='#dcfce7')
-        self.tree.tag_configure('parsed', foreground='#075985', background='#e0f2fe')
-        self.tree.tag_configure('parsing', foreground='#92400e', background='#fef3c7')
-        self.tree.tag_configure('queued', foreground='#64748b')
-        self.tree.tag_configure('failed', foreground='#b91c1c', background='#fee2e2')
+        self.tree.column('state', width=78, minwidth=68, stretch=False)
+        self.tree.tag_configure('unreviewed', foreground=TEXT)
+        self.tree.tag_configure('reviewed', foreground='#067647', background='#EDF9F3')
+        self.tree.tag_configure('parsed', foreground='#1D4ED8', background=ACCENT_SOFT)
+        self.tree.tag_configure('parsing', foreground=WARNING, background=WARNING_SOFT)
+        self.tree.tag_configure('queued', foreground=TEXT_FAINT)
+        self.tree.tag_configure('failed', foreground='#B42318', background='#FDECEC')
         scroll = ttk.Scrollbar(tree_frame, orient='vertical', command=self.tree.yview)
         self.tree.configure(yscrollcommand=scroll.set)
         horizontal = ttk.Scrollbar(tree_frame, orient='horizontal', command=self.tree.xview)
@@ -279,7 +292,8 @@ class ChatApp:
         self.tree.grid(row=0, column=0, sticky='nsew')
         scroll.grid(row=0, column=1, sticky='ns')
         horizontal.grid(row=1, column=0, sticky='ew')
-        ttk.Button(self.sidebar, text='复制所选群 ID', command=self.copy_group_id).pack(fill='x', pady=(6, 0))
+        ttk.Button(panel, text='复制所选群 ID', command=self.copy_group_id,
+                   style='Quiet.TButton').pack(fill='x', padx=14, pady=(8, 12))
         self.tree.bind('<<TreeviewSelect>>', self.selection)
         self.tree.bind('<Button-1>', self.toggle_group_click)
         self.tree.bind('<space>', self.toggle_focused_group)
@@ -288,67 +302,97 @@ class ChatApp:
         self.tree.bind('<Control-i>', lambda _event: self.invert_visible())
         self.tree.bind('<Return>', lambda _event: self.choose_search_result())
         self.tree.bind('<Double-1>', lambda _event: 'break')
-        title = ttk.Frame(right)
-        title.grid(row=0, column=0, sticky='ew', pady=(0, 6))
-        title_line = ttk.Frame(title)
+
+        # -- reading pane ---------------------------------------------------
+        right = tk.Frame(body, background=CANVAS)
+        right.grid(row=0, column=1, sticky='nsew', padx=(12, 0))
+        right.grid_columnconfigure(0, weight=1)
+        right.grid_rowconfigure(3, weight=1)
+
+        title = tk.Frame(right, background=CANVAS)
+        title.grid(row=0, column=0, sticky='ew', pady=(0, 8))
+        title_line = tk.Frame(title, background=CANVAS)
         title_line.pack(fill='x')
-        self.next_review_button = ttk.Button(title_line, text='下一个未复核群', command=self.next_review, state='disabled')
+        self.next_review_button = ttk.Button(title_line, text='下一个未复核群', command=self.next_review,
+                                             state='disabled')
         self.next_review_button.pack(side='right')
-        ttk.Label(title_line, textvariable=self.chat_title, font=('Microsoft YaHei UI', 11, 'bold')).pack(side='left')
-        identity_line = ttk.Frame(title)
-        identity_line.pack(fill='x', pady=(4, 0))
-        self.copy_current_id_button = ttk.Button(identity_line, text='复制 ID', width=6, command=self.copy_current_group_id, state='disabled')
-        self.copy_current_id_button.pack(side='right', padx=(6, 0))
-        self.current_review_badge = ttk.Label(identity_line, textvariable=self.current_review_state, style='ReviewNone.TLabel')
-        self.current_review_badge.pack(side='left', padx=(0, 10))
-        ttk.Label(identity_line, text='群 ID', style='Sub.TLabel').pack(side='left', padx=(0, 6))
+        self.current_review_badge = StatusPill(title_line, text='未选群', tone='none', background=CANVAS)
+        self.current_review_badge.pack(side='left', padx=(12, 0))
+        tk.Label(title_line, textvariable=self.chat_title, font=TITLE, background=CANVAS,
+                 foreground=TEXT, anchor='w').pack(side='left')
+
+        identity_line = tk.Frame(title, background=CANVAS)
+        identity_line.pack(fill='x', pady=(7, 0))
+        self.copy_current_id_button = ttk.Button(identity_line, text='复制 ID', width=8,
+                                                 command=self.copy_current_group_id, state='disabled')
+        self.copy_current_id_button.pack(side='right', padx=(8, 0))
+        tk.Label(identity_line, text='群 ID', font=CAPTION, background=CANVAS,
+                 foreground=TEXT_FAINT).pack(side='left', padx=(0, 8))
         self.group_id_entry = ttk.Entry(identity_line, textvariable=self.current_group_id, state='readonly')
         self.group_id_entry.pack(side='left', fill='x', expand=True)
-        self.current_hint_row = ttk.Frame(title)
-        self.current_hint_row.pack(fill='x', pady=(3, 0))
-        ttk.Label(self.current_hint_row, textvariable=self.current_review_hint, style='Sub.TLabel').pack(side='left')
-        self.completion_banner = ttk.Frame(title, padding=(8, 4), style='Completion.TFrame')
-        self.completion_banner.pack(fill='x', pady=(4, 0))
-        notice_top = ttk.Frame(self.completion_banner, style='Completion.TFrame')
+
+        self.current_hint_row = tk.Frame(title, background=CANVAS)
+        self.current_hint_row.pack(fill='x', pady=(6, 0))
+        tk.Label(self.current_hint_row, textvariable=self.current_review_hint, font=CAPTION,
+                 background=CANVAS, foreground=TEXT_MUTED).pack(side='left')
+
+        self.completion_banner = tk.Frame(title, background=INFO_SOFT)
+        self.completion_banner.pack(fill='x', pady=(8, 0))
+        tk.Frame(self.completion_banner, background=INFO, width=3).pack(side='left', fill='y')
+        banner_text = tk.Frame(self.completion_banner, background=INFO_SOFT)
+        banner_text.pack(side='left', fill='both', expand=True, padx=(11, 8), pady=4)
+        notice_top = tk.Frame(banner_text, background=INFO_SOFT)
         notice_top.pack(fill='x')
         self.completed_groups_button = ttk.Button(notice_top, text='查看已解析群', style='Accent.TButton',
-                                                 command=self.show_completed_groups, state='disabled')
-        self.completed_groups_button.pack(side='right', padx=(8, 0))
-        notice_heading = ttk.Label(notice_top, textvariable=self.completion_text, style='Completion.TLabel')
+                                                  command=self.show_completed_groups, state='disabled')
+        self.completed_groups_button.pack(side='right', padx=(10, 0))
+        notice_heading = tk.Label(notice_top, textvariable=self.completion_text, font=BODY_BOLD,
+                                  background=INFO_SOFT, foreground='#0B5C73', anchor='w')
         notice_heading.pack(side='left', fill='x', expand=True)
-        notice_detail = ttk.Label(self.completion_banner, textvariable=self.completion_detail, style='CompletionDetail.TLabel')
+        notice_detail = tk.Label(banner_text, textvariable=self.completion_detail, font=CAPTION,
+                                  background=INFO_SOFT, foreground='#3C7F92', anchor='w')
         notice_detail.pack(fill='x')
         self.completion_banner.bind('<Configure>', lambda event: (
-            notice_heading.configure(wraplength=max(160, event.width - self.completed_groups_button.winfo_reqwidth() - 36)),
-            notice_detail.configure(wraplength=max(160, event.width - 24))))
+            notice_heading.configure(wraplength=max(160, event.width - self.completed_groups_button.winfo_reqwidth() - 48)),
+            notice_detail.configure(wraplength=max(160, event.width - 42))))
         self.root.bind('<Configure>', self.adapt_layout, add='+')
-        reading = ttk.Frame(right)
+
+        reading = tk.Frame(right, background=CANVAS)
         reading.grid(row=1, column=0, sticky='ew', pady=(0, 6))
-        reading.columnconfigure(3, weight=1)
-        ttk.Label(reading, text='消息').grid(row=0, column=0, padx=(0, 6))
-        self.kind_choice = ttk.Combobox(reading, textvariable=self.filter_kind, values=list(FILTERS), state='readonly', width=9)
+        reading.grid_columnconfigure(3, weight=1)
+        tk.Label(reading, text='消息', font=CAPTION, background=CANVAS,
+                 foreground=TEXT_FAINT).grid(row=0, column=0, padx=(0, 8))
+        self.kind_choice = ttk.Combobox(reading, textvariable=self.filter_kind, values=list(FILTERS),
+                                        state='readonly', width=11)
         self.kind_choice.grid(row=0, column=1)
         self.kind_choice.bind('<<ComboboxSelected>>', lambda _event: self.read_page())
-        ttk.Label(reading, text='关键词').grid(row=0, column=2, padx=(12, 6))
+        tk.Label(reading, text='关键词', font=CAPTION, background=CANVAS,
+                 foreground=TEXT_FAINT).grid(row=0, column=2, padx=(14, 8))
         self.message_search_entry = ttk.Entry(reading, textvariable=self.message_search, width=12)
         self.message_search_entry.grid(row=0, column=3, sticky='ew')
         self.message_search_entry.bind('<Return>', lambda _event: self.read_page(0))
-        self.message_search_button = ttk.Button(reading, text='筛选', width=5, command=lambda: self.read_page(0))
-        self.message_search_button.grid(row=0, column=4, padx=(6, 4))
-        self.message_clear_button = ttk.Button(reading, text='清除', width=5, command=self.clear_message_search)
+        self.message_search_button = ttk.Button(reading, text='筛选', width=6, command=lambda: self.read_page(0))
+        self.message_search_button.grid(row=0, column=4, padx=(8, 4))
+        self.message_clear_button = ttk.Button(reading, text='清除', width=6, command=self.clear_message_search)
         self.message_clear_button.grid(row=0, column=5)
         self.date_toggle_button = ttk.Button(reading, text='日期 / 媒体 ▾', command=self.toggle_date_filters)
-        self.date_toggle_button.grid(row=0, column=6, padx=(12, 0))
-        self.date_frame = ttk.LabelFrame(right, text='解析范围与媒体', padding=(10, 6, 10, 8))
-        self.date_frame.grid(row=2, column=0, sticky='ew', pady=(0, 8))
-        dates = ttk.Frame(self.date_frame)
-        dates.pack(fill='x')
+        self.date_toggle_button.grid(row=0, column=6, padx=(14, 0))
+
+        date_outer = tk.Frame(right, background=BORDER)
+        self.date_frame = date_outer
+        self.date_frame.grid(row=2, column=0, sticky='ew', pady=(0, 10))
+        date_inner = tk.Frame(date_outer, background=SURFACE)
+        date_inner.pack(fill='both', expand=True, padx=1, pady=1)
+        dates = tk.Frame(date_inner, background=SURFACE)
+        dates.pack(fill='x', padx=12, pady=(10, 0))
         self.date_controls = []
         for label, variable in (('开始', self.start_date), ('结束', self.end_date)):
-            ttk.Label(dates, text=label).pack(side='left')
-            entry = ttk.Entry(dates, textvariable=variable, width=10)
-            entry.pack(side='left', padx=4)
-            button = ttk.Button(dates, text='日历', width=4, command=lambda variable=variable, label=label: self.choose_date(variable, label))
+            tk.Label(dates, text=label, font=CAPTION, background=SURFACE,
+                     foreground=TEXT_FAINT).pack(side='left', padx=(0, 6))
+            entry = ttk.Entry(dates, textvariable=variable, width=11)
+            entry.pack(side='left', padx=(0, 4))
+            button = ttk.Button(dates, text='日历', width=5,
+                                 command=lambda variable=variable, label=label: self.choose_date(variable, label))
             button.pack(side='left', padx=(0, 10))
             self.date_controls += [entry, button]
         self.apply_date_button = ttk.Button(dates, text='应用日期', command=self.apply_dates)
@@ -356,84 +400,134 @@ class ChatApp:
         self.clear_date_button = ttk.Button(dates, text='清空', width=5, command=self.clear_dates)
         self.clear_date_button.pack(side='left')
         self.date_controls += [self.apply_date_button, self.clear_date_button]
-        options = ttk.Frame(self.date_frame)
-        options.pack(fill='x', pady=(6, 0))
+        options = tk.Frame(date_inner, background=SURFACE)
+        options.pack(fill='x', padx=12, pady=(8, 10))
         self.media_check = ttk.Checkbutton(options, text='包含本机缓存图片和附件', variable=self.copy_media)
         self.media_check.pack(side='left')
         self.date_controls.append(self.media_check)
-        ttk.Label(options, text='日期同时用于阅读与导出，结束日含当天。', style='Sub.TLabel').pack(side='left', padx=14)
+        tk.Label(options, text='日期同时用于阅读与导出，结束日含当天。', font=CAPTION, background=SURFACE,
+                 foreground=TEXT_FAINT).pack(side='left', padx=14)
         self.date_frame.grid_remove()
+
         self.browser = MessageBrowser(right, notify=self.status.set, show_source=self.show_image_source)
         self.browser.grid(row=3, column=0, sticky='nsew')
-        pagination = ttk.Frame(right, padding=(0, 3, 0, 3))
-        pagination.grid(row=4, column=0, sticky='ew')
-        ttk.Label(pagination, textvariable=self.page_text, style='Sub.TLabel').pack(side='left')
-        pager = ttk.Frame(pagination)
+
+        pagination = tk.Frame(right, background=CANVAS)
+        pagination.grid(row=4, column=0, sticky='ew', pady=(6, 0))
+        tk.Label(pagination, textvariable=self.page_text, font=CAPTION, background=CANVAS,
+                 foreground=TEXT_MUTED).pack(side='left')
+        pager = tk.Frame(pagination, background=CANVAS)
         pager.pack(side='right')
         self.first_button = ttk.Button(pager, text='首页', width=5, command=lambda: self.read_page(0))
-        self.previous_button = ttk.Button(pager, text='上一页', width=6, command=lambda: self.read_page(max(0, self.page_offset - int(self.page_size.get()))))
-        self.next_button = ttk.Button(pager, text='下一页', width=6, command=lambda: self.read_page(self.page_offset + int(self.page_size.get())))
+        self.previous_button = ttk.Button(pager, text='上一页', width=6,
+                                          command=lambda: self.read_page(max(0, self.page_offset - int(self.page_size.get()))))
+        self.next_button = ttk.Button(pager, text='下一页', width=6,
+                                       command=lambda: self.read_page(self.page_offset + int(self.page_size.get())))
         self.last_button = ttk.Button(pager, text='末页', width=5, command=lambda: self.read_page())
         for widget in (self.first_button, self.previous_button, self.next_button, self.last_button):
             widget.pack(side='left', padx=(0, 4))
-        ttk.Label(pager, text='每页').pack(side='left', padx=(8, 4))
-        self.page_size_choice = ttk.Combobox(pager, textvariable=self.page_size, values=('100','300','500'), width=4, state='readonly')
+        tk.Label(pager, text='每页', font=CAPTION, background=CANVAS,
+                 foreground=TEXT_FAINT).pack(side='left', padx=(10, 6))
+        self.page_size_choice = ttk.Combobox(pager, textvariable=self.page_size, values=('100', '300', '500'),
+                                             width=5, state='readonly')
         self.page_size_choice.pack(side='left')
         self.page_size_choice.bind('<<ComboboxSelected>>', lambda _event: self.read_page())
-        exports = ttk.Frame(right, padding=(0, 5, 0, 0))
-        exports.grid(row=5, column=0, sticky='ew')
-        ttk.Separator(exports).pack(fill='x', pady=(0, 5))
-        summary = ttk.Frame(exports)
+
+        exports = tk.Frame(right, background=CANVAS)
+        exports.grid(row=5, column=0, sticky='ew', pady=(6, 0))
+        ttk.Separator(exports).pack(fill='x', pady=(0, 6))
+        summary = tk.Frame(exports, background=CANVAS)
         summary.pack(fill='x', pady=(0, 4))
         self.batch_folder_button = ttk.Button(summary, text='打开批次目录', command=self.open_batch, state='disabled')
         self.batch_folder_button.pack(side='right')
-        self.batch_review_button = ttk.Button(summary, text='批量复核所选群', command=self.review_selected, state='disabled')
-        self.batch_review_button.pack(side='right', padx=(0, 6))
-        summary_text = ttk.Frame(summary)
+        self.batch_review_button = ttk.Button(summary, text='批量复核所选群', command=self.review_selected,
+                                               state='disabled')
+        self.batch_review_button.pack(side='right', padx=(0, 8))
+        summary_text = tk.Frame(summary, background=CANVAS)
         summary_text.pack(side='left', fill='x', expand=True)
-        counts = ttk.Label(summary_text, textvariable=self.review_summary, style='Sub.TLabel', wraplength=420)
+        counts = tk.Label(summary_text, textvariable=self.review_summary, font=CAPTION, background=CANVAS,
+                          foreground=TEXT_MUTED, wraplength=420, anchor='w')
         counts.pack(anchor='w')
-        guidance = ttk.Label(summary_text, textvariable=self.workflow_hint, style='Section.TLabel', wraplength=420)
+        guidance = tk.Label(summary_text, textvariable=self.workflow_hint, font=BODY_BOLD, background=CANVAS,
+                            foreground=ACCENT_TEXT, wraplength=420, anchor='w')
         guidance.pack(anchor='w')
         self.review_count_label, self.workflow_hint_label = counts, guidance
-        summary_text.bind('<Configure>', lambda event: [label.configure(wraplength=max(180, event.width)) for label in (counts, guidance)])
-        actions = ttk.Frame(exports)
+        summary_text.bind('<Configure>', lambda event: [label.configure(wraplength=max(180, event.width))
+                                                        for label in (counts, guidance)])
+        actions = tk.Frame(exports, background=CANVAS)
         actions.pack(fill='x')
-        self.export_button = ttk.Button(actions, text='一键导出所选群', style='Accent.TButton', command=self.export_selected, state='disabled')
+        self.export_button = ttk.Button(actions, text='一键导出所选群', style='Accent.TButton',
+                                        command=self.export_selected, state='disabled')
         self.export_button.pack(side='right')
         self.review_button = ttk.Button(actions, text='复核当前群', command=self.review_current, state='disabled')
-        self.review_button.pack(side='right', padx=(0, 6))
-        ttk.Label(actions, text='文件', style='Sub.TLabel').pack(side='left', padx=(0, 6))
+        self.review_button.pack(side='right', padx=(0, 8))
+        tk.Label(actions, text='文件', font=CAPTION, background=CANVAS,
+                 foreground=TEXT_FAINT).pack(side='left', padx=(0, 8))
         self.export_file_buttons = {}
         for kind in ('JSON', 'JSONL', 'Markdown'):
-            button = ttk.Button(actions, text=kind, command=lambda kind=kind: self.open_export_file(kind), state='disabled')
+            button = ttk.Button(actions, text=kind, style='Tool.TButton',
+                                command=lambda kind=kind: self.open_export_file(kind), state='disabled')
             button.pack(side='left', padx=(0, 4))
             self.export_file_buttons[kind] = button
-        self.folder_button = ttk.Button(actions, text='文件所在目录', command=lambda: self.open_result(True), state='disabled')
+        self.folder_button = ttk.Button(actions, text='文件所在目录', style='Tool.TButton',
+                                        command=lambda: self.open_result(True), state='disabled')
         self.folder_button.pack(side='left')
-        bottom = ttk.Frame(self.root, padding=(12, 4, 12, 4))
-        bottom.grid(row=3, column=0, sticky='ew')
-        bottom.columnconfigure(1, weight=1)
-        ttk.Label(bottom, text='状态', style='Sub.TLabel').grid(row=0, column=0, padx=(0, 8))
-        ttk.Entry(bottom, textvariable=self.status, state='readonly').grid(row=0, column=1, sticky='ew')
-        self.open_button = ttk.Button(bottom, text='业务全文', command=lambda: self.open_result(False), state='disabled')
-        self.open_button.grid(row=0, column=2, padx=(8, 4))
+
+        # -- status bar -----------------------------------------------------
+        tk.Frame(self.root, background=BORDER, height=1).grid(row=3, column=0, sticky='ew')
+        bottom = tk.Frame(self.root, background=SURFACE)
+        bottom.grid(row=4, column=0, sticky='ew')
+        self.footer = bottom
+        bottom.grid_columnconfigure(1, weight=1)
+        self.status_dot = StatusDot(bottom)
+        self.status_dot.grid(row=0, column=0, padx=(16, 8), pady=(5, 0))
+        ttk.Entry(bottom, textvariable=self.status, state='readonly',
+                  style='Quiet.TEntry').grid(row=0, column=1, sticky='ew', pady=(5, 0))
+        self.open_button = ttk.Button(bottom, text='业务全文', command=lambda: self.open_result(False),
+                                      state='disabled')
+        self.open_button.grid(row=0, column=2, padx=(12, 4), pady=(5, 4))
         self.image_page_button = ttk.Button(bottom, text='图片网页', command=self.open_image_page, state='disabled')
-        self.image_page_button.grid(row=0, column=3)
-        ttk.Label(bottom, text='文件', style='Sub.TLabel').grid(row=1, column=0, padx=(0, 8), pady=(5, 0))
-        ttk.Entry(bottom, textvariable=self.result_text, state='readonly').grid(row=1, column=1, columnspan=3, sticky='ew', pady=(5, 0))
+        self.image_page_button.grid(row=0, column=3, padx=(0, 16), pady=(5, 4))
+        file_row = tk.Frame(bottom, background=SURFACE)
+        file_row.grid(row=1, column=0, columnspan=4, sticky='ew', padx=16, pady=(0, 7))
+        self.file_row = file_row
+        tk.Label(file_row, text='文件', font=CAPTION, background=SURFACE,
+                 foreground=TEXT_FAINT).pack(side='left', padx=(0, 8))
+        ttk.Entry(file_row, textvariable=self.result_text, state='readonly',
+                  style='Quiet.TEntry').pack(side='left', fill='x', expand=True)
 
     def adapt_layout(self, event):
+        """Keep the reading surface usable when the window is short or scaled up."""
         if event.widget is not self.root:
             return
-        if event.height < 760:
-            self.review_count_label.pack_forget()
-        elif not self.review_count_label.winfo_manager():
-            self.review_count_label.pack(anchor='w', before=self.workflow_hint_label)
-        if event.height < 840:
-            self.current_hint_row.pack_forget()
-        elif not self.current_hint_row.winfo_manager():
-            self.current_hint_row.pack(fill='x', pady=(3, 0))
+        try:
+            scale = float(self.root.tk.call('tk', 'scaling') or 1)
+        except (TypeError, ValueError):
+            scale = 1.0
+        # Only a strongly scaled display loses logical rows; ordinary DPI keeps every line.
+        compact = scale >= 1.6 and event.height < 880
+        hint_options = {'fill': 'x', 'pady': (6, 0)}
+        if self.completion_banner.winfo_manager():
+            hint_options['before'] = self.completion_banner
+        self._toggle_pack(self.current_hint_row, event.height >= 840, **hint_options)
+        self._toggle_pack(self.review_count_label, event.height >= 760,
+                          anchor='w', before=self.workflow_hint_label)
+        # The completion notice always stays: it is the only always-visible progress cue.
+        self._toggle_pack(self.workflow_hint_label, not compact, anchor='w')
+        if compact:
+            self.account_label.grid_remove()
+            self.file_row.grid_remove()
+        else:
+            self.account_label.grid()
+            self.file_row.grid()
+
+    @staticmethod
+    def _toggle_pack(widget, visible, **options):
+        if visible:
+            if not widget.winfo_manager():
+                widget.pack(**options)
+        elif widget.winfo_manager():
+            widget.pack_forget()
 
     def toggle_date_filters(self, show=None):
         visible = bool(self.date_frame.winfo_manager())
@@ -610,6 +704,12 @@ class ChatApp:
     def update_buttons(self):
         state = 'disabled' if self.busy or self.read_busy or self.closing or self.batch_running else 'normal'
         browse_state = 'normal' if self.can_browse() else 'disabled'
+        self.status_dot.set_state('busy' if self.busy or self.read_busy or self.batch_running
+                                  else 'ok' if self.session.last_export else 'idle')
+        if self.busy or self.read_busy or self.batch_running:
+            self.progress.pack(side='right', padx=(0, 14))
+        else:
+            self.progress.pack_forget()
         for widget, original_state in self.source_controls:
             widget.configure(state='disabled' if state == 'disabled' else original_state)
         for widget in (self.refresh_button, self.source_button, self.scan_button):
@@ -626,6 +726,10 @@ class ChatApp:
         self.clear_selection_button.configure(state=browse_state if self.selected_chats else 'disabled')
         self.selection_menu_button.configure(state=browse_state if self.groups else 'disabled')
         self.cancel_batch_button.configure(state='normal' if self.batch_running and not self.batch_cancel_requested and not self.closing else 'disabled')
+        if self.batch_running and not self.batch_cancel_requested and not self.closing:
+            self.cancel_batch_button.pack(side='right')
+        else:
+            self.cancel_batch_button.pack_forget()
         pending = self.review_targets()
         self.next_review_button.configure(state=browse_state if any(key != self.active_chat for key in pending) else 'disabled',
             text=f'下一个未复核群 · {len(pending)}' if len(pending) > 1 else
@@ -797,7 +901,7 @@ class ChatApp:
             name = ('上次查看 · ' if group['recent'] else '') + group['choiceLabel']
             count = group.get('localMessageCount', '有记录' if group.get('hasLocalMessages') else '暂无')
             review, tag = self.list_status(group['id'])
-            self.tree.insert('', 'end', iid=group['id'], values=('☑' if group['id'] in self.selected_chats else '☐', review, name, group['id'], count, self.parse_states.get(group['id'], '未解析')),
+            self.tree.insert('', 'end', iid=group['id'], values=('☑' if group['id'] in self.selected_chats else '☐', name, review, count, group['id'], self.parse_states.get(group['id'], '未解析')),
                              tags=(tag,))
         if selected and self.tree.exists(selected):
             self.tree.selection_set(selected)
@@ -867,12 +971,12 @@ class ChatApp:
         self.copy_current_id_button.configure(state='normal' if chat and not self.closing else 'disabled')
         if not chat:
             self.current_review_state.set('未选群')
-            self.current_review_badge.configure(style='ReviewNone.TLabel')
+            self.current_review_badge.set('未选群', 'none')
             self.current_review_hint.set('单击群名查看；勾选群聊决定解析与导出范围')
             return
         label = self.review_label(chat)
         self.current_review_state.set(label)
-        self.current_review_badge.configure(style='ReviewDone.TLabel' if label == '已复核' else 'ReviewPending.TLabel')
+        self.current_review_badge.set(label, 'done' if label == '已复核' else 'pending')
         selected = '已勾选' if chat in self.selected_chats else '未勾选'
         phase = self.parse_states.get(chat, '未解析')
         if not self.range_matches():
@@ -1494,21 +1598,27 @@ class ChatApp:
         dialog.geometry('740x660')
         dialog.transient(self.root)
         dialog.grab_set()
+        dialog.configure(background=CANVAS)
         dialog.bind('<Escape>', lambda _event: dialog.destroy())
-        box = ttk.Frame(dialog, padding=16)
-        box.pack(fill='both', expand=True)
+        shell = tk.Frame(dialog, background=CANVAS)
+        shell.pack(fill='both', expand=True, padx=16, pady=16)
+        panel, box = card(shell)
+        panel.pack(fill='both', expand=True)
         ttk.Label(box, text=f'一次确认下列 {len(chats)} 个群的复核结果' if bulk else '请核对本次账号、群 ID 与解析结果',
-                  font=('Microsoft YaHei UI', 12, 'bold')).pack(anchor='w')
+                  font=DISPLAY, style='Title.TLabel').pack(anchor='w', padx=20, pady=(18, 0))
         ttk.Label(box, text=(f'已复核或已导出 {skipped} 群保留原记录；本次确认不导出。' if bulk else
-                  '本次仅保存当前群复核结果；全部所选群复核后，点击主窗口“一键导出所选群”。'), style='Sub.TLabel').pack(anchor='w')
+                  '本次仅保存当前群复核结果；全部所选群复核后，点击主窗口“一键导出所选群”。'),
+                  style='Sub.TLabel').pack(anchor='w', padx=20, pady=(4, 0))
         review_controls = ttk.Frame(box)
-        review_controls.pack(side='bottom', fill='x')
+        review_controls.pack(side='bottom', fill='x', padx=20, pady=(10, 18))
         report_box = ttk.Frame(box)
-        report_box.pack(fill='both', expand=True, pady=10)
+        report_box.pack(fill='both', expand=True, padx=20, pady=12)
         report_scroll = ttk.Scrollbar(report_box, orient='vertical')
         report_scroll.pack(side='right', fill='y')
-        text = tk.Text(report_box, height=11, wrap='word', relief='flat', borderwidth=1, padx=8, pady=6,
-                       yscrollcommand=report_scroll.set)
+        text = tk.Text(report_box, height=11, wrap='word', relief='flat', borderwidth=0, padx=14, pady=10,
+                       yscrollcommand=report_scroll.set, background=SURFACE, foreground=TEXT, font=BODY,
+                       highlightthickness=1, highlightbackground=BORDER, highlightcolor=BORDER_STRONG,
+                       spacing1=1, spacing3=2)
         text.pack(side='left', fill='both', expand=True)
         report_scroll.configure(command=text.yview)
         if bulk:
@@ -1545,7 +1655,9 @@ class ChatApp:
             ttk.Checkbutton(review_controls, text=label, variable=checks[key]).pack(anchor='w', pady=3)
         ttk.Label(review_controls, text=f'共同备注（保存到本次 {len(chats)} 个群，可记录接受的缺口）' if bulk else
                   '复核备注（可记录已接受的缺口）').pack(anchor='w', pady=(8, 0))
-        note = tk.Text(review_controls, height=3, wrap='word')
+        note = tk.Text(review_controls, height=3, wrap='word', relief='flat', borderwidth=0, padx=10, pady=8,
+                       background=SURFACE, foreground=TEXT, font=BODY, highlightthickness=1,
+                       highlightbackground=BORDER, highlightcolor=BORDER_STRONG)
         note.pack(fill='x', pady=5)
         note.insert('end', approval.get('note', ''))
         buttons = ttk.Frame(review_controls)
@@ -1724,13 +1836,19 @@ class ChatApp:
         dialog.grab_set()
         dialog.resizable(False, False)
         dialog.protocol('WM_DELETE_WINDOW', self.close_source_settings)
-        ttk.Label(dialog, text='此窗口不会计时关闭；完成配置或主动关闭前会保持打开。', padding=(20, 8), style='Sub.TLabel').pack(fill='x')
-        ttk.Label(dialog, textvariable=self.status, wraplength=740, padding=(20, 12)).pack(fill='x')
-        self.source_progress = ttk.Progressbar(dialog, mode='indeterminate')
-        self.source_progress.pack(fill='x', padx=20)
-        setup_tabs = ttk.Notebook(dialog)
+        dialog.configure(background=CANVAS)
+        head = tk.Frame(dialog, background=CANVAS)
+        head.pack(fill='x', padx=20, pady=(16, 0))
+        tk.Label(head, text='选择本地数据', font=DISPLAY, background=CANVAS,
+                 foreground=TEXT).pack(anchor='w')
+        ttk.Label(head, text='此窗口不会计时关闭；完成配置或主动关闭前会保持打开。',
+                  style='Sub.TLabel').pack(anchor='w', pady=(3, 0))
+        ttk.Label(head, textvariable=self.status, wraplength=740).pack(anchor='w', pady=(6, 0))
+        self.source_progress = ttk.Progressbar(head, mode='indeterminate')
+        self.source_progress.pack(fill='x', pady=(4, 0))
+        setup_tabs = ttk.Notebook(head)
         self.source_tabs = setup_tabs
-        setup_tabs.pack(fill='both', expand=True, padx=10, pady=10)
+        setup_tabs.pack(fill='both', expand=True, pady=(12, 0))
         automatic_tab, manual_tab = ttk.Frame(setup_tabs), ttk.Frame(setup_tabs)
         self.source_manual_tab = manual_tab
         setup_tabs.add(automatic_tab, text=' 自动配置（推荐） ')
@@ -1740,13 +1858,14 @@ class ChatApp:
         automatic = ttk.Frame(automatic_tab, padding=20)
         automatic.pack(fill='x')
         client_label = '企微' if self.session.client == 'wecom' else '个微'
-        ttk.Label(automatic, text=f'首次使用：登录本人{client_label}后，一键自动配置', font=('Microsoft YaHei UI', 10, 'bold')).pack(anchor='w')
+        ttk.Label(automatic, text=f'首次使用：登录本人{client_label}后，一键自动配置', font=TITLE,
+                  style='Title.TLabel').pack(anchor='w')
         setup_hint = ('只读所选企微账号，尝试恢复并校验数据库密钥；图片附件通过缓存摘要匹配。配置与个微分开保存。'
                       if self.session.client == 'wecom' else '先复用并校验本机已有密钥；没有时，只读尝试从所选账号已登录微信恢复数据库和图片密钥。')
         ttk.Label(automatic, text=setup_hint,
                   wraplength=720, style='Sub.TLabel').pack(anchor='w', pady=(5, 8))
         if self.source_issue:
-            ttk.Label(automatic, text=self.source_issue, foreground='#a15b00', wraplength=720).pack(anchor='w', pady=(0, 8))
+            ttk.Label(automatic, text=self.source_issue, foreground=WARNING, wraplength=720).pack(anchor='w', pady=(0, 8))
         frame = ttk.Frame(manual_tab, padding=20)
         frame.pack(fill='both', expand=True)
         ttk.Label(frame, text='手动配置（已有密钥或离线副本）：也可在下方选择文件。原始数据只读。').grid(row=0, column=0, columnspan=3, sticky='w', pady=(0, 15))
@@ -1921,7 +2040,7 @@ class ChatApp:
             value = form_value()
             self.pending_config = value
             self.work('创建并校验本地副本', lambda: self.session.open_source(value), self.ready)
-        ttk.Button(frame, text='保存并加载', command=load).grid(row=13, column=2, sticky='e')
+        ttk.Button(frame, text='保存并加载', style='Accent.TButton', command=load).grid(row=13, column=2, sticky='e')
         def configure_automatically():
             value = form_value()
             if not value['sourceRoot']:
@@ -1931,7 +2050,7 @@ class ChatApp:
             startup.record('automatic_configuration_requested')
             self.work('自动校验数据、匹配密钥并加载',
                       lambda: self.session.automatic_setup(value, allow_process_read=True), self.ready)
-        ttk.Button(automatic, text='一键自动配置', command=configure_automatically).pack(anchor='w')
+        ttk.Button(automatic, text='一键自动配置', style='Accent.TButton', command=configure_automatically).pack(anchor='w')
         ttk.Separator(automatic, orient='horizontal').pack(fill='x', pady=(12, 0))
         def choose_workbench():
             path = filedialog.askopenfilename(parent=dialog, title='选择已有工作台的 database-config.json', filetypes=[('JSON 文件', '*.json')])

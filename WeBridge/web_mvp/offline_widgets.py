@@ -9,9 +9,12 @@ from offline_chat import BEIJING, QUOTE_NOTES
 from offline_view import attachment_path, document_path, read_image
 from offline_gallery import ImageGallery
 from offline_images import quote_link_text
+from offline_theme import (BORDER, CANVAS, SURFACE, SURFACE_SOFT, TEXT, TEXT_FAINT, TEXT_MUTED,
+                           BODY, BODY_BOLD, CAPTION, WARNING, DANGER)
 
 KINDS = {'text': '文字', 'image': '图片', 'file': '附件', 'record': '转发聊天', 'quote': '引用',
-         'video': '视频', 'voice': '语音', 'emoji': '表情', 'system': '系统', 'link': '链接'}
+         'video': '视频', 'voice': '语音', 'emoji': '表情', 'system': '系统', 'link': '链接',
+         'revoke': '撤回', 'card': '分享消息', 'unsupported': '未支持类型'}
 
 
 def summary(row):
@@ -36,24 +39,24 @@ class MessageBrowser(ttk.Frame):
         self.last_image_count = 0
         self.tabs = ttk.Notebook(self)
         self.tabs.pack(fill='both', expand=True)
-        conversation = ttk.Frame(self.tabs)
-        self.tabs.add(conversation, text=' 聊天记录与上下文 ')
+        conversation = ttk.Frame(self.tabs, style='Surface.TFrame')
+        self.tabs.add(conversation, text='  聊天记录与上下文  ')
         self.gallery = ImageGallery(self.tabs, open_image=self.image_window,
                                     show_source=show_source or (lambda _entry: None), notify=self.notify)
-        self.tabs.add(self.gallery, text=' 图片总览（含转发、引用） ')
+        self.tabs.add(self.gallery, text='  图片总览（含转发、引用）  ')
         self.tabs.bind('<<NotebookTabChanged>>', self._tab_changed)
         panes = ttk.PanedWindow(conversation, orient='vertical')
         panes.pack(fill='both', expand=True)
-        listing = ttk.Frame(panes)
-        details = ttk.Frame(panes)
+        listing = ttk.Frame(panes, style='Surface.TFrame')
+        details = ttk.Frame(panes, style='Surface.TFrame')
         panes.add(listing, weight=4)
         panes.add(details, weight=1)
         self.tree = ttk.Treeview(listing, columns=('time', 'kind', 'state'), selectmode='browse', height=12)
-        self.tree.heading('#0', text='发送者与消息（点击箭头展开转发聊天）')
+        self.tree.heading('#0', text='发送者与消息（点击箭头展开转发聊天）', anchor='w')
         self.tree.heading('time', text='时间')
         self.tree.heading('kind', text='类型')
         self.tree.heading('state', text='本机附件')
-        self.tree.column('#0', width=350, minwidth=180)
+        self.tree.column('#0', width=350, minwidth=180, anchor='w')
         self.tree.column('time', width=112, minwidth=90, stretch=False)
         self.tree.column('kind', width=60, minwidth=54, stretch=False)
         self.tree.column('state', width=92, minwidth=80, stretch=False)
@@ -65,11 +68,14 @@ class MessageBrowser(ttk.Frame):
         horizontal.grid(row=1, column=0, sticky='ew')
         listing.rowconfigure(0, weight=1)
         listing.columnconfigure(0, weight=1)
-        self.detail = ScrolledText(details, wrap='word', height=5, state='disabled', relief='flat', padx=10, pady=8,
-                                   background='#f5f7fa', foreground='#263445', font=('Microsoft YaHei UI', 9))
+        self.detail = ScrolledText(details, wrap='word', height=5, state='disabled', relief='flat', padx=14, pady=10,
+                                   background=SURFACE, foreground=TEXT, font=BODY, highlightthickness=0,
+                                   borderwidth=0, spacing1=1, spacing3=3)
         self.detail.pack(fill='both', expand=True)
-        self.detail.tag_configure('meta', foreground='#64748b', spacing1=6, spacing3=4)
-        self.detail.tag_configure('notice', foreground='#a16207', spacing3=4)
+        self.detail.tag_configure('meta', foreground=TEXT_MUTED, font=CAPTION, spacing1=8, spacing3=5)
+        self.detail.tag_configure('notice', foreground=WARNING, spacing3=5)
+        self.detail.tag_configure('danger', foreground=DANGER, spacing3=5)
+        self.detail.tag_configure('sender', foreground=TEXT, font=BODY_BOLD, spacing1=8)
         self.tree.bind('<<TreeviewSelect>>', self.selected)
         self.clear()
 
