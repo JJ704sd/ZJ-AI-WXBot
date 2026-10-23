@@ -150,7 +150,7 @@ class OfflineChatTests(unittest.TestCase):
         self.assertEqual(content, reporting['replyMarkdown'])
         self.assertIn(report['mediaSummaryText'], content)
         self.assertIn('附件类型（按引用）：.csv 2处、.pdf 1处、未识别扩展名 1处', content)
-        self.assertIn('缺失图片没有可显示文件', content)
+        self.assertIn('未取得图片当前没有可显示的原件', content)
         self.assertIn('缩略图与本地预览的原图均未取得，分别计数', content)
         self.assertIn('未加载尚未核查', content)
         types = report['mediaSummary']['attachmentTypes']

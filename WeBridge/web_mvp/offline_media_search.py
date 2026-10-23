@@ -12,15 +12,17 @@ import time
 
 from local_image_keys import ImageKeys
 
-MAX_FILES = 20000
-MAX_BYTES = 2 * 1024 ** 3
+MAX_FILES = None
+MAX_BYTES = None
 MAX_FILE_BYTES = 100 * 1024 ** 2
 
 
 class LocalMediaSearch:
     def begin_export(self):
         recovered = self.recovered
+        cache=self._digest_cache
         self.__init__(self.config, max_files=self.max_files, max_bytes=self.max_bytes)
+        self._digest_cache=cache
         self.recovered = recovered
 
     def __init__(self, config, *, max_files=MAX_FILES, max_bytes=MAX_BYTES):
@@ -31,10 +33,12 @@ class LocalMediaSearch:
         self.built = False
         self.image_keys = ImageKeys(config)
         self.matches, self.names = {}, {}
+        self._digest_cache={}
+        self.progress=None
         self.recovered = 0
         self.stats = {'scope': 'selected_account_media_directories', 'filesScanned': 0, 'bytesScanned': 0,
                       'decodedContainers': 0, 'unreadableFiles': 0, 'unsupportedContainers': 0,
-                      'oversizeFiles': 0, 'limitReached': False, 'elapsedMs': 0}
+                      'oversizeFiles': 0, 'limitReached': False, 'elapsedMs': 0,'hashCacheReused':0}
 
     def _safe(self, path):
         value = path.lstat()
@@ -87,8 +91,9 @@ class LocalMediaSearch:
         if self.account is None:
             return
         started = time.monotonic()
+        current={};last_progress=started
         for path in self._files():
-            if self.stats['filesScanned'] >= self.max_files:
+            if self.max_files is not None and self.stats['filesScanned'] >= self.max_files:
                 self.stats['limitReached'] = True
                 break
             self.stats['filesScanned'] += 1
@@ -96,38 +101,54 @@ class LocalMediaSearch:
                 self.names[digest] = self.names.get(digest, 0) + 1
             try:
                 before = path.stat()
-                if not 0 < before.st_size <= MAX_FILE_BYTES:
-                    self.stats['oversizeFiles'] += 1
-                    continue
-                if self.stats['bytesScanned'] + before.st_size > self.max_bytes:
+                if before.st_size<=0:continue
+                if self.max_bytes is not None and self.stats['bytesScanned'] + before.st_size > self.max_bytes:
                     self.stats['limitReached'] = True
                     break
-                with path.open('rb') as stream:
-                    data = stream.read(MAX_FILE_BYTES + 1)
-                self.stats['bytesScanned'] += len(data)
+                signature=(before.st_size,before.st_mtime_ns,before.st_ctime_ns,before.st_ino)
+                previous=self._digest_cache.get(path)
+                if previous and previous[0]==signature:
+                    digest=previous[1];current[path]=previous
+                    self.stats['hashCacheReused']+=1
+                else:
+                    with path.open('rb') as stream:
+                        head=stream.read(6);stream.seek(0)
+                        if head==b'\x07\x08V2\x08\x07':
+                            if before.st_size>MAX_FILE_BYTES:
+                                self.stats['oversizeFiles']+=1;continue
+                            data=stream.read(MAX_FILE_BYTES+1)
+                            self.stats['bytesScanned']+=len(data)
+                            try:data=self.image_keys.decode(data)
+                            except ValueError:
+                                self.stats['unsupportedContainers']+=1;continue
+                            self.stats['decodedContainers']+=1
+                            digest=hashlib.md5(data).hexdigest()
+                        else:
+                            hasher=hashlib.md5()
+                            for chunk in iter(lambda:stream.read(1024*1024),b''):
+                                hasher.update(chunk);self.stats['bytesScanned']+=len(chunk)
+                                if self.progress and time.monotonic()-last_progress>.25:
+                                    self.progress({'files':self.stats['filesScanned'],'bytes':self.stats['bytesScanned']});last_progress=time.monotonic()
+                            digest=hasher.hexdigest()
+                            current[path]=(signature,digest)
                 after = path.stat()
-                if ((before.st_size, before.st_mtime_ns, before.st_ino) != (after.st_size, after.st_mtime_ns, after.st_ino)
-                        or len(data) != before.st_size):
+                if signature != (after.st_size, after.st_mtime_ns, after.st_ctime_ns,after.st_ino):
                     self.stats['unreadableFiles'] += 1
+                    current.pop(path,None)
                     continue
-                if data.startswith(b'\x07\x08V2\x08\x07'):
-                    try:
-                        data = self.image_keys.decode(data)
-                    except ValueError:
-                        self.stats['unsupportedContainers'] += 1
-                        continue
-                    self.stats['decodedContainers'] += 1
-                digest = hashlib.md5(data).hexdigest()
                 self.matches.setdefault(digest, []).append(path)
             except OSError:
                 self.stats['unreadableFiles'] += 1
+            if self.progress and time.monotonic()-last_progress>.25:
+                self.progress({'files':self.stats['filesScanned'],'bytes':self.stats['bytesScanned']});last_progress=time.monotonic()
+        self._digest_cache=current
         self.stats['elapsedMs'] = round((time.monotonic() - started) * 1000)
 
     def paths_for(self, expected):
         if not self.built:
             self._build()
         # The caller re-reads and verifies the complete checksum before use.
-        return self.matches.get(expected, [])[:8]
+        return self.matches.get(expected, [])
 
     def diagnosis(self, expected):
         if self.account is None:

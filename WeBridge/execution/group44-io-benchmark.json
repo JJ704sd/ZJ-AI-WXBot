@@ -1,0 +1,2123 @@
+{
+  "version": 1,
+  "date": "2026-10-23",
+  "syntheticOnly": true,
+  "method": "Two alternating before/after runs from frozen v43 baseline and final v44 source after UI snapshot prewarming freeze. Eight groups x 400 rows per client; 64 MiB SQLite padding; WeChat additionally 64 MiB voice database. Same probe, fixtures and interpreter as prior measurement. Warm/cached local filesystem; wall seconds include open, parse, batch approval, publication, resume and metadata repair. Hash bytes count successful explicit Python SHA-256 reads, not OS physical reads or SQLite internal reads. Integrity check timers are inclusive and must not be summed with hash timers.",
+  "benchmarkScriptSha256": "e1eb3306c1f25ca3403cf215682e56306e9e953e44ba0f936d6f8d911da0d81a",
+  "summary": {
+    "wechat": {
+      "openSource": {
+        "beforeSeconds": 0.8181512999581173,
+        "afterSeconds": 0.9181446000002325,
+        "timeReductionPercent": -12.221859214455076,
+        "beforeSnapshotHashBytes": [
+          134414336,
+          134414336
+        ],
+        "afterSnapshotHashBytes": [
+          270786998,
+          270786998
+        ]
+      },
+      "parseAll": {
+        "beforeSeconds": 2.6244325999869034,
+        "afterSeconds": 2.70470145001309,
+        "timeReductionPercent": -3.058522060219307,
+        "beforeSnapshotHashBytes": [
+          1211687350,
+          1211687350
+        ],
+        "afterSnapshotHashBytes": [
+          1075314688,
+          1075314688
+        ]
+      },
+      "approveAll": {
+        "beforeSeconds": 0.2749351999955252,
+        "afterSeconds": 0.26368345000082627,
+        "timeReductionPercent": 4.092509796811046,
+        "beforeSnapshotHashBytes": [
+          67207168,
+          67207168
+        ],
+        "afterSnapshotHashBytes": [
+          67207168,
+          67207168
+        ]
+      },
+      "publishAll": {
+        "beforeSeconds": 1.5668547000386752,
+        "afterSeconds": 1.0434173999819905,
+        "timeReductionPercent": 33.4068819555358,
+        "beforeSnapshotHashBytes": [
+          604864512,
+          604864512
+        ],
+        "afterSnapshotHashBytes": [
+          134414336,
+          134414336
+        ]
+      },
+      "resumePublished": {
+        "beforeSeconds": 1.3120556500507519,
+        "afterSeconds": 1.2734480500221252,
+        "timeReductionPercent": 2.9425276303740038,
+        "beforeSnapshotHashBytes": [
+          337994166,
+          337994166
+        ],
+        "afterSnapshotHashBytes": [
+          337994166,
+          337994166
+        ]
+      },
+      "repairMetadata": {
+        "beforeSeconds": 1.5215973999584094,
+        "afterSeconds": 0.9746653999900445,
+        "timeReductionPercent": 35.944593489928046,
+        "beforeSnapshotHashBytes": [
+          604864512,
+          604864512
+        ],
+        "afterSnapshotHashBytes": [
+          134414336,
+          134414336
+        ]
+      },
+      "initialWorkflow": {
+        "beforeSeconds": 5.284373799979221,
+        "afterSeconds": 4.929946899996139,
+        "timeReductionPercent": 6.707074733897054
+      },
+      "qualityEqual": true
+    },
+    "wecom": {
+      "openSource": {
+        "beforeSeconds": 0.40990165004041046,
+        "afterSeconds": 0.47825310000916943,
+        "timeReductionPercent": -16.67508534352582,
+        "beforeSnapshotHashBytes": [
+          138346496,
+          138346496
+        ],
+        "afterSnapshotHashBytes": [
+          207520788,
+          207520788
+        ]
+      },
+      "parseAll": {
+        "beforeSeconds": 2.449055799981579,
+        "afterSeconds": 2.3994950999622233,
+        "timeReductionPercent": 2.02366561103788,
+        "beforeSnapshotHashBytes": [
+          1175946260,
+          1175946260
+        ],
+        "afterSnapshotHashBytes": [
+          1106771968,
+          1106771968
+        ]
+      },
+      "approveAll": {
+        "beforeSeconds": 0.2525962999789044,
+        "afterSeconds": 0.25963064993266016,
+        "timeReductionPercent": -2.7848190786417732,
+        "beforeSnapshotHashBytes": [
+          69173248,
+          69173248
+        ],
+        "afterSnapshotHashBytes": [
+          69173248,
+          69173248
+        ]
+      },
+      "publishAll": {
+        "beforeSeconds": 1.4990387000143528,
+        "afterSeconds": 1.0269093500101008,
+        "timeReductionPercent": 31.49547439967571,
+        "beforeSnapshotHashBytes": [
+          622559232,
+          622559232
+        ],
+        "afterSnapshotHashBytes": [
+          138346496,
+          138346496
+        ]
+      },
+      "resumePublished": {
+        "beforeSeconds": 1.1140199999790639,
+        "afterSeconds": 1.1154124499880709,
+        "timeReductionPercent": -0.12499326843621979,
+        "beforeSnapshotHashBytes": [
+          276694036,
+          276694036
+        ],
+        "afterSnapshotHashBytes": [
+          276694036,
+          276694036
+        ]
+      },
+      "repairMetadata": {
+        "beforeSeconds": 1.3386426499928348,
+        "afterSeconds": 0.8878979499568231,
+        "timeReductionPercent": 33.67177192796183,
+        "beforeSnapshotHashBytes": [
+          622559232,
+          622559232
+        ],
+        "afterSnapshotHashBytes": [
+          138346496,
+          138346496
+        ]
+      },
+      "initialWorkflow": {
+        "beforeSeconds": 4.610592450015247,
+        "afterSeconds": 4.164288199914154,
+        "timeReductionPercent": 9.679976162274272
+      },
+      "qualityEqual": true
+    }
+  },
+  "before": [
+    {
+      "syntheticOnly": true,
+      "configuration": {
+        "groups": 8,
+        "rowsPerGroup": 400,
+        "paddingMiB": 64
+      },
+      "sourceHashes": {
+        "offline_chat.py": "0b108583fe6e2651d496915510e4d9707cc1a4ff1393cb1ba0a476f1d0463098",
+        "wecom_archive.py": "a4619cad68cdee30f73e258e876c65d8129685a68b8505b83d652137483a0445",
+        "offline_desktop.py": "d4a19acc260b3042327d9bc22b6f9ebe5acc4f44a0830abc7c59a80dd1d90a6f",
+        "offline_progress.py": "335489608093d84fea4e78906fbfbc5aa03781b4228bbf97517b9a413e8102fd"
+      },
+      "runs": [
+        {
+          "client": "wechat",
+          "groups": 8,
+          "rowsPerGroup": 400,
+          "sourceBytes": 136368128,
+          "voiceBytes": 67207168,
+          "phases": {
+            "openSource": {
+              "hash": {
+                "source": {
+                  "calls": 11,
+                  "bytes": 136368128,
+                  "seconds": 0.1444242998259142
+                },
+                "snapshot": {
+                  "calls": 2,
+                  "bytes": 134414336,
+                  "seconds": 0.13817419996485114
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 41,
+                  "seconds": 0.0177313998574391,
+                  "callers": {
+                    "configure": 10,
+                    "_ensure_unchanged": 30,
+                    "__init__": 1
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 3,
+                  "seconds": 0.02247319999150932,
+                  "callers": {
+                    "configure": 1,
+                    "_check": 1,
+                    "get_source_info": 1
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 1,
+                  "seconds": 0.07357190002221614,
+                  "callers": {
+                    "groups": 1
+                  }
+                }
+              },
+              "seconds": 0.808622199925594
+            },
+            "parseAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 28,
+                  "bytes": 1211687350,
+                  "seconds": 1.1824161001713946
+                },
+                "review": {
+                  "calls": 312,
+                  "bytes": 61709120,
+                  "seconds": 0.24183609907049686
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 240,
+                  "seconds": 0.10125450068153441,
+                  "callers": {
+                    "_ensure_unchanged": 240
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 24,
+                  "seconds": 0.17682130017783493,
+                  "callers": {
+                    "_check": 16,
+                    "get_source_info": 8
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 16,
+                  "seconds": 1.1663172004045919,
+                  "callers": {
+                    "export": 16
+                  }
+                }
+              },
+              "seconds": 2.601537000038661
+            },
+            "approveAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 1,
+                  "bytes": 67207168,
+                  "seconds": 0.07711830001790076
+                },
+                "review": {
+                  "calls": 160,
+                  "bytes": 30900728,
+                  "seconds": 0.13392799952998757
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 10,
+                  "seconds": 0.0038513001054525375,
+                  "callers": {
+                    "_ensure_unchanged": 10
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 1,
+                  "seconds": 0.006880300003103912,
+                  "callers": {
+                    "_check": 1
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 1,
+                  "seconds": 0.08415000000968575,
+                  "callers": {
+                    "approve_reviews": 1
+                  }
+                }
+              },
+              "seconds": 0.2820524999406189
+            },
+            "publishAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 9,
+                  "bytes": 604864512,
+                  "seconds": 0.5936919999076054
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 61801456,
+                  "seconds": 0.23619409976527095
+                },
+                "export": {
+                  "calls": 176,
+                  "bytes": 30966632,
+                  "seconds": 0.13348709943238646
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 90,
+                  "seconds": 0.04100569989532232,
+                  "callers": {
+                    "_ensure_unchanged": 90
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 9,
+                  "seconds": 0.06979570013936609,
+                  "callers": {
+                    "_check": 9
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 9,
+                  "seconds": 0.6650252999970689,
+                  "callers": {
+                    "export_reviewed": 1,
+                    "_publish_pending": 8
+                  }
+                }
+              },
+              "seconds": 1.5536901999730617
+            },
+            "resumePublished": {
+              "hash": {
+                "snapshot": {
+                  "calls": 15,
+                  "bytes": 337994166,
+                  "seconds": 0.3345477001275867
+                },
+                "review": {
+                  "calls": 480,
+                  "bytes": 92702184,
+                  "seconds": 0.36272559815552086
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 61749160,
+                  "seconds": 0.24250630068127066
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 61,
+                  "seconds": 0.024926899932324886,
+                  "callers": {
+                    "configure": 10,
+                    "_ensure_unchanged": 50,
+                    "__init__": 1
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 5,
+                  "seconds": 0.0364121999591589,
+                  "callers": {
+                    "configure": 1,
+                    "get_source_info": 2,
+                    "_check": 2
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 2,
+                  "seconds": 0.14935900003183633,
+                  "callers": {
+                    "groups": 2
+                  }
+                }
+              },
+              "seconds": 1.2881368000525981
+            },
+            "repairMetadata": {
+              "hash": {
+                "snapshot": {
+                  "calls": 9,
+                  "bytes": 604864512,
+                  "seconds": 0.615263800136745
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 61801456,
+                  "seconds": 0.2723424001596868
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 61749160,
+                  "seconds": 0.2727464984636754
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 170,
+                  "seconds": 0.06926610006485134,
+                  "callers": {
+                    "_ensure_unchanged": 170
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 17,
+                  "seconds": 0.12216910009738058,
+                  "callers": {
+                    "_check": 9,
+                    "get_source_info": 8
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 9,
+                  "seconds": 0.6802768999477848,
+                  "callers": {
+                    "repair_export_metadata": 1,
+                    "groups": 8
+                  }
+                }
+              },
+              "seconds": 1.594151399913244
+            }
+          },
+          "measure": "wall seconds; successful explicit Python SHA-256 bytes; checks inclusive time; SQLite internal reads uncounted",
+          "parsedArtifactBytes": 30900728,
+          "exportedArtifactBytes": 32157356,
+          "initialWorkflowSeconds": 5.245901899877936,
+          "quality": {
+            "parsedRows": 3200,
+            "publishedGroups": 8,
+            "restoredPublished": 8,
+            "metadataRepaired": "completed",
+            "reviewedBodiesEqual": true
+          }
+        },
+        {
+          "client": "wecom",
+          "groups": 8,
+          "rowsPerGroup": 400,
+          "sourceBytes": 69173248,
+          "voiceBytes": 0,
+          "phases": {
+            "openSource": {
+              "hash": {
+                "source": {
+                  "calls": 3,
+                  "bytes": 69173248,
+                  "seconds": 0.0691247001523152
+                },
+                "snapshot": {
+                  "calls": 6,
+                  "bytes": 138346496,
+                  "seconds": 0.13328619999811053
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 1,
+                  "seconds": 0.06827819999307394,
+                  "callers": {
+                    "groups": 1
+                  }
+                }
+              },
+              "seconds": 0.4126007000450045
+            },
+            "parseAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 52,
+                  "bytes": 1175946260,
+                  "seconds": 1.1715886996826157
+                },
+                "review": {
+                  "calls": 312,
+                  "bytes": 54032162,
+                  "seconds": 0.2308932988671586
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 16,
+                  "seconds": 1.103057499974966,
+                  "callers": {
+                    "export": 16
+                  }
+                }
+              },
+              "seconds": 2.4509571000235155
+            },
+            "approveAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 3,
+                  "bytes": 69173248,
+                  "seconds": 0.06692410015966743
+                },
+                "review": {
+                  "calls": 160,
+                  "bytes": 27062817,
+                  "seconds": 0.11953489936422557
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 1,
+                  "seconds": 0.06705009995494038,
+                  "callers": {
+                    "approve_reviews": 1
+                  }
+                }
+              },
+              "seconds": 0.24952630000188947
+            },
+            "publishAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 27,
+                  "bytes": 622559232,
+                  "seconds": 0.6380744003690779
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 54125634,
+                  "seconds": 0.23733709997031838
+                },
+                "export": {
+                  "calls": 176,
+                  "bytes": 27130529,
+                  "seconds": 0.1264607987832278
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 9,
+                  "seconds": 0.639177400036715,
+                  "callers": {
+                    "export_reviewed": 1,
+                    "_publish_pending": 8
+                  }
+                }
+              },
+              "seconds": 1.5135630000149831
+            },
+            "resumePublished": {
+              "hash": {
+                "snapshot": {
+                  "calls": 13,
+                  "bytes": 276694036,
+                  "seconds": 0.27733720000833273
+                },
+                "review": {
+                  "calls": 480,
+                  "bytes": 81188451,
+                  "seconds": 0.336473100585863
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 54071978,
+                  "seconds": 0.2266606993507594
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 2,
+                  "seconds": 0.14103920001070946,
+                  "callers": {
+                    "groups": 2
+                  }
+                }
+              },
+              "seconds": 1.130135599989444
+            },
+            "repairMetadata": {
+              "hash": {
+                "snapshot": {
+                  "calls": 27,
+                  "bytes": 622559232,
+                  "seconds": 0.6126398998312652
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 54125634,
+                  "seconds": 0.23858219885732979
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 54071978,
+                  "seconds": 0.2210284013999626
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 9,
+                  "seconds": 0.6137155999895185,
+                  "callers": {
+                    "repair_export_metadata": 1,
+                    "groups": 8
+                  }
+                }
+              },
+              "seconds": 1.3497300000162795
+            }
+          },
+          "measure": "wall seconds; successful explicit Python SHA-256 bytes; checks inclusive time; SQLite internal reads uncounted",
+          "parsedArtifactBytes": 27062817,
+          "exportedArtifactBytes": 28279518,
+          "initialWorkflowSeconds": 4.626647100085393,
+          "quality": {
+            "parsedRows": 3200,
+            "publishedGroups": 8,
+            "restoredPublished": 8,
+            "metadataRepaired": "completed",
+            "reviewedBodiesEqual": true
+          }
+        }
+      ]
+    },
+    {
+      "syntheticOnly": true,
+      "configuration": {
+        "groups": 8,
+        "rowsPerGroup": 400,
+        "paddingMiB": 64
+      },
+      "sourceHashes": {
+        "offline_chat.py": "0b108583fe6e2651d496915510e4d9707cc1a4ff1393cb1ba0a476f1d0463098",
+        "wecom_archive.py": "a4619cad68cdee30f73e258e876c65d8129685a68b8505b83d652137483a0445",
+        "offline_desktop.py": "d4a19acc260b3042327d9bc22b6f9ebe5acc4f44a0830abc7c59a80dd1d90a6f",
+        "offline_progress.py": "335489608093d84fea4e78906fbfbc5aa03781b4228bbf97517b9a413e8102fd"
+      },
+      "runs": [
+        {
+          "client": "wechat",
+          "groups": 8,
+          "rowsPerGroup": 400,
+          "sourceBytes": 136368128,
+          "voiceBytes": 67207168,
+          "phases": {
+            "openSource": {
+              "hash": {
+                "source": {
+                  "calls": 11,
+                  "bytes": 136368128,
+                  "seconds": 0.1464114999398589
+                },
+                "snapshot": {
+                  "calls": 2,
+                  "bytes": 134414336,
+                  "seconds": 0.14208460005465895
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 41,
+                  "seconds": 0.018426400027237833,
+                  "callers": {
+                    "configure": 10,
+                    "_ensure_unchanged": 30,
+                    "__init__": 1
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 3,
+                  "seconds": 0.023337200051173568,
+                  "callers": {
+                    "configure": 1,
+                    "_check": 1,
+                    "get_source_info": 1
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 1,
+                  "seconds": 0.082139499951154,
+                  "callers": {
+                    "groups": 1
+                  }
+                }
+              },
+              "seconds": 0.8276803999906406
+            },
+            "parseAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 28,
+                  "bytes": 1211687350,
+                  "seconds": 1.1966933998046443
+                },
+                "review": {
+                  "calls": 312,
+                  "bytes": 61709120,
+                  "seconds": 0.26454889972228557
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 240,
+                  "seconds": 0.1029965003253892,
+                  "callers": {
+                    "_ensure_unchanged": 240
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 24,
+                  "seconds": 0.1791454997146502,
+                  "callers": {
+                    "_check": 16,
+                    "get_source_info": 8
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 16,
+                  "seconds": 1.1818612000206485,
+                  "callers": {
+                    "export": 16
+                  }
+                }
+              },
+              "seconds": 2.6473281999351457
+            },
+            "approveAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 1,
+                  "bytes": 67207168,
+                  "seconds": 0.06435060000512749
+                },
+                "review": {
+                  "calls": 160,
+                  "bytes": 30900728,
+                  "seconds": 0.13219800044316798
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 10,
+                  "seconds": 0.004041700158268213,
+                  "callers": {
+                    "_ensure_unchanged": 10
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 1,
+                  "seconds": 0.00707759999204427,
+                  "callers": {
+                    "_check": 1
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 1,
+                  "seconds": 0.07160929997917265,
+                  "callers": {
+                    "approve_reviews": 1
+                  }
+                }
+              },
+              "seconds": 0.2678179000504315
+            },
+            "publishAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 9,
+                  "bytes": 604864512,
+                  "seconds": 0.5944980001077056
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 61801456,
+                  "seconds": 0.2560708998935297
+                },
+                "export": {
+                  "calls": 176,
+                  "bytes": 30966632,
+                  "seconds": 0.1369070012588054
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 90,
+                  "seconds": 0.03802059940062463,
+                  "callers": {
+                    "_ensure_unchanged": 90
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 9,
+                  "seconds": 0.06587819987908006,
+                  "callers": {
+                    "_check": 9
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 9,
+                  "seconds": 0.6619336998555809,
+                  "callers": {
+                    "export_reviewed": 1,
+                    "_publish_pending": 8
+                  }
+                }
+              },
+              "seconds": 1.5800192001042888
+            },
+            "resumePublished": {
+              "hash": {
+                "snapshot": {
+                  "calls": 15,
+                  "bytes": 337994166,
+                  "seconds": 0.3913868000963703
+                },
+                "review": {
+                  "calls": 480,
+                  "bytes": 92702184,
+                  "seconds": 0.3541245990199968
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 61749160,
+                  "seconds": 0.23890809901058674
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 61,
+                  "seconds": 0.026533600175753236,
+                  "callers": {
+                    "configure": 10,
+                    "_ensure_unchanged": 50,
+                    "__init__": 1
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 5,
+                  "seconds": 0.03900930017698556,
+                  "callers": {
+                    "configure": 1,
+                    "get_source_info": 2,
+                    "_check": 2
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 2,
+                  "seconds": 0.14661689999047667,
+                  "callers": {
+                    "groups": 2
+                  }
+                }
+              },
+              "seconds": 1.3359745000489056
+            },
+            "repairMetadata": {
+              "hash": {
+                "snapshot": {
+                  "calls": 9,
+                  "bytes": 604864512,
+                  "seconds": 0.5978611997561529
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 61801456,
+                  "seconds": 0.22456790029536933
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 61749160,
+                  "seconds": 0.22209380066487938
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 170,
+                  "seconds": 0.0679722991771996,
+                  "callers": {
+                    "_ensure_unchanged": 170
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 17,
+                  "seconds": 0.12135949986986816,
+                  "callers": {
+                    "_check": 9,
+                    "get_source_info": 8
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 9,
+                  "seconds": 0.6631725002080202,
+                  "callers": {
+                    "repair_export_metadata": 1,
+                    "groups": 8
+                  }
+                }
+              },
+              "seconds": 1.4490434000035748
+            }
+          },
+          "measure": "wall seconds; successful explicit Python SHA-256 bytes; checks inclusive time; SQLite internal reads uncounted",
+          "parsedArtifactBytes": 30900728,
+          "exportedArtifactBytes": 32157356,
+          "initialWorkflowSeconds": 5.3228457000805065,
+          "quality": {
+            "parsedRows": 3200,
+            "publishedGroups": 8,
+            "restoredPublished": 8,
+            "metadataRepaired": "completed",
+            "reviewedBodiesEqual": true
+          }
+        },
+        {
+          "client": "wecom",
+          "groups": 8,
+          "rowsPerGroup": 400,
+          "sourceBytes": 69173248,
+          "voiceBytes": 0,
+          "phases": {
+            "openSource": {
+              "hash": {
+                "source": {
+                  "calls": 3,
+                  "bytes": 69173248,
+                  "seconds": 0.06843270012177527
+                },
+                "snapshot": {
+                  "calls": 6,
+                  "bytes": 138346496,
+                  "seconds": 0.13021900004241616
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 1,
+                  "seconds": 0.0673339000204578,
+                  "callers": {
+                    "groups": 1
+                  }
+                }
+              },
+              "seconds": 0.40720260003581643
+            },
+            "parseAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 52,
+                  "bytes": 1175946260,
+                  "seconds": 1.1580886002629995
+                },
+                "review": {
+                  "calls": 312,
+                  "bytes": 54032162,
+                  "seconds": 0.23068620113190264
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 16,
+                  "seconds": 1.0872919001849368,
+                  "callers": {
+                    "export": 16
+                  }
+                }
+              },
+              "seconds": 2.447154499939643
+            },
+            "approveAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 3,
+                  "bytes": 69173248,
+                  "seconds": 0.06644269987009466
+                },
+                "review": {
+                  "calls": 160,
+                  "bytes": 27062817,
+                  "seconds": 0.1236330991378054
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 1,
+                  "seconds": 0.06656950002070516,
+                  "callers": {
+                    "approve_reviews": 1
+                  }
+                }
+              },
+              "seconds": 0.2556662999559194
+            },
+            "publishAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 27,
+                  "bytes": 622559232,
+                  "seconds": 0.6213945000199601
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 54125634,
+                  "seconds": 0.23279400065075606
+                },
+                "export": {
+                  "calls": 176,
+                  "bytes": 27130529,
+                  "seconds": 0.12074459984432906
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 9,
+                  "seconds": 0.6225742999231443,
+                  "callers": {
+                    "export_reviewed": 1,
+                    "_publish_pending": 8
+                  }
+                }
+              },
+              "seconds": 1.4845144000137225
+            },
+            "resumePublished": {
+              "hash": {
+                "snapshot": {
+                  "calls": 13,
+                  "bytes": 276694036,
+                  "seconds": 0.27854750014375895
+                },
+                "review": {
+                  "calls": 480,
+                  "bytes": 81188451,
+                  "seconds": 0.31962589954491705
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 54071978,
+                  "seconds": 0.21158020023722202
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 2,
+                  "seconds": 0.1405046001309529,
+                  "callers": {
+                    "groups": 2
+                  }
+                }
+              },
+              "seconds": 1.0979043999686837
+            },
+            "repairMetadata": {
+              "hash": {
+                "snapshot": {
+                  "calls": 27,
+                  "bytes": 622559232,
+                  "seconds": 0.6142700000200421
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 54125634,
+                  "seconds": 0.22150150046218187
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 54071978,
+                  "seconds": 0.22080200142227113
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 9,
+                  "seconds": 0.6153849000111222,
+                  "callers": {
+                    "repair_export_metadata": 1,
+                    "groups": 8
+                  }
+                }
+              },
+              "seconds": 1.32755529996939
+            }
+          },
+          "measure": "wall seconds; successful explicit Python SHA-256 bytes; checks inclusive time; SQLite internal reads uncounted",
+          "parsedArtifactBytes": 27062817,
+          "exportedArtifactBytes": 28279518,
+          "initialWorkflowSeconds": 4.594537799945101,
+          "quality": {
+            "parsedRows": 3200,
+            "publishedGroups": 8,
+            "restoredPublished": 8,
+            "metadataRepaired": "completed",
+            "reviewedBodiesEqual": true
+          }
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "syntheticOnly": true,
+      "configuration": {
+        "groups": 8,
+        "rowsPerGroup": 400,
+        "paddingMiB": 64
+      },
+      "sourceHashes": {
+        "offline_chat.py": "127d001e44651f5f0d7ce75fb65c2d6abd111307002d096f206ee43ded34c2c2",
+        "wecom_archive.py": "9c342cc74449d156d487ae3ab8524e0eed5369e928dbd72efd89720f809324a9",
+        "offline_desktop.py": "9ad2dc1b155da2cff95b280bfc17c9720af160d76549249bf0e09ba45492ac12",
+        "offline_progress.py": "559bcef6b712b563a6c9dfe0e5e5e6d5b5ea0371e6b1b5ea114bbef18afa2681"
+      },
+      "runs": [
+        {
+          "client": "wechat",
+          "groups": 8,
+          "rowsPerGroup": 400,
+          "sourceBytes": 136368128,
+          "voiceBytes": 67207168,
+          "phases": {
+            "openSource": {
+              "hash": {
+                "source": {
+                  "calls": 11,
+                  "bytes": 136368128,
+                  "seconds": 0.13631680002436042
+                },
+                "snapshot": {
+                  "calls": 14,
+                  "bytes": 270786998,
+                  "seconds": 0.27445410017389804
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 41,
+                  "seconds": 0.018537899828515947,
+                  "callers": {
+                    "configure": 10,
+                    "_ensure_unchanged": 30,
+                    "__init__": 1
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 3,
+                  "seconds": 0.024915099958889186,
+                  "callers": {
+                    "configure": 1,
+                    "_check": 1,
+                    "get_source_info": 1
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 1,
+                  "seconds": 0.08102869999129325,
+                  "callers": {
+                    "groups": 1
+                  }
+                }
+              },
+              "seconds": 0.9301922000013292
+            },
+            "parseAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 16,
+                  "bytes": 1075314688,
+                  "seconds": 1.1410418999148533
+                },
+                "review": {
+                  "calls": 312,
+                  "bytes": 61709120,
+                  "seconds": 0.29301730054430664
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 240,
+                  "seconds": 0.11630070128012449,
+                  "callers": {
+                    "_ensure_unchanged": 240
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 24,
+                  "seconds": 0.20316009991802275,
+                  "callers": {
+                    "_check": 16,
+                    "get_source_info": 8
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 16,
+                  "seconds": 1.279743299819529,
+                  "callers": {
+                    "export": 16
+                  }
+                }
+              },
+              "seconds": 2.807437499985099
+            },
+            "approveAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 1,
+                  "bytes": 67207168,
+                  "seconds": 0.06550130003597587
+                },
+                "review": {
+                  "calls": 160,
+                  "bytes": 30900728,
+                  "seconds": 0.12028819986153394
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 10,
+                  "seconds": 0.0038602000568062067,
+                  "callers": {
+                    "_ensure_unchanged": 10
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 1,
+                  "seconds": 0.006835100008174777,
+                  "callers": {
+                    "_check": 1
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 1,
+                  "seconds": 0.07249570009298623,
+                  "callers": {
+                    "approve_reviews": 1
+                  }
+                }
+              },
+              "seconds": 0.2562395000131801
+            },
+            "publishAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 2,
+                  "bytes": 134414336,
+                  "seconds": 0.13366760010831058
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 61801456,
+                  "seconds": 0.23716549982782453
+                },
+                "export": {
+                  "calls": 176,
+                  "bytes": 30966632,
+                  "seconds": 0.1293134002480656
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 20,
+                  "seconds": 0.009208999807015061,
+                  "callers": {
+                    "_ensure_unchanged": 20
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 2,
+                  "seconds": 0.017421200056560338,
+                  "callers": {
+                    "_check": 2
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 11,
+                  "seconds": 0.15148729959037155,
+                  "callers": {
+                    "integrity_scope": 2,
+                    "_export_reviewed": 1,
+                    "_publish_pending": 8
+                  }
+                }
+              },
+              "seconds": 1.0281511000357568
+            },
+            "resumePublished": {
+              "hash": {
+                "snapshot": {
+                  "calls": 15,
+                  "bytes": 337994166,
+                  "seconds": 0.33204950019717216
+                },
+                "review": {
+                  "calls": 480,
+                  "bytes": 92702184,
+                  "seconds": 0.3653338991571218
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 61749160,
+                  "seconds": 0.24117899918928742
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 61,
+                  "seconds": 0.025710599962621927,
+                  "callers": {
+                    "configure": 10,
+                    "_ensure_unchanged": 50,
+                    "__init__": 1
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 5,
+                  "seconds": 0.03633999987505376,
+                  "callers": {
+                    "configure": 1,
+                    "get_source_info": 2,
+                    "_check": 2
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 2,
+                  "seconds": 0.14323770010378212,
+                  "callers": {
+                    "groups": 2
+                  }
+                }
+              },
+              "seconds": 1.2814147999743
+            },
+            "repairMetadata": {
+              "hash": {
+                "snapshot": {
+                  "calls": 2,
+                  "bytes": 134414336,
+                  "seconds": 0.1307780999923125
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 61801456,
+                  "seconds": 0.23822089959867299
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 61749160,
+                  "seconds": 0.23197530093602836
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 100,
+                  "seconds": 0.04126820049714297,
+                  "callers": {
+                    "_ensure_unchanged": 100
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 10,
+                  "seconds": 0.0719509000191465,
+                  "callers": {
+                    "_check": 2,
+                    "get_source_info": 8
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 11,
+                  "seconds": 0.14666660001967102,
+                  "callers": {
+                    "integrity_scope": 2,
+                    "_repair_export_metadata": 1,
+                    "groups": 8
+                  }
+                }
+              },
+              "seconds": 0.9529771999223158
+            }
+          },
+          "measure": "wall seconds; successful explicit Python SHA-256 bytes; checks inclusive time; SQLite internal reads uncounted",
+          "parsedArtifactBytes": 30900728,
+          "exportedArtifactBytes": 32157356,
+          "initialWorkflowSeconds": 5.022020300035365,
+          "quality": {
+            "parsedRows": 3200,
+            "publishedGroups": 8,
+            "restoredPublished": 8,
+            "metadataRepaired": "completed",
+            "reviewedBodiesEqual": true
+          }
+        },
+        {
+          "client": "wecom",
+          "groups": 8,
+          "rowsPerGroup": 400,
+          "sourceBytes": 69173248,
+          "voiceBytes": 0,
+          "phases": {
+            "openSource": {
+              "hash": {
+                "source": {
+                  "calls": 3,
+                  "bytes": 69173248,
+                  "seconds": 0.06969279993791133
+                },
+                "snapshot": {
+                  "calls": 10,
+                  "bytes": 207520788,
+                  "seconds": 0.20264929975382984
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 1,
+                  "seconds": 0.06733440002426505,
+                  "callers": {
+                    "groups": 1
+                  }
+                }
+              },
+              "seconds": 0.4802796000149101
+            },
+            "parseAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 48,
+                  "bytes": 1106771968,
+                  "seconds": 1.1047172002727166
+                },
+                "review": {
+                  "calls": 312,
+                  "bytes": 54032162,
+                  "seconds": 0.2261927992803976
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 16,
+                  "seconds": 1.1069166999077424,
+                  "callers": {
+                    "export": 16
+                  }
+                }
+              },
+              "seconds": 2.4147317999741063
+            },
+            "approveAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 3,
+                  "bytes": 69173248,
+                  "seconds": 0.07885180006269366
+                },
+                "review": {
+                  "calls": 160,
+                  "bytes": 27062817,
+                  "seconds": 0.11837330122943968
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 1,
+                  "seconds": 0.0791529999114573,
+                  "callers": {
+                    "approve_reviews": 1
+                  }
+                }
+              },
+              "seconds": 0.26241479988675565
+            },
+            "publishAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 6,
+                  "bytes": 138346496,
+                  "seconds": 0.1372044999152422
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 54125634,
+                  "seconds": 0.23590430128388107
+                },
+                "export": {
+                  "calls": 176,
+                  "bytes": 27130529,
+                  "seconds": 0.12722770019900054
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 11,
+                  "seconds": 0.13751039991620928,
+                  "callers": {
+                    "integrity_scope": 2,
+                    "_export_reviewed": 1,
+                    "_publish_pending": 8
+                  }
+                }
+              },
+              "seconds": 1.02489580004476
+            },
+            "resumePublished": {
+              "hash": {
+                "snapshot": {
+                  "calls": 13,
+                  "bytes": 276694036,
+                  "seconds": 0.2750152996741235
+                },
+                "review": {
+                  "calls": 480,
+                  "bytes": 81188451,
+                  "seconds": 0.3388148979283869
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 54071978,
+                  "seconds": 0.22532560024410486
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 2,
+                  "seconds": 0.14009570004418492,
+                  "callers": {
+                    "groups": 2
+                  }
+                }
+              },
+              "seconds": 1.1245227999752387
+            },
+            "repairMetadata": {
+              "hash": {
+                "snapshot": {
+                  "calls": 6,
+                  "bytes": 138346496,
+                  "seconds": 0.15508509997744113
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 54125634,
+                  "seconds": 0.25239589938428253
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 54071978,
+                  "seconds": 0.24542410031426698
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 11,
+                  "seconds": 0.1554175001801923,
+                  "callers": {
+                    "integrity_scope": 2,
+                    "_repair_export_metadata": 1,
+                    "groups": 8
+                  }
+                }
+              },
+              "seconds": 0.9431267000036314
+            }
+          },
+          "measure": "wall seconds; successful explicit Python SHA-256 bytes; checks inclusive time; SQLite internal reads uncounted",
+          "parsedArtifactBytes": 27062817,
+          "exportedArtifactBytes": 28279518,
+          "initialWorkflowSeconds": 4.182321999920532,
+          "quality": {
+            "parsedRows": 3200,
+            "publishedGroups": 8,
+            "restoredPublished": 8,
+            "metadataRepaired": "completed",
+            "reviewedBodiesEqual": true
+          }
+        }
+      ]
+    },
+    {
+      "syntheticOnly": true,
+      "configuration": {
+        "groups": 8,
+        "rowsPerGroup": 400,
+        "paddingMiB": 64
+      },
+      "sourceHashes": {
+        "offline_chat.py": "127d001e44651f5f0d7ce75fb65c2d6abd111307002d096f206ee43ded34c2c2",
+        "wecom_archive.py": "9c342cc74449d156d487ae3ab8524e0eed5369e928dbd72efd89720f809324a9",
+        "offline_desktop.py": "9ad2dc1b155da2cff95b280bfc17c9720af160d76549249bf0e09ba45492ac12",
+        "offline_progress.py": "559bcef6b712b563a6c9dfe0e5e5e6d5b5ea0371e6b1b5ea114bbef18afa2681"
+      },
+      "runs": [
+        {
+          "client": "wechat",
+          "groups": 8,
+          "rowsPerGroup": 400,
+          "sourceBytes": 136368128,
+          "voiceBytes": 67207168,
+          "phases": {
+            "openSource": {
+              "hash": {
+                "source": {
+                  "calls": 11,
+                  "bytes": 136368128,
+                  "seconds": 0.13227189984172583
+                },
+                "snapshot": {
+                  "calls": 14,
+                  "bytes": 270786998,
+                  "seconds": 0.26815409993287176
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 41,
+                  "seconds": 0.017723099794238806,
+                  "callers": {
+                    "configure": 10,
+                    "_ensure_unchanged": 30,
+                    "__init__": 1
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 3,
+                  "seconds": 0.02137650002259761,
+                  "callers": {
+                    "configure": 1,
+                    "_check": 1,
+                    "get_source_info": 1
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 1,
+                  "seconds": 0.07339879998471588,
+                  "callers": {
+                    "groups": 1
+                  }
+                }
+              },
+              "seconds": 0.9060969999991357
+            },
+            "parseAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 16,
+                  "bytes": 1075314688,
+                  "seconds": 1.068306700210087
+                },
+                "review": {
+                  "calls": 312,
+                  "bytes": 61709120,
+                  "seconds": 0.2662637996254489
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 240,
+                  "seconds": 0.10480029869358987,
+                  "callers": {
+                    "_ensure_unchanged": 240
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 24,
+                  "seconds": 0.18071230011992157,
+                  "callers": {
+                    "_check": 16,
+                    "get_source_info": 8
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 16,
+                  "seconds": 1.1917283001821488,
+                  "callers": {
+                    "export": 16
+                  }
+                }
+              },
+              "seconds": 2.601965400041081
+            },
+            "approveAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 1,
+                  "bytes": 67207168,
+                  "seconds": 0.06628369993995875
+                },
+                "review": {
+                  "calls": 160,
+                  "bytes": 30900728,
+                  "seconds": 0.1351131012197584
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 10,
+                  "seconds": 0.0039605998899787664,
+                  "callers": {
+                    "_ensure_unchanged": 10
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 1,
+                  "seconds": 0.006983800092712045,
+                  "callers": {
+                    "_check": 1
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 1,
+                  "seconds": 0.07342599995899945,
+                  "callers": {
+                    "approve_reviews": 1
+                  }
+                }
+              },
+              "seconds": 0.27112739998847246
+            },
+            "publishAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 2,
+                  "bytes": 134414336,
+                  "seconds": 0.12941669998690486
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 61801456,
+                  "seconds": 0.25284289999399334
+                },
+                "export": {
+                  "calls": 176,
+                  "bytes": 30966632,
+                  "seconds": 0.12975210091099143
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 20,
+                  "seconds": 0.007826599990949035,
+                  "callers": {
+                    "_ensure_unchanged": 20
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 2,
+                  "seconds": 0.0138810999924317,
+                  "callers": {
+                    "_check": 2
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 11,
+                  "seconds": 0.143716000020504,
+                  "callers": {
+                    "integrity_scope": 2,
+                    "_export_reviewed": 1,
+                    "_publish_pending": 8
+                  }
+                }
+              },
+              "seconds": 1.058683699928224
+            },
+            "resumePublished": {
+              "hash": {
+                "snapshot": {
+                  "calls": 15,
+                  "bytes": 337994166,
+                  "seconds": 0.34737580025102943
+                },
+                "review": {
+                  "calls": 480,
+                  "bytes": 92702184,
+                  "seconds": 0.34630289871711284
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 61749160,
+                  "seconds": 0.23110929992981255
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 61,
+                  "seconds": 0.02417200105264783,
+                  "callers": {
+                    "configure": 10,
+                    "_ensure_unchanged": 50,
+                    "__init__": 1
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 5,
+                  "seconds": 0.03455519990529865,
+                  "callers": {
+                    "configure": 1,
+                    "get_source_info": 2,
+                    "_check": 2
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 2,
+                  "seconds": 0.15198720002081245,
+                  "callers": {
+                    "groups": 2
+                  }
+                }
+              },
+              "seconds": 1.2654813000699505
+            },
+            "repairMetadata": {
+              "hash": {
+                "snapshot": {
+                  "calls": 2,
+                  "bytes": 134414336,
+                  "seconds": 0.14318920008372515
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 61801456,
+                  "seconds": 0.23786840087268502
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 61749160,
+                  "seconds": 0.24473090143874288
+                }
+              },
+              "checks": {
+                "adapterFileHeader": {
+                  "calls": 100,
+                  "seconds": 0.0446965005248785,
+                  "callers": {
+                    "_ensure_unchanged": 100
+                  }
+                },
+                "adapterEnsure": {
+                  "calls": 10,
+                  "seconds": 0.07611990009900182,
+                  "callers": {
+                    "_check": 2,
+                    "get_source_info": 8
+                  }
+                },
+                "wechatCheck": {
+                  "calls": 11,
+                  "seconds": 0.16007169999647886,
+                  "callers": {
+                    "integrity_scope": 2,
+                    "_repair_export_metadata": 1,
+                    "groups": 8
+                  }
+                }
+              },
+              "seconds": 0.9963536000577733
+            }
+          },
+          "measure": "wall seconds; successful explicit Python SHA-256 bytes; checks inclusive time; SQLite internal reads uncounted",
+          "parsedArtifactBytes": 30900728,
+          "exportedArtifactBytes": 32157356,
+          "initialWorkflowSeconds": 4.837873499956913,
+          "quality": {
+            "parsedRows": 3200,
+            "publishedGroups": 8,
+            "restoredPublished": 8,
+            "metadataRepaired": "completed",
+            "reviewedBodiesEqual": true
+          }
+        },
+        {
+          "client": "wecom",
+          "groups": 8,
+          "rowsPerGroup": 400,
+          "sourceBytes": 69173248,
+          "voiceBytes": 0,
+          "phases": {
+            "openSource": {
+              "hash": {
+                "source": {
+                  "calls": 3,
+                  "bytes": 69173248,
+                  "seconds": 0.06697749998420477
+                },
+                "snapshot": {
+                  "calls": 10,
+                  "bytes": 207520788,
+                  "seconds": 0.19890720024704933
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 1,
+                  "seconds": 0.06712909997440875,
+                  "callers": {
+                    "groups": 1
+                  }
+                }
+              },
+              "seconds": 0.47622660000342876
+            },
+            "parseAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 48,
+                  "bytes": 1106771968,
+                  "seconds": 1.0745055001461878
+                },
+                "review": {
+                  "calls": 312,
+                  "bytes": 54032162,
+                  "seconds": 0.23302469914779067
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 16,
+                  "seconds": 1.0769366000313312,
+                  "callers": {
+                    "export": 16
+                  }
+                }
+              },
+              "seconds": 2.3842583999503404
+            },
+            "approveAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 3,
+                  "bytes": 69173248,
+                  "seconds": 0.07785799994599074
+                },
+                "review": {
+                  "calls": 160,
+                  "bytes": 27062817,
+                  "seconds": 0.11407569865696132
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 1,
+                  "seconds": 0.07800339988898486,
+                  "callers": {
+                    "approve_reviews": 1
+                  }
+                }
+              },
+              "seconds": 0.2568464999785647
+            },
+            "publishAll": {
+              "hash": {
+                "snapshot": {
+                  "calls": 6,
+                  "bytes": 138346496,
+                  "seconds": 0.13985409995075315
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 54125634,
+                  "seconds": 0.23747210018336773
+                },
+                "export": {
+                  "calls": 176,
+                  "bytes": 27130529,
+                  "seconds": 0.12534249993041158
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 11,
+                  "seconds": 0.14014990022405982,
+                  "callers": {
+                    "integrity_scope": 2,
+                    "_export_reviewed": 1,
+                    "_publish_pending": 8
+                  }
+                }
+              },
+              "seconds": 1.0289228999754414
+            },
+            "resumePublished": {
+              "hash": {
+                "snapshot": {
+                  "calls": 13,
+                  "bytes": 276694036,
+                  "seconds": 0.2718446998624131
+                },
+                "review": {
+                  "calls": 480,
+                  "bytes": 81188451,
+                  "seconds": 0.32528080069459975
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 54071978,
+                  "seconds": 0.22298460185993463
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 2,
+                  "seconds": 0.13833280000835657,
+                  "callers": {
+                    "groups": 2
+                  }
+                }
+              },
+              "seconds": 1.106302100000903
+            },
+            "repairMetadata": {
+              "hash": {
+                "snapshot": {
+                  "calls": 6,
+                  "bytes": 138346496,
+                  "seconds": 0.1336406001355499
+                },
+                "review": {
+                  "calls": 320,
+                  "bytes": 54125634,
+                  "seconds": 0.21364130091387779
+                },
+                "export": {
+                  "calls": 312,
+                  "bytes": 54071978,
+                  "seconds": 0.21115140023175627
+                }
+              },
+              "checks": {
+                "wecomCheck": {
+                  "calls": 11,
+                  "seconds": 0.13392810011282563,
+                  "callers": {
+                    "integrity_scope": 2,
+                    "_repair_export_metadata": 1,
+                    "groups": 8
+                  }
+                }
+              },
+              "seconds": 0.8326691999100149
+            }
+          },
+          "measure": "wall seconds; successful explicit Python SHA-256 bytes; checks inclusive time; SQLite internal reads uncounted",
+          "parsedArtifactBytes": 27062817,
+          "exportedArtifactBytes": 28279518,
+          "initialWorkflowSeconds": 4.146254399907775,
+          "quality": {
+            "parsedRows": 3200,
+            "publishedGroups": 8,
+            "restoredPublished": 8,
+            "metadataRepaired": "completed",
+            "reviewedBodiesEqual": true
+          }
+        }
+      ]
+    }
+  ],
+  "regressions": {
+    "tests": 16,
+    "passed": 16,
+    "log": ".runtime/group44-integrity-green.log",
+    "redLog": ".runtime/group44-integrity-red.log"
+  },
+  "limitations": [
+    "No real account, live process, encrypted input, network drive or physical power loss was exercised.",
+    "Samples contain ordinary text and no quotes; unrelated concurrent v44 quote/lazy-view changes are not exercised.",
+    "Two samples show local timing only; deterministic hash-byte savings are the stronger scaling evidence.",
+    "Unoptimized single-group parse keeps both integrity boundaries; no cross-operation stat-only cache."
+  ],
+  "alternatives": [
+    {
+      "proposal": "Reuse reviewed inventory within one restore verification",
+      "status": "not implemented",
+      "evidence": "Published restore hashes preview 3 times and published bodies twice; current work only coalesces batch snapshot checks."
+    },
+    {
+      "proposal": "Move already stable plaintext raw files within snapshot generation instead of local second copy",
+      "status": "not implemented",
+      "evidence": "Would avoid one read/write; needs separate WAL/copy ownership verification before adoption."
+    }
+  ],
+  "staticValidation": {
+    "pyCompile": "passed",
+    "runtimeIdentity": {
+      "ok": true,
+      "scannedFiles": 120,
+      "issues": []
+    },
+    "diffCheck": "passed"
+  },
+  "review": {
+    "reviewer": "group_runtime",
+    "scope": "ContextVar operation isolation, exception reset, final source validation, partial result propagation",
+    "result": "No additional integrity-scope defect found; downstream UI receipt status issue handed to UI agent by root."
+  },
+  "measurementRevision": "final-after-group-ui-warm-snapshot",
+  "sourceHashesStableAcrossPairedRuns": true,
+  "phaseAccounting": "Final group source loading prewarms snapshot inventory before it becomes available for selection. The first-parse checkpoint reuses that inventory. Its full snapshot hash read moved from parseAll into openSource; per-group parse boundary checks remain unchanged. Batch publication and metadata repair still use 2 full snapshot validation rounds instead of 9.",
+  "validationNote": "The final benchmark rerun added no tests and changed no production files. Earlier integrity regression and static checks remain recorded below; final integrated tests are owned by root."
+}

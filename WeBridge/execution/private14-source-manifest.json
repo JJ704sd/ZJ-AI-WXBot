@@ -1,0 +1,138 @@
+{
+  "version": "1.4.0",
+  "scope": "related source and validation scripts; not a dependency lockfile",
+  "files": [
+    {
+      "path": "scripts/local_chat_app.py",
+      "sha256": "ff8df711ad3b4a8b2d4f44d5b4945ad8c80118952b9e3b74c412b5cd21dac551"
+    },
+    {
+      "path": "scripts/local_chat_bootstrap.py",
+      "sha256": "af0e68b0c3b81a640af127b3b9b269f375f41f607e6fb2573ae31dc50139ff0a"
+    },
+    {
+      "path": "scripts/private_chat.py",
+      "sha256": "b7036acb3c17707aee7c0d32ff78a76c0c885de33e295aee53b7d6552d471f4e"
+    },
+    {
+      "path": "scripts/build_private_chat.ps1",
+      "sha256": "d28a42c5cd515a5540483000443aef7886d68f7448beb8edf40e0c47cb8ac700"
+    },
+    {
+      "path": "scripts/package_private_chat.py",
+      "sha256": "58993366da79423f8bb5e57643cf7cac6f16b678783caf402cb748851c116f90"
+    },
+    {
+      "path": "web_mvp/private_profiles.py",
+      "sha256": "826fbbe8409747dd3dc0f5f31ee88a7a61092259fedc1ae444046e00f4e80d83"
+    },
+    {
+      "path": "web_mvp/private_profile_ui.py",
+      "sha256": "2a5cebbf1e5bb5dadfcba02aab06a0f1e4f10e753a49f35f98f6ae3617f2499a"
+    },
+    {
+      "path": "web_mvp/private_insights_ui.py",
+      "sha256": "192b1ae992ff503deaee0cba925e2044611ab02a563435e93e04377b396a89e7"
+    },
+    {
+      "path": "web_mvp/private_insights.py",
+      "sha256": "c2befedb4c2d641f6adb144be30300773d07b101bca8a83242524d9dc2c0365a"
+    },
+    {
+      "path": "web_mvp/private_theme.py",
+      "sha256": "436103a568788ab283b3f70b62d16a1e248376c4c8d35d295dcfe9bc21494a55"
+    },
+    {
+      "path": "web_mvp/offline_direct.py",
+      "sha256": "2fa46419a2743f893c31d15181ce7c239d5334e32d419e67e7bb6d93804378e6"
+    },
+    {
+      "path": "web_mvp/offline_analysis.py",
+      "sha256": "b34dc170e8247305b816c542a0bd0d5ad7a49912387534922f90a81bd1c5a961"
+    },
+    {
+      "path": "web_mvp/offline_batch.py",
+      "sha256": "88331bd44261164e7b6a34503a85d4a08cedb39757f88bd74eda5756b96d336a"
+    },
+    {
+      "path": "web_mvp/offline_desktop.py",
+      "sha256": "dd99721d9a1dcb0d67dc232cca37a64a20c470af47325bfaa5a4e87a0300ba96"
+    },
+    {
+      "path": "web_mvp/offline_launcher.py",
+      "sha256": "542aa5044c8554aa64172a5331fe03ff320146c08053e57ee201c5e8a14ef784"
+    },
+    {
+      "path": "web_mvp/offline_progress.py",
+      "sha256": "3c94be82594a1ffbe9b7c49b77ec53e701c379ccc7db5121de4d9dfedfad84a8"
+    },
+    {
+      "path": "web_mvp/test_private_saved_view.py",
+      "sha256": "cbe480252dd05e2741bab0b32005650bbdf8edb446d69b6483a3472f594c6459"
+    },
+    {
+      "path": "web_mvp/test_private_profiles.py",
+      "sha256": "283429db5fbe355fb44aa921adb625581a7b671d54a619a6b5e954f0a0da79b3"
+    },
+    {
+      "path": "web_mvp/test_private_evidence_integrity.py",
+      "sha256": "c99291cb81f2099aa8bb2b2fa8afd3f2c76c7c973e893022326ac8de39853564"
+    },
+    {
+      "path": "web_mvp/test_private_insights.py",
+      "sha256": "159386715b77317d2ed4c5be93349955b010b1009e6007c95f40a3976dadb7c0"
+    },
+    {
+      "path": "web_mvp/test_private_insights_ui.py",
+      "sha256": "275bb7757699f46a4bf9d62679cba2b1ac69473702c68695979fa9b02a90bb28"
+    },
+    {
+      "path": "web_mvp/test_offline_direct.py",
+      "sha256": "94b16cc215584bc63bc64b83475b6f37e85cac52b452d28c162f99d2edb6d2be"
+    },
+    {
+      "path": "web_mvp/test_private_chat_distribution.py",
+      "sha256": "cdec44331823534556f9024a04b04683ae1d0679d5f0aaf7e8913b353a7734b7"
+    },
+    {
+      "path": "web_mvp/test_private_chat_integration.py",
+      "sha256": "67802415acb1d6d423333c20aa798d3eb4fe4d2553effdb23b12a1b6f5c6505f"
+    },
+    {
+      "path": "web_mvp/test_private_insights_native.py",
+      "sha256": "e70bab96b0afb0b86c334d2f6121b209ed4ae73b99955493532c2ee9c490ffd7"
+    },
+    {
+      "path": "web_mvp/test_private_profile_ui.py",
+      "sha256": "c2253355532c1c717d3a518149c332a3a6d2c46f9bef12a2f4aa8182dd9b2934"
+    },
+    {
+      "path": "web_mvp/test_private_layout.py",
+      "sha256": "df68ec997c1d8052b97147b91c03a226698e1392d9971318fb3405fc42e9657f"
+    },
+    {
+      "path": "web_mvp/test_offline_setup_integration.py",
+      "sha256": "81aa0032501d2983a7225923422e57b6eae4a5eb5b51e69f4844337cb0c15a45"
+    },
+    {
+      "path": "web_mvp/test_offline_target_search.py",
+      "sha256": "7504550ed037c4ee85026fdbb35a80071f6d54ca827b34119b94499732b609df"
+    },
+    {
+      "path": "skills/local-wechat-private-analysis/SKILL.md",
+      "sha256": "d65559fcc7b6bf8a9a1c4145b3c2a560c7f52f1cb4d9c841fbb1680e7ffaee4e"
+    },
+    {
+      "path": "skills/local-wecom-private-analysis/SKILL.md",
+      "sha256": "c3c54943f0a039b2389a2c133a20776df0809776f26f902a33c6c7a26ddaad15"
+    },
+    {
+      "path": ".runtime/verify_private_release_14.py",
+      "sha256": "0702616c4ffd1fdb647f9f9fa11109bae7a6b9231b2497599e9fa3442ce195d4"
+    },
+    {
+      "path": ".runtime/verify_private_upgrade_14.py",
+      "sha256": "15bc9e552527d4fb75ae0f5353411916a81c9477d3cbb10cbffcc109307a4da6"
+    }
+  ]
+}

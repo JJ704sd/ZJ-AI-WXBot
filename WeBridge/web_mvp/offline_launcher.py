@@ -60,15 +60,20 @@ def launch(request, result, directory, client):
         if request.stat().st_size > 65536:
             raise ValueError('Desktop request exceeds 64 KiB.')
         task = json.loads(request.read_text(encoding='utf-8-sig'))
-        if (not isinstance(task, dict) or set(task) - {'version', 'client', 'chatId', 'chatName', 'receipt'}
+        if (not isinstance(task, dict) or set(task) - {'version', 'client', 'chatId', 'chatName', 'receipt', 'conversationMode'}
                 or task.get('version') != 1 or task.get('client') != client
+                or task.get('conversationMode', 'group') not in ('group', 'direct')
                 or (task.get('chatId') and task.get('chatName'))):
             raise ValueError('Invalid desktop request.')
         from offline_desktop import DesktopSession
-        session = DesktopSession(directory, client=client)
+        from offline_direct import resolve_packaged_mode
+        mode = resolve_packaged_mode(task.get('conversationMode'))
+        session = DesktopSession(directory, client=client, conversation_mode=mode)
         if session.settings.get('source'):
             session._outside_source(session.settings['source'])
         arguments = ['--client', client, '--data-dir', str(directory)]
+        if mode == 'direct':
+            arguments += ['--conversation-mode', mode]
         for field, flag in (('chatId', '--open-chat'), ('chatName', '--open-chat-name')):
             if task.get(field):
                 if not isinstance(task[field], str) or len(task[field]) > 4096 or '\0' in task[field]:

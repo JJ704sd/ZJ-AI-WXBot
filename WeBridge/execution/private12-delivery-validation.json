@@ -1,0 +1,72 @@
+{
+  "version": "1.2.0",
+  "syntheticOnly": true,
+  "targetedTestsPassed": 66,
+  "nativeWindowsTested": true,
+  "nativeScreenshotsAvailable": false,
+  "layoutPreviewType": "widget-geometry SVG",
+  "previousArtifactsUnchanged": [
+    {
+      "name": "WeChat-WeCom-Archive-Windows-Delivery-20261020-v41.zip",
+      "sha256": "d15751aa1794b2001ad21ca84f4ee3032ac88141a90df407d63f6d25d4273110"
+    },
+    {
+      "name": "local-chat-review-v41-20261020-windows-x64.zip",
+      "sha256": "6fff833f4bcb114841062c13f3a096b60fd031728eb5b3c24e86e3d7254f0695"
+    },
+    {
+      "name": "WeChat-Archive-Skill-1.27.0-Windows-x64.zip",
+      "sha256": "410372ad85875c015c66700153080c07cf4a36458058a7da25a43a44e74e8f6d"
+    },
+    {
+      "name": "WeCom-Archive-Skill-1.27.0-Windows-x64.zip",
+      "sha256": "a9baad07f009c7bcfbe19aa81f4a4679b463933067c1400cb06b25cfc8cdb5c4"
+    },
+    {
+      "name": "private-analysis-1.0.0-20261022/local-wechat-private-analysis-1.0.0-windows-x64.zip",
+      "sha256": "1822c148d3c56a85cc7f27677720c8dbb249de93293cf1e0448519b7ebd4109e"
+    },
+    {
+      "name": "private-analysis-1.0.0-20261022/local-wecom-private-analysis-1.0.0-windows-x64.zip",
+      "sha256": "77e5b53193bc7ced879b439fb8eff97dae7192b83e5dd9d4e578410b473aff70"
+    },
+    {
+      "name": "WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v1.zip",
+      "sha256": "1311c2b4f440a5d6178e2d996758ef4e0cd90d13837cdb51dfac7cbbe31e736b"
+    },
+    {
+      "name": "private-analysis-1.1.0-20261022/local-wechat-private-analysis-1.1.0-windows-x64.zip",
+      "sha256": "59cbcfc18e5a12d5ae9b3435db6e468aec1ca557604035a2fc6f9314e4abe46a"
+    },
+    {
+      "name": "private-analysis-1.1.0-20261022/local-wecom-private-analysis-1.1.0-windows-x64.zip",
+      "sha256": "96c8928127b4ab8b02564e7503814efb085b5140aba4c36bde195ed026fe254a"
+    },
+    {
+      "name": "WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v2.zip",
+      "sha256": "093ec928132788083e017835de03733c94b51abd86d545f8a3e3bd8b3fb00799"
+    }
+  ],
+  "packages": [
+    {
+      "client": "wechat",
+      "name": "local-wechat-private-analysis-1.2.0-windows-x64.zip",
+      "sha256": "561c87e2ed1c253a18d6b68bc3c50bacbf082f5f50777ece3b29c9d6b9e471ee",
+      "bytes": 47117599
+    },
+    {
+      "client": "wecom",
+      "name": "local-wecom-private-analysis-1.2.0-windows-x64.zip",
+      "sha256": "9a7dcaa6ef4001926684b4d2374f3d31e6c25a34a41a2c22f94d9c8255f962bd",
+      "bytes": 47117629
+    }
+  ],
+  "bundle": {
+    "name": "WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v3.zip",
+    "bytes": 94297891,
+    "sha256": "383944c787f55cb30c6d88abd1922c645bfaffb179a56f9cccaba11156b67b7e",
+    "files": 18,
+    "crc": "passed",
+    "readback": "passed"
+  }
+}

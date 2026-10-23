@@ -91,7 +91,7 @@ class ReviewProgressTests(unittest.TestCase):
             self.assertEqual(info['restoredReviews'],1)
             self.assertEqual(resumed.review_status(chats[0]),'已复核')
             self.assertEqual(resumed.review_status(chats[1]),'未解析')
-            self.assertNotIn(chats[1],info['resumeSelection'])
+            self.assertIn(chats[1],info['resumeSelection'])
 
     def test_changed_snapshot_foreign_source_and_legacy_state_never_restore_approval(self):
         for alteration in ('snapshot','source','legacy'):

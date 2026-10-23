@@ -45,7 +45,7 @@ def header(chat, start=None, end=None):
 
 def message(row, ordinal):
     lines = ['<a id="' + message_anchor(row['id']) + '"></a>', '',
-             '## ' + str(ordinal) + ' · ' + _text(row.get('time')) + ' · ' + _text(row.get('senderName') or '身份未知'), '',
+             '## ' + str(ordinal) + ' · ' + _text(row.get('time') or '时间未知') + ' · ' + _text(row.get('senderName') or '身份未知'), '',
              '消息 ID：' + _code(row['id']), '']
     source = row.get('provenance', {})
     lines += ['原始出处：' + _code('; '.join(str(key) + '=' + str(value) for key, value in source.items()))
@@ -60,6 +60,9 @@ def message(row, ordinal):
             + _code(value.get('senderId', '')) + '；时间：' + _text(value.get('time') or '未提供'), ''])
         if value.get('direction'):
             lines.extend(['消息方向：' + _text(value['direction']), ''])
+        if value.get('metadataIssues'):
+            lines.extend(['字段异常：' + '、'.join(_text(field) for field in value['metadataIssues']) +
+                          '；原始值已保留，未知信息未作推断。', ''])
         if 'part' in value:
             lines.extend(['转发位置：' + _code('part=' + value['part']), ''])
         if value.get('text') and value['text'] != kind:

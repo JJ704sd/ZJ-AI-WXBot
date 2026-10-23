@@ -1,0 +1,62 @@
+{
+  "version": "v42",
+  "skillVersion": "1.28.0",
+  "syntheticOnly": true,
+  "packages": [
+    {
+      "archive": "local-chat-review-v42-20261022-windows-x64.zip",
+      "bytes": 33005377,
+      "sha256": "dab7082e61728618121d1129ef5df884d0703f0af8f505dba2f76582c73b61e4",
+      "entries": 27
+    },
+    {
+      "archive": "WeChat-Archive-Skill-1.28.0-Windows-x64.zip",
+      "bytes": 33022096,
+      "sha256": "c38aebf284e4486fb80fe99ea3c4355e83a7c2d60e3ee286da0f1e1170608b2b",
+      "entries": 32
+    },
+    {
+      "archive": "WeCom-Archive-Skill-1.28.0-Windows-x64.zip",
+      "bytes": 33019198,
+      "sha256": "19f2e239024e3f31ef82a69786dfbf8683f21fc225777868e8caf6d4c2c7240a",
+      "entries": 33
+    }
+  ],
+  "clients": [
+    {
+      "client": "wechat",
+      "capabilities": {
+        "schemaVersion": 1,
+        "privateAnalysis": false,
+        "conversationMode": "group",
+        "role": "desktop",
+        "version": "1.28.0",
+        "release": "v42"
+      },
+      "rows": 1,
+      "threeFormatsEquivalent": true,
+      "analysisPresent": true,
+      "nativeReadingVerified": true,
+      "humanReviewNotFabricated": true
+    },
+    {
+      "client": "wecom",
+      "capabilities": {
+        "schemaVersion": 1,
+        "privateAnalysis": false,
+        "conversationMode": "group",
+        "role": "desktop",
+        "version": "1.28.0",
+        "release": "v42"
+      },
+      "rows": 2,
+      "threeFormatsEquivalent": true,
+      "analysisPresent": true,
+      "nativeReadingVerified": true,
+      "humanReviewNotFabricated": true
+    }
+  ],
+  "priorDeliveryZipsUnchanged": 7,
+  "desktopExeSha256": "e2076428328bace4b920f34d57628be961956287f2d2b2a7bc06b4b73afe67f7",
+  "documentationRefreshedWithoutBinaryChanges": true
+}

@@ -28,9 +28,10 @@ BUSINESS_DIRS = {'contact', 'session', 'message', 'biz_message'}
 class SnapshotError(ValueError):
     """Safe diagnostics composed only from this module and whitelisted DB names."""
 
-    def __init__(self, message):
+    def __init__(self, message, *, code=None):
         super().__init__(message)
         self.public_message = message
+        self.code = code
 
 
 class SourceChanged(SnapshotError):
@@ -181,13 +182,16 @@ class _Cipher:
             raise SnapshotError('加密数据库需要项目 Python 环境安装 cryptography；未尝试安装或获取密钥。') from None
         self.key, self.Cipher, self.algorithms, self.modes = key, Cipher, algorithms, modes
         self.mac_key = hashlib.pbkdf2_hmac('sha512', key, bytes(byte ^ 0x3a for byte in salt), 2, 32)
+        self._mac = hmac.new(self.mac_key, digestmod=hashlib.sha512)
 
     def page(self, page, number):
         if len(page) != 4096:
             raise SnapshotError('加密页长度错误，已拒绝部分解密。')
         first = number == 1
         offset = 16 if first else 0
-        expected = hmac.new(self.mac_key, page[offset:4032] + number.to_bytes(4, 'little'), hashlib.sha512).digest()
+        mac = self._mac.copy()
+        mac.update(page[offset:4032] + number.to_bytes(4, 'little'))
+        expected = mac.digest()
         if not hmac.compare_digest(expected, page[4032:4096]):
             raise SnapshotError('数据库页 HMAC 校验失败；密钥不匹配、格式变化或副本受损。')
         decryptor = self.Cipher(self.algorithms.AES(self.key), self.modes.CBC(page[4016:4032])).decryptor()
@@ -218,7 +222,7 @@ def _decrypt_database(source, target, keys):
     for key in candidates:
         cipher = _Cipher(key, first_page[:16])
         try:
-            cipher.page(first_page, 1)
+            first_plain = cipher.page(first_page, 1)
             selected = cipher
             break
         except SnapshotError:
@@ -227,7 +231,10 @@ def _decrypt_database(source, target, keys):
         raise SnapshotError('提供的密钥未通过数据库首页校验。')
     target.parent.mkdir(parents=True, exist_ok=True)
     with source.open('rb') as incoming, target.open('xb') as outgoing:
-        number = 1
+        # The matching key already authenticated and decoded the first page.
+        outgoing.write(first_plain)
+        incoming.seek(4096)
+        number = 2
         while True:
             page = incoming.read(4096)
             if not page:
@@ -280,7 +287,8 @@ def prepare_snapshot(source_root, output_root, keys_file=None, include_media=Fal
                     wal_report['sourceSha256'] = hashes[wal_relative]
                 _quick_check(destination)
             except (SnapshotError, WalError) as error:
-                raise SnapshotError(relative + '：' + str(error)) from None
+                raise SnapshotError(relative + '：' + str(error),
+                                    code=error.code if isinstance(error, SnapshotError) else None) from None
             reports.append({'path': relative, 'sourceBytes': signatures[relative][0],
                             'sourceSha256': hashes[relative], 'encrypted': cipher is not None,
                             'integrity': 'ok', 'wal': wal_report})
@@ -300,5 +308,6 @@ def prepare_snapshot(source_root, output_root, keys_file=None, include_media=Fal
     except Exception as error:
         _remove_owned(generation, output)
         if isinstance(error, (SnapshotError, WalError)):
-            raise SnapshotError(str(error)) from None
-        raise SnapshotError('准备数据库副本失败；请检查访问权限和磁盘空间。现有成功副本未改动。') from None
+            raise SnapshotError(str(error), code=error.code if isinstance(error, SnapshotError) else None) from None
+        raise SnapshotError('准备数据库副本失败；请检查访问权限和磁盘空间。现有成功副本未改动。',
+                            code='snapshot_io' if isinstance(error, OSError) else None) from None

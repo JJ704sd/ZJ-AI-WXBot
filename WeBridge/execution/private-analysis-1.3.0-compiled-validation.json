@@ -1,0 +1,68 @@
+{
+  "syntheticOnly": true,
+  "realAccountsRead": false,
+  "packages": [
+    {
+      "client": "wechat",
+      "files": 27,
+      "zipCrc": "passed",
+      "allFileHashes": "passed",
+      "compiledPrivateParsing": "passed",
+      "profilePrepareStageShow": "passed",
+      "candidateChineseRoundTrip": "passed",
+      "windowsPowerShellWrapper": "passed",
+      "compiledInsightsAndReports": "passed",
+      "v1PersistentIdsCompatible": true,
+      "wrapperKeywordPagination": "passed",
+      "sourceReportWriteRejected": true,
+      "crossClientRejected": true,
+      "nativeWindowCreated": true,
+      "defaultMode": "direct",
+      "emptyAccountResult": {
+        "ok": false,
+        "nativeWindowCreated": true,
+        "client": "wechat",
+        "conversationMode": "direct",
+        "release": "私聊 1.3.0",
+        "error": "首次使用：请重新选择本人微信账号并配置；旧配置不会自动导入。"
+      },
+      "formalProfileCreated": false,
+      "pythonOnChildPath": false,
+      "confirmedFixtureReadAndOverview": "passed",
+      "unchangedCandidateRejected": true,
+      "confirmedFixtureCreatedBy": "synthetic_test_API_in_separate_store",
+      "zipSha256": "a23545368dbb76ccd19ac86343a9fe67b065546e3d79d76fa26e1536ad24ce68"
+    },
+    {
+      "client": "wecom",
+      "files": 27,
+      "zipCrc": "passed",
+      "allFileHashes": "passed",
+      "compiledPrivateParsing": "passed",
+      "profilePrepareStageShow": "passed",
+      "candidateChineseRoundTrip": "passed",
+      "windowsPowerShellWrapper": "passed",
+      "compiledInsightsAndReports": "passed",
+      "v1PersistentIdsCompatible": true,
+      "wrapperKeywordPagination": "passed",
+      "sourceReportWriteRejected": true,
+      "crossClientRejected": true,
+      "nativeWindowCreated": true,
+      "defaultMode": "direct",
+      "emptyAccountResult": {
+        "ok": false,
+        "nativeWindowCreated": true,
+        "client": "wecom",
+        "conversationMode": "direct",
+        "release": "私聊 1.3.0",
+        "error": "首次使用：请重新选择本人企业微信账号并配置；旧配置不会自动导入。"
+      },
+      "formalProfileCreated": false,
+      "pythonOnChildPath": false,
+      "confirmedFixtureReadAndOverview": "passed",
+      "unchangedCandidateRejected": true,
+      "confirmedFixtureCreatedBy": "synthetic_test_API_in_separate_store",
+      "zipSha256": "f4b5d1de292e1ef9fb7a0900495a71c90df9e49876c4e5398b84ab81d7a74797"
+    }
+  ]
+}

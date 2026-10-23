@@ -54,7 +54,7 @@ def settle():
     deadline=time.monotonic()+.35
     while time.monotonic()<deadline:root.update();time.sleep(.01)
 def outputs():
-    return sorted(profile.glob('exports/*/manifest.json'))+sorted(profile.glob('reviews/*/manifest.json'))
+    return sorted(profile.glob('exports/**/manifest.json'))+sorted(profile.glob('reviews/*/manifest.json'))
 def enter():
     app.search_entry.focus_force();root.update();app.search_entry.event_generate('<Return>')
 try:
@@ -75,6 +75,10 @@ try:
     assert not outputs(),'filter shortcut parsed a selected candidate'
     app.tree.selection_remove('R:similar');settle()
     enter()
+    root.update()
+    assert app.active_chat=='R:synthetic','exact search should locate the only exact candidate before confirmation'
+    assert app.parse_button.instate(['!disabled']),'exact search should expose the explicit parse confirmation'
+    app.parse_button.invoke();root.update()
     pump(lambda:session.pending_review is not None and not app.busy)
     assert app.active_chat=='R:synthetic','exact name must win over a longer partial match'
     assert len(outputs())==1,'one request should create one target result'
@@ -89,7 +93,8 @@ try:
     os.startfile=lambda path:opened.append(Path(path))
     app.open_button.invoke()
     assert not opened,'unconfirmed preview must not enable final export links'
-    app.export_button.invoke();root.update()
+    assert app.review_button.instate(['!disabled']),'a parsed target should expose the explicit review action'
+    app.review_button.invoke();root.update()
     dialogs=[w for w in root.winfo_children() if isinstance(w,tk.Toplevel)]
     assert len(dialogs)==1
     def widgets(parent):
@@ -113,19 +118,25 @@ try:
     import local_chat_app
     notices=[]
     local_chat_app.messagebox.showinfo=lambda *args,**kwargs:notices.append(args)
-    app.export_button.invoke();root.update()
+    assert app.review_button.instate(['!disabled']),'a parsed duplicate candidate should expose the explicit review action'
+    app.review_button.invoke();root.update()
     dialog=next(w for w in root.winfo_children() if isinstance(w,tk.Toplevel))
     checks=[w for w in widgets(dialog) if w.winfo_class()=='TCheckbutton']
     assert all(not root.getvar(w.cget('variable')) for w in checks),'review checks were preselected'
-    confirm=next(w for w in widgets(dialog) if w.winfo_class()=='TButton' and w.cget('text')=='确认无误，导出三种格式')
+    confirm=next(w for w in widgets(dialog) if w.winfo_class()=='TButton' and w.cget('text')=='确认复核完成')
     confirm.invoke();root.update()
-    assert notices and not (profile/'exports').exists(),'unchecked review was exported'
+    assert 'disabled' in confirm.state(),'incomplete review must remain blocked until every check is selected'
+    assert not notices and not (profile/'exports').exists(),'unchecked review was exported'
     for check in checks:check.invoke()
     note=[w for w in widgets(dialog) if w.winfo_class()=='Text'][-1]
     note.insert('end','自动化合成测试，不代表真实人工复核')
     confirm.invoke()
+    pump(lambda:session.review_status('R:second')=='已复核' and not app.busy)
+    app.toggle_group('R:second');root.update()
+    assert app.export_button.instate(['!disabled']),'a reviewed target must be selected before final export'
+    app.export_button.invoke();root.update()
     pump(lambda:session.last_export is not None and not app.busy)
-    assert len(outputs())==3
+    assert len(outputs())==3, f'expected two review manifests plus one final export, got {outputs()}'
     output=session.last_export
     assert json.loads((output/'messages.json').read_text(encoding='utf8'))==rows
     assert json.loads((output/'review.json').read_text(encoding='utf8'))['chat']['id']=='R:second'
@@ -133,7 +144,7 @@ try:
     assert app.export_button.instate(['disabled']),'a consumed review can be submitted twice'
     app.search.set('不存在的群');root.update();enter();settle()
     assert len(outputs())==3 and not app.tree.get_children()
-    assert session.last_export is None and app.open_button.instate(['disabled'])
+    assert session.last_export == output and app.open_button.instate(['!disabled'])
     app.search.set('');root.update();enter();settle()
     assert len(app.tree.get_children())==5 and len(outputs())==3
 finally:

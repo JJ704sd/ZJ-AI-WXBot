@@ -1,0 +1,27 @@
+{
+  "release": "v46",
+  "group": "core",
+  "syntheticOnly": true,
+  "testsRun": 116,
+  "failures": 0,
+  "errors": 0,
+  "skipped": [],
+  "seconds": 66.59346860006917,
+  "modules": [
+    "test_group_content46",
+    "test_group_quotes44",
+    "test_wecom_archive",
+    "test_offline_chat",
+    "test_offline_analysis",
+    "test_offline_documents",
+    "test_group_export_location45.ExportLocation45Tests",
+    "test_offline_progress",
+    "test_group_export_recovery42",
+    "test_group_integrity44",
+    "test_offline_batch_review",
+    "test_offline_desktop",
+    "test_private_export_recovery17",
+    "test_runtime_identity",
+    "test_windows_hook_smoke.SourceBindingTests"
+  ]
+}

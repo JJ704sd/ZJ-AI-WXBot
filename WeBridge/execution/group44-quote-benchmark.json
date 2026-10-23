@@ -1,0 +1,83 @@
+{
+  "scope": "WeCom quote index construction and 100 cached exact-reference lookups; excludes decrypt, archive initialization, export rendering and source checks",
+  "fixture": {
+    "rows": 100000,
+    "uniqueTokens": 100000,
+    "protobufBodyBytesPerRow": 1021,
+    "syntheticOnly": true
+  },
+  "method": {
+    "samplesEach": 3,
+    "order": "baseline/current/current/baseline/baseline/current",
+    "fileCache": "ordinary Windows filesystem cache; no cold-disk claim",
+    "retainedMemory": "recursive sys.getsizeof of archive._quote_sources, counting each object once; excludes allocator RSS, transient query rows and SQLite page cache",
+    "equivalence": "SHA256 of complete linked row JSON for first quote and 100 deterministic targets; exact sourceMessageId also asserted",
+    "baselineLinkQuoteSha256": "f3c7d0f3018cac8445df0640dbc0f5ed81579f0cc153c1a064bcb9645a78e6c3",
+    "currentLinkQuoteSha256": "dac8aa5d55cbc7e308b26fa981c894cbc166f026663726fca9acee90751b3147"
+  },
+  "resultEquivalent": true,
+  "sourceDatabaseUnchanged": true,
+  "summary": {
+    "baseline": {
+      "medianFirstQuoteSeconds": 0.9497802000259981,
+      "median100CachedLookupSeconds": 0.015008299960754812,
+      "retainedCacheBytes": 205422613
+    },
+    "current": {
+      "medianFirstQuoteSeconds": 0.5331908001098782,
+      "median100CachedLookupSeconds": 0.041940800030715764,
+      "retainedCacheBytes": 29743130
+    },
+    "cacheBytesReductionPercent": 85.52100493434965
+  },
+  "samples": [
+    {
+      "implementation": "baseline",
+      "firstQuoteSeconds": 0.9723755000159144,
+      "cachedLookupCount": 100,
+      "cachedLookupSeconds": 0.01529310003388673,
+      "retainedCacheBytes": 205422613,
+      "resultSha256": "9d872aeaae7d96203cce3ce2c2992d364b338d7728ca7d971b4ddd4f2f1b8721"
+    },
+    {
+      "implementation": "current",
+      "firstQuoteSeconds": 0.5291636000620201,
+      "cachedLookupCount": 100,
+      "cachedLookupSeconds": 0.041940800030715764,
+      "retainedCacheBytes": 29743130,
+      "resultSha256": "9d872aeaae7d96203cce3ce2c2992d364b338d7728ca7d971b4ddd4f2f1b8721"
+    },
+    {
+      "implementation": "current",
+      "firstQuoteSeconds": 0.5331908001098782,
+      "cachedLookupCount": 100,
+      "cachedLookupSeconds": 0.043982299976050854,
+      "retainedCacheBytes": 29743130,
+      "resultSha256": "9d872aeaae7d96203cce3ce2c2992d364b338d7728ca7d971b4ddd4f2f1b8721"
+    },
+    {
+      "implementation": "baseline",
+      "firstQuoteSeconds": 0.9497802000259981,
+      "cachedLookupCount": 100,
+      "cachedLookupSeconds": 0.014720500097610056,
+      "retainedCacheBytes": 205422613,
+      "resultSha256": "9d872aeaae7d96203cce3ce2c2992d364b338d7728ca7d971b4ddd4f2f1b8721"
+    },
+    {
+      "implementation": "baseline",
+      "firstQuoteSeconds": 0.9416313000256196,
+      "cachedLookupCount": 100,
+      "cachedLookupSeconds": 0.015008299960754812,
+      "retainedCacheBytes": 205422613,
+      "resultSha256": "9d872aeaae7d96203cce3ce2c2992d364b338d7728ca7d971b4ddd4f2f1b8721"
+    },
+    {
+      "implementation": "current",
+      "firstQuoteSeconds": 0.5782579999649897,
+      "cachedLookupCount": 100,
+      "cachedLookupSeconds": 0.0416197000304237,
+      "retainedCacheBytes": 29743130,
+      "resultSha256": "9d872aeaae7d96203cce3ce2c2992d364b338d7728ca7d971b4ddd4f2f1b8721"
+    }
+  ]
+}

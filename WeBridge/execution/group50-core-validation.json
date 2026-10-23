@@ -1,0 +1,18 @@
+{
+  "release": "v50",
+  "group": "core",
+  "syntheticOnly": true,
+  "testsRun": 44,
+  "failures": 0,
+  "errors": 0,
+  "skipped": [],
+  "seconds": 19.403787299990654,
+  "modules": [
+    "test_group_diagnostics50.Diagnostics50Tests",
+    "test_offline_desktop",
+    "test_offline_batch_review",
+    "test_private_export_recovery17",
+    "test_runtime_identity",
+    "test_windows_hook_smoke.SourceBindingTests"
+  ]
+}

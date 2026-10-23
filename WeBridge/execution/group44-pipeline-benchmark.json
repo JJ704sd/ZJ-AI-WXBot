@@ -1,0 +1,104 @@
+{
+  "syntheticOnly": true,
+  "method": "Fresh processes, one final sample/version/client; v43 controls retained from the preceding sequential run, v44 both rerun sequentially after the final warm-inventory fix. No simultaneous benchmark/build was active during these runs. Each workflow snapshots and loads a plaintext source, parses 100000 text rows, saves a synthetic review, publishes and restores. v44 models a background group with deferred reading; opening it later still pays index cost. Normal Windows filesystem cache; excludes fixture construction, real-key recovery, media and network. Output identity/text/order/status fields checked across every row; full end-to-end time is observational, not a general throughput guarantee.",
+  "summary": {
+    "wechat": {
+      "recordsEquivalent": true,
+      "rows": 100000,
+      "beforeSeconds": 20.848303199978545,
+      "afterSeconds": 18.90497640008107,
+      "progressEvents": 61,
+      "restoreSuccessful": true
+    },
+    "wecom": {
+      "recordsEquivalent": true,
+      "rows": 100000,
+      "beforeSeconds": 20.932753200060688,
+      "afterSeconds": 18.145719400024973,
+      "progressEvents": 58,
+      "restoreSuccessful": true
+    }
+  },
+  "runs": [
+    {
+      "version": "v43",
+      "client": "wechat",
+      "rows": 100000,
+      "syntheticOnly": true,
+      "phases": {
+        "snapshotAndLoad": 0.08853059995453805,
+        "parseAndCheckpoint": 17.619529000017792,
+        "approveSyntheticFixture": 0.49942669994197786,
+        "publish": 2.6408169000642374,
+        "restartRestore": 2.4960538999876007
+      },
+      "recordDigest": "58bd16158e89d1ef26f25e419c6336290343086b8f1e3738829293aafbaad79c",
+      "rowsVerified": 100000,
+      "progressEvents": 0,
+      "deferredReading": false,
+      "outputBytes": 403265133,
+      "restoredPublished": 1,
+      "initialWorkflowSeconds": 20.848303199978545
+    },
+    {
+      "version": "v44",
+      "client": "wechat",
+      "rows": 100000,
+      "syntheticOnly": true,
+      "phases": {
+        "snapshotAndLoad": 0.0944545998936519,
+        "parseAndCheckpoint": 15.652592800091952,
+        "approveSyntheticFixture": 0.5173947000876069,
+        "publish": 2.6405343000078574,
+        "restartRestore": 2.4569665000308305
+      },
+      "recordDigest": "58bd16158e89d1ef26f25e419c6336290343086b8f1e3738829293aafbaad79c",
+      "rowsVerified": 100000,
+      "progressEvents": 61,
+      "deferredReading": true,
+      "outputBytes": 403265133,
+      "restoredPublished": 1,
+      "initialWorkflowSeconds": 18.90497640008107
+    },
+    {
+      "version": "v43",
+      "client": "wecom",
+      "rows": 100000,
+      "syntheticOnly": true,
+      "phases": {
+        "snapshotAndLoad": 0.12646470009349287,
+        "parseAndCheckpoint": 17.68806429998949,
+        "approveSyntheticFixture": 0.5117872999981046,
+        "publish": 2.606436899979599,
+        "restartRestore": 2.427125999936834
+      },
+      "recordDigest": "aa0448567405936d9858d8fc91feda79203555d6045077aec53908f5efe766a9",
+      "rowsVerified": 100000,
+      "progressEvents": 0,
+      "deferredReading": false,
+      "outputBytes": 370181231,
+      "restoredPublished": 1,
+      "initialWorkflowSeconds": 20.932753200060688
+    },
+    {
+      "version": "v44",
+      "client": "wecom",
+      "rows": 100000,
+      "syntheticOnly": true,
+      "phases": {
+        "snapshotAndLoad": 0.14581679995171726,
+        "parseAndCheckpoint": 14.96623100002762,
+        "approveSyntheticFixture": 0.48623549996409565,
+        "publish": 2.5474361000815406,
+        "restartRestore": 2.3459004999604076
+      },
+      "recordDigest": "aa0448567405936d9858d8fc91feda79203555d6045077aec53908f5efe766a9",
+      "rowsVerified": 100000,
+      "progressEvents": 58,
+      "deferredReading": true,
+      "outputBytes": 370181231,
+      "restoredPublished": 1,
+      "initialWorkflowSeconds": 18.145719400024973
+    }
+  ]
+}

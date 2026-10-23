@@ -1,6 +1,7 @@
 """Publish the exact locally parsed batch after an explicit human review."""
 from datetime import datetime
 import json
+import os
 from pathlib import Path
 import shutil
 import tempfile
@@ -15,6 +16,32 @@ REVIEW_CHECKS = {
     'content': '已抽查正文、发送人、引用、转发及附件解析状态',
     'gaps': '已检查缺失媒体、未知类型及解析限制，接受已列明的缺口',
 }
+
+
+def _atomic_write(path, writer):
+    """Write metadata beside its destination and publish it atomically."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        fd, temporary = tempfile.mkstemp(prefix='.' + path.name + '-', dir=path.parent)
+        with os.fdopen(fd, 'w', encoding='utf8') as stream:
+            writer(stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+        temporary = None
+    finally:
+        if temporary:
+            Path(temporary).unlink(missing_ok=True)
+
+
+def atomic_write_json(path, value):
+    _atomic_write(path, lambda stream: json.dump(value, stream, ensure_ascii=False, indent=2))
+
+
+def atomic_write_text(path, value):
+    _atomic_write(path, lambda stream: stream.write(value))
 
 
 def inventory(root):
@@ -70,14 +97,25 @@ def publish_review(pending, destination, checks=None, note=''):
     try:
         shutil.copytree(root, stage, dirs_exist_ok=True,
                         ignore=lambda folder, names: ['opened'] if Path(folder) == root and 'opened' in names else [])
-        if inventory(stage) != pending['files']:
+        copied_files = inventory(stage)
+        if copied_files != pending['files']:
             raise ArchiveError('复制期间解析结果发生变化，请重新解析并复核。')
         report = json.loads((stage / 'manifest.json').read_text(encoding='utf8'))
         write_json(stage / 'review.json', review)
         report['humanReview'] = {'status': 'confirmed', 'reviewId': review['reviewId'], 'file': 'review.json'}
         report['reporting'] = completion_report(destination, report)
         (stage / REPORT_FILE).write_text(report['reporting']['replyMarkdown'], encoding='utf8')
-        report['artifacts'] = [item for item in inventory(stage) if item['path'] != 'manifest.json']
+        # The copy was just hashed against the reviewed inventory. Only these
+        # small metadata files have changed since; do not reread every media
+        # attachment merely to repeat the same hashes in the manifest.
+        changed = {'review.json', REPORT_FILE}
+        artifacts = [item for item in copied_files
+                     if item['path'] not in changed | {'manifest.json'}]
+        for name in changed:
+            path = stage / name
+            artifacts.append({'path': name, 'bytes': path.stat().st_size,
+                              'sha256': _hash_file(path)})
+        report['artifacts'] = sorted(artifacts, key=lambda item: Path(item['path']))
         (stage / 'manifest.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf8')
         if destination.exists():
             raise ArchiveError('导出目录在确认期间已创建，未覆盖。')

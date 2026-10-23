@@ -47,7 +47,7 @@ def widgets(parent):
         yield from widgets(child)
 for client,child in [('wechat','db_storage'),('wecom','Data')]:
     session=DesktopSession(base/client/'profile',client=client)
-    session.bootstrap=lambda:{'status':'needs_source','message':'测试账号设置'}
+    session.bootstrap=lambda **_kwargs:{'status':'needs_source','message':'测试账号设置'}
     saved=base/client/'saved';running=base/client/'running'
     discovery={'accounts':[{'sourceRoot':str(p/'db_storage' if client=='wechat' else p), 'directoryLabel':p.name,
         'databases':[{'path':'session.db' if client=='wecom' else 'session/session.db'}]} for p in (saved,running)]}

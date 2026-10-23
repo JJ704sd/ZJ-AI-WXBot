@@ -1,0 +1,19 @@
+{
+  "release": "v44",
+  "group": "gui",
+  "syntheticOnly": true,
+  "testsRun": 33,
+  "failures": 0,
+  "errors": 0,
+  "skipped": [],
+  "seconds": 118.33708490000572,
+  "modules": [
+    "test_group_ui44.GroupNativeUI44Tests",
+    "test_group_setup_recovery43.GroupSetupUI43Tests",
+    "test_group_ui42",
+    "test_offline_multiselect",
+    "test_private_main_design17",
+    "test_private_layout",
+    "test_offline_setup_integration"
+  ]
+}

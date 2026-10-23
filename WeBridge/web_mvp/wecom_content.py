@@ -95,11 +95,24 @@ def quote_entry(extra):
     if len(entries) != 1:
         return b''
     decoded = fields(entries[0])
-    for number in (1, 2, 5):
+    for number in (1, 2):
         matches = [(wire, val) for field, wire, val in decoded if field == number]
         if len(matches) != 1 or matches[0][0] != 0:
             return b''
+    kinds = [(wire, val) for field, wire, val in decoded if field == 5]
+    if kinds and (len(kinds) != 1 or kinds[0][0] != 0):
+        return b''
     return entries[0]
+
+
+def quote_identifier(extra, entry):
+    if not entry:
+        return ''
+    identifiers = values(entry, 16)
+    if not identifiers or identifiers == [b'']:
+        envelopes = values(extra, 1002)
+        identifiers = values(envelopes[0], 2) if len(envelopes) == 1 else []
+    return text(identifiers[0]) if len(identifiers) == 1 and len(identifiers[0]) <= 256 else ''
 
 
 def typed_message(data, kind, *, depth=0, extra=b'', prefix=''):
@@ -121,22 +134,27 @@ def typed_message(data, kind, *, depth=0, extra=b'', prefix=''):
                     chunks.append('@' + name)
                     mention_ids.append(str(member))
                 else:
+                    chunks.append((name if name.strip() else '') + '[提及对象未记录]')
                     unsupported = True
             else:
                 unsupported = True
         result.update(kind='text', text=''.join(chunks), parseStatus='ok' if not unsupported and (chunks or not data) else 'unsupported_text_blocks',
                       mentions={'ids': list(dict.fromkeys(mention_ids)), 'self': None, 'status': 'structured_wecom' if mention_ids else 'none'})
         result['links'] = re.findall(r'https?://[^\s<>"\x00-\x1f]+', result['text'])
-    elif kind in (14, 15, 20, 22, 23, 29):
-        label = {14: 'image', 15: 'file', 20: 'file', 22: 'video', 23: 'video', 29: 'emoji'}[kind]
-        filename = text(value(data, 2)) if kind in (14, 15, 20) else text(value(data, 107)) if kind == 22 else label
+    elif kind in (14, 15, 20, 22, 23, 29, 101, 102):
+        label = {14: 'image', 15: 'file', 20: 'file', 22: 'video', 23: 'video', 29: 'emoji', 101: 'image', 102: 'file'}[kind]
+        filename = text(value(data, 2)) if kind in (14, 15, 20, 102) else text(value(data, 107)) if kind == 22 else label
         digest_field = 6 if kind == 29 else 9 if kind in (22, 23) else 10
         result.update(kind=label, text=filename or label, parseStatus='ok',
                       media={'filename': filename or label, 'md5': text(value(data, digest_field)),
                              'size': value(data, 3 if kind in (22, 23) else 4, 0, 0),
                              'width': value(data, 5, 0, 0), 'height': value(data, 6, 0, 0),
-                             'thumbnailMd5': text(value(data, 30 if kind == 14 else 18)),
-                             'thumbnailSize': value(data, 27 if kind == 14 else 17, 0, 0)})
+                             'thumbnailMd5': text(value(data, 30 if kind in (14, 101) else 18)),
+                             'thumbnailSize': value(data, 27 if kind in (14, 101) else 17, 0, 0)})
+        if kind in (101, 102) and (not re.fullmatch('[a-fA-F0-9]{32}', result['media']['md5'])
+                or (kind == 102 and not filename)):
+            result.update(kind='unknown', text='未完整适配的企微媒体结构；原始字段保留。', parseStatus='unsupported_media_schema')
+            result.pop('media')
     elif kind == 4:
         items = []
         entries = values(data, 1)
@@ -194,6 +212,7 @@ def typed_message(data, kind, *, depth=0, extra=b'', prefix=''):
         result['quote'] = {'senderId': sender, 'senderName': name, 'message': message,
                            'sourceType': source_type, 'sourceTimestamp': stamp,
                            'sourceToken': token if re.fullmatch(r'[0-9a-fA-F]{32}', token) else '',
+                           'sourceIdentifier': quote_identifier(extra, entry),
                            'contentSha256': hashlib.sha256(payload).hexdigest() if payload else '',
                            'resolutionStatus': status}
         if result['kind'] == 'text':

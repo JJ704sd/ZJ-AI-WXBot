@@ -1,0 +1,153 @@
+{
+  "method": "Alternating local synthetic baseline/current runs; warm filesystem cache; timing excludes fixture creation, hash comparison and allocation tracing. Peak is Python traced allocation, not process working set. WeChat case is authenticated page decryption only; WeCom cases include stable capture, complete source rehash, decoding, quick_check and manifest.",
+  "python": "3.14.6 (tags/v3.14.6:c63aec6, Jun 10 2026, 10:26:10) [MSC v.1944 64 bit (AMD64)]",
+  "repeats": 5,
+  "cases": [
+    "wechat"
+  ],
+  "allocationSamplesPerVersion": 1,
+  "runs": {
+    "baseline": [
+      {
+        "wechat": {
+          "seconds": 1.2412131000310183,
+          "pythonPeakBytes": 281991,
+          "exactOutput": true
+        }
+      },
+      {
+        "wechat": {
+          "seconds": 1.3056131000630558,
+          "pythonPeakBytes": null,
+          "exactOutput": true
+        }
+      },
+      {
+        "wechat": {
+          "seconds": 1.8027808000333607,
+          "pythonPeakBytes": null,
+          "exactOutput": true
+        }
+      },
+      {
+        "wechat": {
+          "seconds": 1.3766533000161871,
+          "pythonPeakBytes": null,
+          "exactOutput": true
+        }
+      },
+      {
+        "wechat": {
+          "seconds": 1.469888799940236,
+          "pythonPeakBytes": null,
+          "exactOutput": true
+        }
+      }
+    ],
+    "current": [
+      {
+        "wechat": {
+          "seconds": 1.116074400022626,
+          "pythonPeakBytes": 286328,
+          "exactOutput": true
+        }
+      },
+      {
+        "wechat": {
+          "seconds": 1.1481389999389648,
+          "pythonPeakBytes": null,
+          "exactOutput": true
+        }
+      },
+      {
+        "wechat": {
+          "seconds": 1.088945500086993,
+          "pythonPeakBytes": null,
+          "exactOutput": true
+        }
+      },
+      {
+        "wechat": {
+          "seconds": 1.2133312999503687,
+          "pythonPeakBytes": null,
+          "exactOutput": true
+        }
+      },
+      {
+        "wechat": {
+          "seconds": 1.1918222999665886,
+          "pythonPeakBytes": null,
+          "exactOutput": true
+        }
+      }
+    ]
+  },
+  "fixture": {
+    "wechatBytes": 268435456,
+    "wecomBytes": 358858752,
+    "wecomRows": 262160
+  },
+  "sourceHashes": {
+    "baseline": {
+      "database_snapshot.py": "110ee502502dc135aa41f9ab9141b6e027ed50dfb49de6ae615e35a3cbf992af",
+      "wecom_snapshot.py": "32b699d7d7a46a2c6b48d8d479f1b0c1ff7cda4f0e063f51449bad0480146545",
+      "wecom_crypto.py": "66d7b3c5ff6dd86361affd3c81da5a77bbfeb875667bc31452bc25f584824e4e"
+    },
+    "current": {
+      "database_snapshot.py": "ce829f3d8dd1765ae72a1cd7c5149e2eda04ff60157f91d27cd935ca3b84ab5d",
+      "wecom_snapshot.py": "32b699d7d7a46a2c6b48d8d479f1b0c1ff7cda4f0e063f51449bad0480146545",
+      "wecom_crypto.py": "66d7b3c5ff6dd86361affd3c81da5a77bbfeb875667bc31452bc25f584824e4e"
+    }
+  },
+  "summary": {
+    "wechat": {
+      "baseline": {
+        "medianSeconds": 1.3766533000161871,
+        "maxPythonPeakBytes": 281991
+      },
+      "current": {
+        "medianSeconds": 1.1481389999389648,
+        "maxPythonPeakBytes": 286328
+      },
+      "elapsedReductionPercent": 16.599262869927767
+    }
+  },
+  "decisions": {
+    "retained": [
+      "WeChat initialized SHA-512 HMAC.copy() per page; all pages remain authenticated.",
+      "Reuse the already authenticated and decrypted first page after key selection."
+    ],
+    "withdrawn": [
+      {
+        "candidate": "WeCom 1 MiB plaintext copy and encrypted block reads with first-page reuse",
+        "reason": "256 MiB five-run candidate benchmark regressed full snapshot time: plaintext +24.655%, encrypted +12.063%.",
+        "evidence": ".runtime/group42-snapshot-after.json",
+        "evidenceSha256": "c1577467af7b758ab605bff7cb2b1576e87f7d5dcb3f1ffacdd49694308b3f64"
+      }
+    ],
+    "wecomSourceRestoredExactly": true
+  },
+  "validation": {
+    "testsPassed": 31,
+    "testsFailed": 0,
+    "testsSkipped": 0,
+    "testLog": ".runtime/group42-snapshot-tests.log",
+    "testLogSha256": "8f531b4704b1ce496b32ce402bdd33bf4e70cf13965567ca82cc5e7bcc7ebe3e",
+    "modules": [
+      "web_mvp.test_group_snapshot_performance42",
+      "web_mvp.test_database_snapshot",
+      "web_mvp.test_wecom_archive"
+    ],
+    "exactOutputVerifiedEveryRun": true,
+    "sourceFilesUnchanged": "Every worker compared fixture hashes before and after all operations.",
+    "tempPathHandling": "Test runner normalized tempfile.tempdir to the long absolute Windows path; earlier failures were path alias equality assertions (ADMINI~1 versus Administrator), not content or recovery failures.",
+    "sourceHashesStillMatch": true
+  },
+  "limits": [
+    "Synthetic local warm-cache measurement; real account size, active writes, disk and antivirus may differ.",
+    "WeChat timing measures authenticated decrypt-to-file only, not complete snapshot or export.",
+    "Python allocation peak excludes native crypto and OS filesystem cache; not process RSS.",
+    "No new WeCom decryption throughput improvement is claimed.",
+    "No real keys, real chats, power-loss or 16 GiB-limit benchmark used."
+  ]
+}

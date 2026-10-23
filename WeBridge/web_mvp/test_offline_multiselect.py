@@ -115,7 +115,8 @@ def finish_group(value):
     assert app.batch_running and not app.busy
 app.parsed_ready=finish_group
 def review(chat,confirm):
-    app.tree.selection_set(chat);app.selection();app.review_button.invoke();root.update()
+    app.tree.selection_set(chat);app.selection();pump(lambda:not app.read_busy)
+    app.review_button.invoke();root.update()
     dialog=next(w for w in root.winfo_children() if isinstance(w,tk.Toplevel))
     checks=[w for w in widgets(dialog) if w.winfo_class()=='TCheckbutton']
     assert len(checks)==4 and not any(root.getvar(w.cget('variable')) for w in checks)
@@ -126,7 +127,7 @@ def review(chat,confirm):
     button(dialog,'确认复核完成').invoke()
     pump(lambda:not app.busy)
 try:
-    pump(lambda:len(app.parsed_results)==1 and not app.busy and not app.batch_running)
+    pump(lambda:len(app.parsed_results)==1 and not app.busy and not app.read_busy and not app.batch_running)
     original=app.parsed_results[first]['review']['reviewId']
     app.search.set(first);root.update();app.tree.see(first);root.update()
     x,y,w,h=app.tree.bbox(first,'pick')
@@ -142,7 +143,7 @@ try:
     app.copy_group_id()
     assert set(root.clipboard_get().splitlines())=={first,second}
     app.parse_button.invoke()
-    pump(lambda:not app.busy and not app.batch_running)
+    pump(lambda:not app.busy and not app.read_busy and not app.batch_running)
     root.update()
     assert app.active_chat==first,'background queue interrupted the existing reading target'
     assert set(app.parsed_results)=={first,second}
@@ -370,7 +371,7 @@ root.withdraw();app=ChatApp(root,session)
 gate=threading.Event();started=threading.Event()
 try:
     pump(lambda:bool(app.groups) and not app.busy)
-    app.start_batch([first,second]);pump(lambda:not app.busy and not app.batch_running)
+    app.start_batch([first,second]);pump(lambda:not app.busy and not app.read_busy and not app.batch_running)
     app.show_chat(first)
     view=session.views[first];page=view.page
     def delayed(*args,**options):
@@ -379,7 +380,7 @@ try:
         return page(*args,**options)
     view.page=delayed
     app.message_search.set('迟到的合成搜索');app.message_search_button.invoke();pump(started.is_set)
-    app.show_chat(second);expected=app.page_total
+    app.show_chat(second);expected=app.parsed_results[second]['report']['businessRows']
     gate.set();pump(lambda:not app.read_busy)
     assert app.active_chat==second and app.page_total==expected and app.browser.rows,'stale read replaced another group'
     app.show_chat(first);gate.clear();started.clear()

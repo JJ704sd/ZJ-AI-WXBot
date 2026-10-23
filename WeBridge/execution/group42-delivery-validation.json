@@ -1,0 +1,89 @@
+{
+  "release": "v42",
+  "skillVersion": "1.28.0",
+  "uniqueTestsPassed": 160,
+  "tests": {
+    "backend": {
+      "passed": 44,
+      "log": ".runtime\\group42-backend-tests.log",
+      "sha256": "f0195a62706357f928bc251bb101e74618121132687ebd9069d9e54efefefdef"
+    },
+    "snapshot": {
+      "passed": 31,
+      "log": ".runtime\\group42-snapshot-tests.log",
+      "sha256": "8f531b4704b1ce496b32ce402bdd33bf4e70cf13965567ca82cc5e7bcc7ebe3e"
+    },
+    "integration": {
+      "passed": 60,
+      "log": ".runtime\\group42-integration-tests.log",
+      "sha256": "f9296626d913ce0f233c160383a67fef5ef007c99c622afd07ed02a10fdcf653"
+    },
+    "ui-combined-final": {
+      "passed": 25,
+      "log": ".runtime\\group42-ui-combined-final.log",
+      "sha256": "0ea69fe1d08dc8ad08b5bfe5c7f819bfe939a97d52f808e41f4d672a96f6671e"
+    },
+    "ui-cleanup-retest": {
+      "passed": 8,
+      "log": ".runtime\\group42-ui-cleanup-retest.log",
+      "sha256": "93c816422ffea4ff80ecf58b2194968ec5e16366bfec0f1e0fd548f36ec2d424"
+    }
+  },
+  "retestNotAddedToUniqueCount": 8,
+  "packages": [
+    {
+      "archive": "local-chat-review-v42-20261022-windows-x64.zip",
+      "bytes": 33005377,
+      "sha256": "dab7082e61728618121d1129ef5df884d0703f0af8f505dba2f76582c73b61e4",
+      "entries": 27
+    },
+    {
+      "archive": "WeChat-Archive-Skill-1.28.0-Windows-x64.zip",
+      "bytes": 33022096,
+      "sha256": "c38aebf284e4486fb80fe99ea3c4355e83a7c2d60e3ee286da0f1e1170608b2b",
+      "entries": 32
+    },
+    {
+      "archive": "WeCom-Archive-Skill-1.28.0-Windows-x64.zip",
+      "bytes": 33019198,
+      "sha256": "19f2e239024e3f31ef82a69786dfbf8683f21fc225777868e8caf6d4c2c7240a",
+      "entries": 33
+    }
+  ],
+  "priorDeliveryZipsUnchanged": [
+    {
+      "path": "build/WeChat-WeCom-Archive-Windows-Delivery-20261020-v41.zip",
+      "sha256": "d15751aa1794b2001ad21ca84f4ee3032ac88141a90df407d63f6d25d4273110"
+    },
+    {
+      "path": "build/WeChat-Archive-Skill-1.27.0-Windows-x64.zip",
+      "sha256": "410372ad85875c015c66700153080c07cf4a36458058a7da25a43a44e74e8f6d"
+    },
+    {
+      "path": "build/WeCom-Archive-Skill-1.27.0-Windows-x64.zip",
+      "sha256": "a9baad07f009c7bcfbe19aa81f4a4679b463933067c1400cb06b25cfc8cdb5c4"
+    },
+    {
+      "path": "build/local-chat-review-v41-20261020-windows-x64.zip",
+      "sha256": "6fff833f4bcb114841062c13f3a096b60fd031728eb5b3c24e86e3d7254f0695"
+    },
+    {
+      "path": "build/WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v8.zip",
+      "sha256": "46cd22bba71b582473f87cb3c89f0d15effa7987b2f303e4fdbadfa68a61b3ea"
+    },
+    {
+      "path": "build/private-analysis-1.7.0-20261022/local-wechat-private-analysis-1.7.0-windows-x64.zip",
+      "sha256": "417c0ebce0482834fa505130dbf449b2136e9cf15456b2266c90d4a6843a06ed"
+    },
+    {
+      "path": "build/private-analysis-1.7.0-20261022/local-wecom-private-analysis-1.7.0-windows-x64.zip",
+      "sha256": "1c9081d9ef53a9eb4f17a83ccf62edd9e69d0a7b732f48a5f648651abc7a6d91"
+    }
+  ],
+  "sourceManifestFiles": 70,
+  "desktopExeSha256": "e2076428328bace4b920f34d57628be961956287f2d2b2a7bc06b4b73afe67f7",
+  "nativeExeBothClientsPassed": true,
+  "realAccountsTested": false,
+  "powerLossTested": false,
+  "packagedSkillFormat": "Existing v41 WorkBuddy top-level metadata retained; Codex generic validator not applicable."
+}

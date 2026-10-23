@@ -1,0 +1,379 @@
+{
+  "release": "v44",
+  "skillVersion": "1.30.0",
+  "changedFromV43": [
+    "docs/local-chat/企微使用说明.md",
+    "docs/local-chat/复核导出流程.md",
+    "docs/local-chat/操作指南.md",
+    "docs/local-chat/版本与验证说明.md",
+    "docs/local-chat/群聊大数据采集与恢复-v44-20261023.md",
+    "scripts/local_chat_app.py",
+    "scripts/local_chat_distribution.py",
+    "skills/local-wechat-archive/SKILL.md",
+    "web_mvp/offline_chat.py",
+    "web_mvp/offline_desktop.py",
+    "web_mvp/offline_progress.py",
+    "web_mvp/test_group_integrity44.py",
+    "web_mvp/test_group_quotes44.py",
+    "web_mvp/test_group_ui42.py",
+    "web_mvp/test_group_ui44.py",
+    "web_mvp/test_offline_multiselect.py",
+    "web_mvp/test_offline_progress.py",
+    "web_mvp/wecom_archive.py",
+    "个微聊天记录解析工具说明.md"
+  ],
+  "files": [
+    {
+      "path": "docs/local-chat/企微使用说明.md",
+      "sha256": "0058d30f0eac0b0071b0757685cfc62fa3e20e12bdba7be468ee5195315cef39"
+    },
+    {
+      "path": "docs/local-chat/复核导出流程.md",
+      "sha256": "7eb8a650aa973992255ecf71aaa4f8dd665329d3d489fcb35ce39351502e2d71"
+    },
+    {
+      "path": "docs/local-chat/操作指南.md",
+      "sha256": "189e28321a9205c36dc50c798b61582102efc00c901a6884b6b00e3f86ac6279"
+    },
+    {
+      "path": "docs/local-chat/版本与验证说明.md",
+      "sha256": "86a200526def1e8f52948583f2d1f0eaab43f1050c19a843bb73f8a2a860af5f"
+    },
+    {
+      "path": "docs/local-chat/私聊宿主衔接-v1.6-20261022.md",
+      "sha256": "5ef5e981387e83b23bcd68933b11fc3aee52ebb3c21987ac8bd89ddb866eae6e"
+    },
+    {
+      "path": "docs/local-chat/私聊界面与导出恢复-v1.7-20261022.md",
+      "sha256": "46c95154696f17436a7d069a176831d6f252f208d5f1d0d25dbeaedf11dc332b"
+    },
+    {
+      "path": "docs/local-chat/群聊可靠性与性能界面-v42-20261022.md",
+      "sha256": "a910159411c018077d2ed9bebaf0748a404a754dc92d8d2f90b37982f043d791"
+    },
+    {
+      "path": "docs/local-chat/群聊大数据采集与恢复-v44-20261023.md",
+      "sha256": "22ca7b786116b48b72cb0c01650ad8e0e956e729e0f534a4791340bd3fd154ca"
+    },
+    {
+      "path": "docs/local-chat/群聊解密解析与导出成功率-v43-20261022.md",
+      "sha256": "535adeee3835ad81a26bcdfd77dd23fe7f68d082ddae9a95a9a6a5a589d70bbb"
+    },
+    {
+      "path": "docs/local-chat/配置迁移说明.md",
+      "sha256": "b88fc0670065eb525403b00cfcfabc11076a6e6cf8dde171428067f495a899a4"
+    },
+    {
+      "path": "docs/local-chat/附件正文解析说明.md",
+      "sha256": "792aac7e983746f9fd8571c0a72acea257cb7e7b5642887cc8f5fbd9bef0bcb3"
+    },
+    {
+      "path": "scripts/acquire_database_keys.py",
+      "sha256": "a3ab34cc55e236e58160b1f74f29b807418043134e0abe24c8262803f52473a2"
+    },
+    {
+      "path": "scripts/benchmark_group_snapshot.py",
+      "sha256": "92607bf6c72762b77bb2b8ce46117d189bbfdb1efbf8fc2c27de25230ee1a992"
+    },
+    {
+      "path": "scripts/build_local_chat.ps1",
+      "sha256": "0d1db9e104a7c08738f4162ea5deaee03646321c5435ea577986bd58db98fd81"
+    },
+    {
+      "path": "scripts/build_private_chat.ps1",
+      "sha256": "d28a42c5cd515a5540483000443aef7886d68f7448beb8edf40e0c47cb8ac700"
+    },
+    {
+      "path": "scripts/local_chat_app.py",
+      "sha256": "c22322744a53ee500832ad6c9fc5a5fb3e0bdce3915cad6a4801da257c99aa45"
+    },
+    {
+      "path": "scripts/local_chat_bootstrap.py",
+      "sha256": "af0e68b0c3b81a640af127b3b9b269f375f41f607e6fb2573ae31dc50139ff0a"
+    },
+    {
+      "path": "scripts/local_chat_distribution.py",
+      "sha256": "8fbeee7c824da8a768fc0eec34ae83819df0e3a3287c05c52f9b17890c5a251e"
+    },
+    {
+      "path": "scripts/package_local_chat.py",
+      "sha256": "36c121623f0cad42a7dacbaec619592e2d385974043c3d94798f0bdad539fd8b"
+    },
+    {
+      "path": "scripts/package_local_chat_delivery.py",
+      "sha256": "e3eb3362a4e9ccdf9cb046c01d17a7307db116771af0992c9efe963144b2a51b"
+    },
+    {
+      "path": "scripts/package_local_chat_skill.py",
+      "sha256": "22e52f82eb1d04d113240e4eee06ca24ca398fbf0628d18c432a6ac8a8e9b6db"
+    },
+    {
+      "path": "scripts/package_private_chat.py",
+      "sha256": "b75c0979a8560d8d6335484ff262f8d6bb5cf445e926f58f0e37aea11f0c4b98"
+    },
+    {
+      "path": "scripts/private_chat.py",
+      "sha256": "6f98f27d085c33b6e566b8e553522ddc9462eb94464517439e53effa8817666d"
+    },
+    {
+      "path": "skills/local-wechat-archive/SKILL.md",
+      "sha256": "d6b05bf5019cd2f7842e49e5b0b158a8700a6ace644f474ed23f719273e8bd8b"
+    },
+    {
+      "path": "skills/local-wechat-archive/scripts/run.ps1",
+      "sha256": "45f2920a4abf48926f75901cbdeed5863e82ef65e419ba4467c9393c3c0b4634"
+    },
+    {
+      "path": "skills/local-wechat-private-analysis/SKILL.md",
+      "sha256": "2b4a598d78176f714db37511a997993ccd82060dd6cdb94920e15c8ba9368bec"
+    },
+    {
+      "path": "skills/local-wecom-private-analysis/SKILL.md",
+      "sha256": "cd1baa4bc8780efcd3bca5d52a1ae62db58535aef2ca7046938f7890e392b72c"
+    },
+    {
+      "path": "web_mvp/database_snapshot.py",
+      "sha256": "4be5460db1d5a73037b621bdad311d5df8753fc54480b128ac7c75a4632a445d"
+    },
+    {
+      "path": "web_mvp/offline_analysis.py",
+      "sha256": "c448fd15e4a408345977a12006d9320713b20db93e09f80859d3bd680012979a"
+    },
+    {
+      "path": "web_mvp/offline_batch.py",
+      "sha256": "af63bdead88e959cdf0d54658c399ecf3e499aa4a2b39a43efc69cc25f50888e"
+    },
+    {
+      "path": "web_mvp/offline_chat.py",
+      "sha256": "127d001e44651f5f0d7ce75fb65c2d6abd111307002d096f206ee43ded34c2c2"
+    },
+    {
+      "path": "web_mvp/offline_desktop.py",
+      "sha256": "9ad2dc1b155da2cff95b280bfc17c9720af160d76549249bf0e09ba45492ac12"
+    },
+    {
+      "path": "web_mvp/offline_direct.py",
+      "sha256": "2fa46419a2743f893c31d15181ce7c239d5334e32d419e67e7bb6d93804378e6"
+    },
+    {
+      "path": "web_mvp/offline_launcher.py",
+      "sha256": "542aa5044c8554aa64172a5331fe03ff320146c08053e57ee201c5e8a14ef784"
+    },
+    {
+      "path": "web_mvp/offline_markdown.py",
+      "sha256": "aa372695fb5500089af7a9847b72168f67f0732879048d710cf5dbaae46141be"
+    },
+    {
+      "path": "web_mvp/offline_progress.py",
+      "sha256": "559bcef6b712b563a6c9dfe0e5e5e6d5b5ea0371e6b1b5ea114bbef18afa2681"
+    },
+    {
+      "path": "web_mvp/offline_reporting.py",
+      "sha256": "eeca5203631bc225453fd251fdcbc81539c12181f4d3bfefd221883c157ff1e7"
+    },
+    {
+      "path": "web_mvp/offline_review.py",
+      "sha256": "0f681ce28ee36280103c6ec715ab55ba187b95890bc04108989a55e5e3075091"
+    },
+    {
+      "path": "web_mvp/portable_key_recovery.py",
+      "sha256": "0f5831600580bdea15509c258c4faa349b4ce9dfeef8edb36c43a7b0aa038aba"
+    },
+    {
+      "path": "web_mvp/private_insights.py",
+      "sha256": "0fae52fd5769555c5e7b806c37599010b9300a631a2363727832a44e874041f9"
+    },
+    {
+      "path": "web_mvp/private_insights_ui.py",
+      "sha256": "d5494e8abebf14bd165c302e58150329b00a4d5676609369fb8b67e89cd28099"
+    },
+    {
+      "path": "web_mvp/private_profile_ui.py",
+      "sha256": "d46634a1e47c701f57b3daf86af89597b15cdd8b0bcae53744399b23e8cf9fa0"
+    },
+    {
+      "path": "web_mvp/private_profiles.py",
+      "sha256": "f744f42610acfe25f4882f3da759ca98655bc6db683c5396f936a5ef9f979ed9"
+    },
+    {
+      "path": "web_mvp/private_theme.py",
+      "sha256": "436103a568788ab283b3f70b62d16a1e248376c4c8d35d295dcfe9bc21494a55"
+    },
+    {
+      "path": "web_mvp/test_group_export_recovery42.py",
+      "sha256": "b2fb120c2653b7df0112afae427efa6975fabda84897358493b6ebee0f36c5b2"
+    },
+    {
+      "path": "web_mvp/test_group_integrity44.py",
+      "sha256": "406a9d9f8eaef38f85f1ed1252331817f7b7854102772ed2f17be5e352d0fb84"
+    },
+    {
+      "path": "web_mvp/test_group_key_recovery43.py",
+      "sha256": "6195ea2fe42c09abd6a8ca8be8ddc565a163f8d56a72722a3ca882d38d2af65d"
+    },
+    {
+      "path": "web_mvp/test_group_parse_recovery43.py",
+      "sha256": "aefaadbed704cee498a78731a09cf7a2c335213337ec5e44168682f4ac328cd6"
+    },
+    {
+      "path": "web_mvp/test_group_quotes44.py",
+      "sha256": "1581c366d71f164ffae6a5f156f736823911152b6ea0ad0db69cfc00dd57491d"
+    },
+    {
+      "path": "web_mvp/test_group_setup_recovery43.py",
+      "sha256": "f010746085881137a689a0473570940d03805661ea933281acf30d665010b203"
+    },
+    {
+      "path": "web_mvp/test_group_snapshot_performance42.py",
+      "sha256": "898bed6afc1b0fcb27e51a6f7288b28ba9ab9365ad98eb3e307c4a30d56d78b0"
+    },
+    {
+      "path": "web_mvp/test_group_ui42.py",
+      "sha256": "cca59cf804d95a8c244162e6c4dd9cc27b3073c6256808772684378e9122425a"
+    },
+    {
+      "path": "web_mvp/test_group_ui44.py",
+      "sha256": "05e37b57cb99bd1ff24f37a890a823e6b2855a242467dd1f08ecdd872db9c2fb"
+    },
+    {
+      "path": "web_mvp/test_offline_batch_review.py",
+      "sha256": "ba3f8641c91bf4dfa93b951eb9fd216a596ac5270cec2fe960c97a7040fd9218"
+    },
+    {
+      "path": "web_mvp/test_offline_direct.py",
+      "sha256": "94b16cc215584bc63bc64b83475b6f37e85cac52b452d28c162f99d2edb6d2be"
+    },
+    {
+      "path": "web_mvp/test_offline_multiselect.py",
+      "sha256": "9fce7e42eba5bf95fb5b803d8f90f6080a3c82073cb89d97857f27cc5a2af101"
+    },
+    {
+      "path": "web_mvp/test_offline_progress.py",
+      "sha256": "fd640cd06bb437eb6010240d08c43c162e24d8679705a85fd7d0cc224b147f78"
+    },
+    {
+      "path": "web_mvp/test_offline_review.py",
+      "sha256": "b866e6fb3dcfa43f4094f19037090bd558c61fab2469c724ae6c75d7d3cabffd"
+    },
+    {
+      "path": "web_mvp/test_offline_setup_integration.py",
+      "sha256": "81aa0032501d2983a7225923422e57b6eae4a5eb5b51e69f4844337cb0c15a45"
+    },
+    {
+      "path": "web_mvp/test_offline_target_search.py",
+      "sha256": "7504550ed037c4ee85026fdbb35a80071f6d54ca827b34119b94499732b609df"
+    },
+    {
+      "path": "web_mvp/test_private_candidate_import.py",
+      "sha256": "0d22ac2b11e052ecd9f2ef235319325175094bb0dc9afb3ce9f06977e6734e42"
+    },
+    {
+      "path": "web_mvp/test_private_candidate_import_ui.py",
+      "sha256": "fb677692c4ec690e60c11832c7340ad56a80ff227a25e0ee6164a210c0039261"
+    },
+    {
+      "path": "web_mvp/test_private_chat_distribution.py",
+      "sha256": "5f41515a091021fb5e0eaeb62755c67fe61dece11b4283a12fd052a1a3ef445b"
+    },
+    {
+      "path": "web_mvp/test_private_chat_integration.py",
+      "sha256": "67802415acb1d6d423333c20aa798d3eb4fe4d2553effdb23b12a1b6f5c6505f"
+    },
+    {
+      "path": "web_mvp/test_private_evidence_integrity.py",
+      "sha256": "c99291cb81f2099aa8bb2b2fa8afd3f2c76c7c973e893022326ac8de39853564"
+    },
+    {
+      "path": "web_mvp/test_private_export_recovery17.py",
+      "sha256": "2b6add8022073050e704a03fd9bc635eb2bad5acb88c7927d5682eecf35ede7a"
+    },
+    {
+      "path": "web_mvp/test_private_insights.py",
+      "sha256": "159386715b77317d2ed4c5be93349955b010b1009e6007c95f40a3976dadb7c0"
+    },
+    {
+      "path": "web_mvp/test_private_insights_design17.py",
+      "sha256": "1aa9b92cf9335f502c01125bcd9a74bbd858de649cc9aba3d2227a2ef0ea8fb0"
+    },
+    {
+      "path": "web_mvp/test_private_insights_edges.py",
+      "sha256": "abac81ae108022e9b993c3c10ceb654bc818471091c7e09e360c2cf05b572004"
+    },
+    {
+      "path": "web_mvp/test_private_insights_native.py",
+      "sha256": "e70bab96b0afb0b86c334d2f6121b209ed4ae73b99955493532c2ee9c490ffd7"
+    },
+    {
+      "path": "web_mvp/test_private_insights_ui.py",
+      "sha256": "275bb7757699f46a4bf9d62679cba2b1ac69473702c68695979fa9b02a90bb28"
+    },
+    {
+      "path": "web_mvp/test_private_layout.py",
+      "sha256": "df68ec997c1d8052b97147b91c03a226698e1392d9971318fb3405fc42e9657f"
+    },
+    {
+      "path": "web_mvp/test_private_main_design17.py",
+      "sha256": "5c49edc0b4d29243bc675aacac6256fb31d91f9aa0548002e6ed9b6c10d0b967"
+    },
+    {
+      "path": "web_mvp/test_private_material_handoff.py",
+      "sha256": "dc2de0715c868b4916d974ac7369991e88ea4c7859867568be390bd198c0f2a4"
+    },
+    {
+      "path": "web_mvp/test_private_profile_design17.py",
+      "sha256": "c42a647c3c76223a90304bb02622081bf51df6204697df57976bbbb9c4c74386"
+    },
+    {
+      "path": "web_mvp/test_private_profile_ui.py",
+      "sha256": "c2253355532c1c717d3a518149c332a3a6d2c46f9bef12a2f4aa8182dd9b2934"
+    },
+    {
+      "path": "web_mvp/test_private_profiles.py",
+      "sha256": "61432ead6cb8ae1452eff79f233fb152679d6ffaedf3aada8cdc1ea4c5ae4deb"
+    },
+    {
+      "path": "web_mvp/test_private_reference_integration.py",
+      "sha256": "ca1bb0d0270ba126da4d5ddf32cee8f73fe5471d67d428ba57af337110ee61f7"
+    },
+    {
+      "path": "web_mvp/test_private_report_submission.py",
+      "sha256": "082c16d4a1deef20c36971d15b1d7bb5515e18f78b6104bfcacada3c4cc6e5af"
+    },
+    {
+      "path": "web_mvp/test_private_saved_view.py",
+      "sha256": "cbe480252dd05e2741bab0b32005650bbdf8edb446d69b6483a3472f594c6459"
+    },
+    {
+      "path": "web_mvp/test_private_store_recovery.py",
+      "sha256": "8ca8363280db7cc5134fdc6f7cd44989898a98a28cb1795de3ca4c47a0a7e917"
+    },
+    {
+      "path": "web_mvp/test_private_ui_recovery.py",
+      "sha256": "a01b88ca142191cf751287bfd2e51f570a499addf882bb4fdea9271ce5ee9135"
+    },
+    {
+      "path": "web_mvp/wecom_archive.py",
+      "sha256": "9c342cc74449d156d487ae3ab8524e0eed5369e928dbd72efd89720f809324a9"
+    },
+    {
+      "path": "web_mvp/wecom_crypto.py",
+      "sha256": "66d7b3c5ff6dd86361affd3c81da5a77bbfeb875667bc31452bc25f584824e4e"
+    },
+    {
+      "path": "web_mvp/wecom_key_recovery.py",
+      "sha256": "60dd0bb539fe556cf83494d5bcbd9d386aea31f8eb6d1730c4bbf705c1ae7ab0"
+    },
+    {
+      "path": "web_mvp/wecom_media.py",
+      "sha256": "d75de7af74aad2ebeb4d51e100433b774c25463a0938d50ce94c3361787fa0db"
+    },
+    {
+      "path": "web_mvp/wecom_snapshot.py",
+      "sha256": "32b699d7d7a46a2c6b48d8d479f1b0c1ff7cda4f0e063f51449bad0480146545"
+    },
+    {
+      "path": "个微聊天记录解析工具说明.md",
+      "sha256": "c38700065cc9ddd9ee7dfe6679c27a136ed223b78105521fd2415f9e9aaf5083"
+    }
+  ]
+}

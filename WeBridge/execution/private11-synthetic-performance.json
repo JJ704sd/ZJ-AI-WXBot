@@ -1,0 +1,11 @@
+{
+  "syntheticOnly": true,
+  "messageCount": 100000,
+  "summarySeconds": 6.671,
+  "searchSeconds": 0.202,
+  "summaryExtraPeakMiB": 6.9,
+  "searchExtraPeakMiB": 0.81,
+  "lastPageCount": 50,
+  "allAssertionsPassed": true,
+  "scope": "in-memory statistics/search; excludes source parsing and UI rendering"
+}

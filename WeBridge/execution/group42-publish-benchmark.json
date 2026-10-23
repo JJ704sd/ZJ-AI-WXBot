@@ -1,0 +1,87 @@
+{
+  "scope": "publish_review only; two approved synthetic groups, each with a 64 MiB attachment",
+  "inputAttachmentBytes": 134217728,
+  "sampleCountPerImplementation": 3,
+  "cacheNote": "Same host, alternating order, normal Windows file cache; not a cold-disk or real-account promise.",
+  "hashByteNote": "Logical SHA-256 input bytes; filesystem and OS cache may avoid physical disk reads.",
+  "baselineSourceSha256": "843078221bf0dc938ec077bc1daca07f49a41b82829baf8b982ea8162f0a5003",
+  "currentSourceSha256": "0f681ce28ee36280103c6ec715ab55ba187b95890bc04108989a55e5e3075091",
+  "samples": [
+    {
+      "implementation": "baseline",
+      "seconds": 0.7663938000332564,
+      "stageHashBytes": 268560515,
+      "previewHashBytes": 134275230,
+      "stageHashCalls": 70,
+      "previewHashCalls": 34,
+      "allReviewedBodiesAndAssetsIdentical": true,
+      "publishedManifestMatchesActualFiles": true
+    },
+    {
+      "implementation": "current",
+      "seconds": 0.5318785000126809,
+      "stageHashBytes": 134289215,
+      "previewHashBytes": 134275230,
+      "stageHashCalls": 38,
+      "previewHashCalls": 34,
+      "allReviewedBodiesAndAssetsIdentical": true,
+      "publishedManifestMatchesActualFiles": true
+    },
+    {
+      "implementation": "current",
+      "seconds": 0.47534640005324036,
+      "stageHashBytes": 134289215,
+      "previewHashBytes": 134275230,
+      "stageHashCalls": 38,
+      "previewHashCalls": 34,
+      "allReviewedBodiesAndAssetsIdentical": true,
+      "publishedManifestMatchesActualFiles": true
+    },
+    {
+      "implementation": "baseline",
+      "seconds": 0.6122276000678539,
+      "stageHashBytes": 268560515,
+      "previewHashBytes": 134275230,
+      "stageHashCalls": 70,
+      "previewHashCalls": 34,
+      "allReviewedBodiesAndAssetsIdentical": true,
+      "publishedManifestMatchesActualFiles": true
+    },
+    {
+      "implementation": "baseline",
+      "seconds": 0.7781198000302538,
+      "stageHashBytes": 268560515,
+      "previewHashBytes": 134275230,
+      "stageHashCalls": 70,
+      "previewHashCalls": 34,
+      "allReviewedBodiesAndAssetsIdentical": true,
+      "publishedManifestMatchesActualFiles": true
+    },
+    {
+      "implementation": "current",
+      "seconds": 0.5792142000282183,
+      "stageHashBytes": 134289215,
+      "previewHashBytes": 134275230,
+      "stageHashCalls": 38,
+      "previewHashCalls": 34,
+      "allReviewedBodiesAndAssetsIdentical": true,
+      "publishedManifestMatchesActualFiles": true
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "medianSeconds": 0.7663938000332564,
+      "stageHashBytes": 268560515,
+      "previewHashBytes": 134275230,
+      "totalHashBytes": 402835745
+    },
+    "current": {
+      "medianSeconds": 0.5318785000126809,
+      "stageHashBytes": 134289215,
+      "previewHashBytes": 134275230,
+      "totalHashBytes": 268564445
+    }
+  },
+  "medianTimeReductionPercent": 30.599843058542376,
+  "hashInputReductionPercent": 33.33152573141195
+}

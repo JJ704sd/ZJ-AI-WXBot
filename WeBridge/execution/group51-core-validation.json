@@ -1,0 +1,16 @@
+{
+  "release": "v51",
+  "testsRun": 6,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "seconds": 2.31,
+  "scope": [
+    "test_group_quote_schema51",
+    "test_group_quotes44",
+    "test_group_ui42.GroupCapabilities42Tests",
+    "test_group_diagnostics50.Diagnostics50Tests.test_cli_export_does_not_load_or_create_account_profile"
+  ],
+  "redEvidence": ".runtime/group51-red.log",
+  "syntheticOnly": true
+}

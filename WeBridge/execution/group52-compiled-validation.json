@@ -1,0 +1,46 @@
+{
+  "release": "v52",
+  "skillVersion": "1.38.0",
+  "syntheticOnly": true,
+  "packages": [
+    {
+      "archive": "local-chat-review-v52-20261023-windows-x64.zip",
+      "files": 27,
+      "sha256": "29ba10f6e7074b8ac379cdc2cb268efe26e9ddb03cb92e60bff81010e58d5720"
+    },
+    {
+      "archive": "WeChat-Archive-Skill-1.38.0-Windows-x64.zip",
+      "files": 32,
+      "sha256": "43680fec1ea9a238fef7f478afdea09b3edb4a54a7b92d22f75b9c28a5813bff"
+    },
+    {
+      "archive": "WeCom-Archive-Skill-1.38.0-Windows-x64.zip",
+      "files": 33,
+      "sha256": "cb7a385913d0e8152146a14b0b1688de3ee98e289aba834ca0cb7282d704f31c"
+    }
+  ],
+  "clients": [
+    {
+      "client": "wechat",
+      "rows": 3,
+      "nativeReadingVerified": true,
+      "malformedPDFExportVerified": true,
+      "originalAttachmentUnchanged": true,
+      "reviewRequired": true,
+      "artifactHashesVerified": true,
+      "integerPrimaryKeyQuoteFamilies": 0
+    },
+    {
+      "client": "wecom",
+      "rows": 6,
+      "nativeReadingVerified": true,
+      "malformedPDFExportVerified": true,
+      "originalAttachmentUnchanged": true,
+      "reviewRequired": true,
+      "artifactHashesVerified": true,
+      "integerPrimaryKeyQuoteFamilies": 2
+    }
+  ],
+  "diagnosticExportVerified": true,
+  "exeSha256": "112e9da3edaadc40e1a102eb2eae047cd7f25ed806dd56579bd84db5e0edf743"
+}

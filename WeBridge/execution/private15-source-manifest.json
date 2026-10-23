@@ -1,0 +1,166 @@
+{
+  "version": "1.5.0",
+  "scope": "related source and validation scripts; not a dependency lockfile",
+  "files": [
+    {
+      "path": ".runtime/verify_private_store_interleave_15.py",
+      "sha256": "3b104467e2aba5b53aae64ecc16ebc44d5092dc78b13e2549dd2a14bc49ac13f"
+    },
+    {
+      "path": "web_mvp/test_private_store_recovery.py",
+      "sha256": "8ca8363280db7cc5134fdc6f7cd44989898a98a28cb1795de3ca4c47a0a7e917"
+    },
+    {
+      "path": "web_mvp/test_private_insights_edges.py",
+      "sha256": "abac81ae108022e9b993c3c10ceb654bc818471091c7e09e360c2cf05b572004"
+    },
+    {
+      "path": "web_mvp/test_private_reference_integration.py",
+      "sha256": "ca1bb0d0270ba126da4d5ddf32cee8f73fe5471d67d428ba57af337110ee61f7"
+    },
+    {
+      "path": "web_mvp/test_private_ui_recovery.py",
+      "sha256": "a01b88ca142191cf751287bfd2e51f570a499addf882bb4fdea9271ce5ee9135"
+    },
+    {
+      "path": "web_mvp/test_private_report_submission.py",
+      "sha256": "082c16d4a1deef20c36971d15b1d7bb5515e18f78b6104bfcacada3c4cc6e5af"
+    },
+    {
+      "path": ".runtime/verify_private_reference_15.py",
+      "sha256": "0930ee8bd1782a2b587565c03ef3250f607fe29105c9de6c546ca34efc0aff4d"
+    },
+    {
+      "path": "scripts/local_chat_app.py",
+      "sha256": "ff17f946f43556c1ff2d0726247581f5b19e083c57c742931000e356ab6c550f"
+    },
+    {
+      "path": "scripts/local_chat_bootstrap.py",
+      "sha256": "af0e68b0c3b81a640af127b3b9b269f375f41f607e6fb2573ae31dc50139ff0a"
+    },
+    {
+      "path": "scripts/private_chat.py",
+      "sha256": "332e5a1556ef1086720b769e3e9f4321e067500a8f72becc02b09d0d75fc7efb"
+    },
+    {
+      "path": "scripts/build_private_chat.ps1",
+      "sha256": "d28a42c5cd515a5540483000443aef7886d68f7448beb8edf40e0c47cb8ac700"
+    },
+    {
+      "path": "scripts/package_private_chat.py",
+      "sha256": "e8fd8039c838f5fcf7366da5f42297802ebab4683cb5f93221022d08568f400e"
+    },
+    {
+      "path": "web_mvp/private_profiles.py",
+      "sha256": "a680da7fd7e8582061cd5393951a7739dd4826f546c872ece1cc22cb0e739052"
+    },
+    {
+      "path": "web_mvp/private_profile_ui.py",
+      "sha256": "2a5cebbf1e5bb5dadfcba02aab06a0f1e4f10e753a49f35f98f6ae3617f2499a"
+    },
+    {
+      "path": "web_mvp/private_insights_ui.py",
+      "sha256": "c8cc73942eb5d29d3f5dc50ba115d39db08fb58a297c163e236ed8a1a4752d09"
+    },
+    {
+      "path": "web_mvp/private_insights.py",
+      "sha256": "0fae52fd5769555c5e7b806c37599010b9300a631a2363727832a44e874041f9"
+    },
+    {
+      "path": "web_mvp/private_theme.py",
+      "sha256": "436103a568788ab283b3f70b62d16a1e248376c4c8d35d295dcfe9bc21494a55"
+    },
+    {
+      "path": "web_mvp/offline_direct.py",
+      "sha256": "2fa46419a2743f893c31d15181ce7c239d5334e32d419e67e7bb6d93804378e6"
+    },
+    {
+      "path": "web_mvp/offline_analysis.py",
+      "sha256": "b34dc170e8247305b816c542a0bd0d5ad7a49912387534922f90a81bd1c5a961"
+    },
+    {
+      "path": "web_mvp/offline_batch.py",
+      "sha256": "88331bd44261164e7b6a34503a85d4a08cedb39757f88bd74eda5756b96d336a"
+    },
+    {
+      "path": "web_mvp/offline_desktop.py",
+      "sha256": "dd99721d9a1dcb0d67dc232cca37a64a20c470af47325bfaa5a4e87a0300ba96"
+    },
+    {
+      "path": "web_mvp/offline_launcher.py",
+      "sha256": "542aa5044c8554aa64172a5331fe03ff320146c08053e57ee201c5e8a14ef784"
+    },
+    {
+      "path": "web_mvp/offline_progress.py",
+      "sha256": "3c94be82594a1ffbe9b7c49b77ec53e701c379ccc7db5121de4d9dfedfad84a8"
+    },
+    {
+      "path": "web_mvp/test_private_saved_view.py",
+      "sha256": "cbe480252dd05e2741bab0b32005650bbdf8edb446d69b6483a3472f594c6459"
+    },
+    {
+      "path": "web_mvp/test_private_profiles.py",
+      "sha256": "283429db5fbe355fb44aa921adb625581a7b671d54a619a6b5e954f0a0da79b3"
+    },
+    {
+      "path": "web_mvp/test_private_evidence_integrity.py",
+      "sha256": "c99291cb81f2099aa8bb2b2fa8afd3f2c76c7c973e893022326ac8de39853564"
+    },
+    {
+      "path": "web_mvp/test_private_insights.py",
+      "sha256": "159386715b77317d2ed4c5be93349955b010b1009e6007c95f40a3976dadb7c0"
+    },
+    {
+      "path": "web_mvp/test_private_insights_ui.py",
+      "sha256": "275bb7757699f46a4bf9d62679cba2b1ac69473702c68695979fa9b02a90bb28"
+    },
+    {
+      "path": "web_mvp/test_offline_direct.py",
+      "sha256": "94b16cc215584bc63bc64b83475b6f37e85cac52b452d28c162f99d2edb6d2be"
+    },
+    {
+      "path": "web_mvp/test_private_chat_distribution.py",
+      "sha256": "eb8cd9f177a89af45397d3f4d78e0c306b53457440bd914645c8ac61c220d925"
+    },
+    {
+      "path": "web_mvp/test_private_chat_integration.py",
+      "sha256": "67802415acb1d6d423333c20aa798d3eb4fe4d2553effdb23b12a1b6f5c6505f"
+    },
+    {
+      "path": "web_mvp/test_private_insights_native.py",
+      "sha256": "e70bab96b0afb0b86c334d2f6121b209ed4ae73b99955493532c2ee9c490ffd7"
+    },
+    {
+      "path": "web_mvp/test_private_profile_ui.py",
+      "sha256": "c2253355532c1c717d3a518149c332a3a6d2c46f9bef12a2f4aa8182dd9b2934"
+    },
+    {
+      "path": "web_mvp/test_private_layout.py",
+      "sha256": "df68ec997c1d8052b97147b91c03a226698e1392d9971318fb3405fc42e9657f"
+    },
+    {
+      "path": "web_mvp/test_offline_setup_integration.py",
+      "sha256": "81aa0032501d2983a7225923422e57b6eae4a5eb5b51e69f4844337cb0c15a45"
+    },
+    {
+      "path": "web_mvp/test_offline_target_search.py",
+      "sha256": "7504550ed037c4ee85026fdbb35a80071f6d54ca827b34119b94499732b609df"
+    },
+    {
+      "path": "skills/local-wechat-private-analysis/SKILL.md",
+      "sha256": "9190b8039e93258cc2456d15e8c75875a21de1025d75c7a720e0d4c9fa9f445c"
+    },
+    {
+      "path": "skills/local-wecom-private-analysis/SKILL.md",
+      "sha256": "bb214fedcdb4f4b1d65e1858e5e17bda266222d977bb27f849eada3ed0a149e5"
+    },
+    {
+      "path": ".runtime/verify_private_release_15.py",
+      "sha256": "8892da7d454b785ad4e0683e7b2ad62c70da49df476c027759d96178be16b940"
+    },
+    {
+      "path": ".runtime/verify_private_upgrade_15.py",
+      "sha256": "5346dc37593738ba6fe65fc1c03e87a82a8c795d163787e0e9a34666c5003e9a"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "version": "v45",
+  "skillVersion": "1.31.0",
+  "syntheticOnly": true,
+  "packages": [
+    {
+      "archive": "local-chat-review-v45-20261023-windows-x64.zip",
+      "files": 25,
+      "sha256": "51f32427e9c3390a5a28940cc9ed09837c79b3d1c5192a81f459df977298c2b7"
+    },
+    {
+      "archive": "WeChat-Archive-Skill-1.31.0-Windows-x64.zip",
+      "files": 30,
+      "sha256": "af1fce9dede9ee35a2d469a796a2b0eed8218e0ff9dfe08a106b023df4bafe2f"
+    },
+    {
+      "archive": "WeCom-Archive-Skill-1.31.0-Windows-x64.zip",
+      "files": 31,
+      "sha256": "bee4de3583817f632637fda740e10372390cdffb05f1d9360eb7c2e110cccd46"
+    }
+  ],
+  "clients": [
+    {
+      "client": "wechat",
+      "capabilities": {
+        "schemaVersion": 1,
+        "privateAnalysis": false,
+        "conversationMode": "group",
+        "role": "desktop",
+        "version": "1.31.0",
+        "release": "v45"
+      },
+      "rows": 2,
+      "jsonAndJsonlEquivalent": true,
+      "markdownRowIdsMatch": true,
+      "exportArtifactHashesMatch": true,
+      "analysisPresent": true,
+      "nativeReadingVerified": true,
+      "chosenDirectoryRemembered": true,
+      "chosenDirectoryWaitsForReview": true,
+      "humanReviewNotFabricated": true,
+      "mixedPlainAndEncryptedSource": true,
+      "perDatabaseKeys": true,
+      "unknownTimeRecordPreserved": true,
+      "rangeUncertaintyReported": true
+    },
+    {
+      "client": "wecom",
+      "capabilities": {
+        "schemaVersion": 1,
+        "privateAnalysis": false,
+        "conversationMode": "group",
+        "role": "desktop",
+        "version": "1.31.0",
+        "release": "v45"
+      },
+      "rows": 3,
+      "jsonAndJsonlEquivalent": true,
+      "markdownRowIdsMatch": true,
+      "exportArtifactHashesMatch": true,
+      "analysisPresent": true,
+      "nativeReadingVerified": true,
+      "chosenDirectoryRemembered": true,
+      "chosenDirectoryWaitsForReview": true,
+      "humanReviewNotFabricated": true,
+      "mixedPlainAndEncryptedSource": true,
+      "perDatabaseKeys": true,
+      "unknownTimeRecordPreserved": true,
+      "rangeUncertaintyReported": true
+    }
+  ],
+  "priorDeliveryZipsUnchanged": 19
+}

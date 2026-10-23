@@ -69,7 +69,7 @@ def main():
         shutil.copyfile(project / 'scripts/licenses/Tcl-8.6.15-license.terms', licenses / 'Tcl-8.6.15-license.terms')
         shutil.copyfile(Path(sys.base_prefix) / 'tcl/tk8.6/license.terms', licenses / 'Tk-8.6-license.terms')
     versions = {}
-    names = {'cryptography', 'zstandard', 'cffi', 'pycparser', 'pyinstaller', 'pypdf', 'xlrd', 'olefile'}
+    names = {'cryptography', 'zstandard', 'cffi', 'pycparser', 'pyinstaller', 'pypdf', 'xlrd', 'olefile', 'msoffcrypto-tool'}
     if args.desktop:
         names.add('pillow')
     for distribution in importlib.metadata.distributions(path=[str(dependencies)]):
@@ -80,7 +80,7 @@ def main():
         for file in distribution.files or []:
             listed = str(file).replace('\\', '/')
             modern_license = '/licenses/' in listed
-            legacy_license = name in ('pypdf', 'xlrd', 'olefile') and Path(listed).name.upper() in ('LICENSE', 'LICENSE.TXT', 'COPYING')
+            legacy_license = name in ('pypdf', 'xlrd', 'olefile', 'msoffcrypto-tool') and Path(listed).name.upper() in ('LICENSE', 'LICENSE.TXT', 'COPYING')
             if not modern_license and not legacy_license:
                 continue
             path = Path(distribution.locate_file(file))

@@ -1,0 +1,161 @@
+{
+  "version": "1.7.0",
+  "syntheticOnly": true,
+  "targetedUniqueTestsPassed": 176,
+  "testRuns": [
+    {
+      "log": "private17-core-final.log",
+      "passed": 81
+    },
+    {
+      "log": "private17-ui-tests.log",
+      "passed": 57
+    },
+    {
+      "log": "private17-profiles-final.log",
+      "passed": 29
+    },
+    {
+      "log": "private17-integration-tests.log",
+      "passed": 8
+    }
+  ],
+  "finalRetest": {
+    "log": "private17-final-retest.log",
+    "passed": 44,
+    "additionalUniqueTests": 1
+  },
+  "lockRetest": {
+    "log": "private17-lock-integration.log",
+    "passed": 8,
+    "countedAgain": false
+  },
+  "legacy12To17CompiledUpgradeClients": [
+    "wechat",
+    "wecom"
+  ],
+  "previousArtifactsUnchanged": [
+    {
+      "name": "WeChat-WeCom-Archive-Windows-Delivery-20261020-v41.zip",
+      "sha256": "d15751aa1794b2001ad21ca84f4ee3032ac88141a90df407d63f6d25d4273110"
+    },
+    {
+      "name": "local-chat-review-v41-20261020-windows-x64.zip",
+      "sha256": "6fff833f4bcb114841062c13f3a096b60fd031728eb5b3c24e86e3d7254f0695"
+    },
+    {
+      "name": "WeChat-Archive-Skill-1.27.0-Windows-x64.zip",
+      "sha256": "410372ad85875c015c66700153080c07cf4a36458058a7da25a43a44e74e8f6d"
+    },
+    {
+      "name": "WeCom-Archive-Skill-1.27.0-Windows-x64.zip",
+      "sha256": "a9baad07f009c7bcfbe19aa81f4a4679b463933067c1400cb06b25cfc8cdb5c4"
+    },
+    {
+      "name": "private-analysis-1.0.0-20261022/local-wechat-private-analysis-1.0.0-windows-x64.zip",
+      "sha256": "1822c148d3c56a85cc7f27677720c8dbb249de93293cf1e0448519b7ebd4109e"
+    },
+    {
+      "name": "private-analysis-1.0.0-20261022/local-wecom-private-analysis-1.0.0-windows-x64.zip",
+      "sha256": "77e5b53193bc7ced879b439fb8eff97dae7192b83e5dd9d4e578410b473aff70"
+    },
+    {
+      "name": "WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v1.zip",
+      "sha256": "1311c2b4f440a5d6178e2d996758ef4e0cd90d13837cdb51dfac7cbbe31e736b"
+    },
+    {
+      "name": "private-analysis-1.1.0-20261022/local-wechat-private-analysis-1.1.0-windows-x64.zip",
+      "sha256": "59cbcfc18e5a12d5ae9b3435db6e468aec1ca557604035a2fc6f9314e4abe46a"
+    },
+    {
+      "name": "private-analysis-1.1.0-20261022/local-wecom-private-analysis-1.1.0-windows-x64.zip",
+      "sha256": "96c8928127b4ab8b02564e7503814efb085b5140aba4c36bde195ed026fe254a"
+    },
+    {
+      "name": "WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v2.zip",
+      "sha256": "093ec928132788083e017835de03733c94b51abd86d545f8a3e3bd8b3fb00799"
+    },
+    {
+      "name": "WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v3.zip",
+      "sha256": "383944c787f55cb30c6d88abd1922c645bfaffb179a56f9cccaba11156b67b7e"
+    },
+    {
+      "name": "private-analysis-1.2.0-20261022/local-wechat-private-analysis-1.2.0-windows-x64.zip",
+      "sha256": "561c87e2ed1c253a18d6b68bc3c50bacbf082f5f50777ece3b29c9d6b9e471ee"
+    },
+    {
+      "name": "private-analysis-1.2.0-20261022/local-wecom-private-analysis-1.2.0-windows-x64.zip",
+      "sha256": "9a7dcaa6ef4001926684b4d2374f3d31e6c25a34a41a2c22f94d9c8255f962bd"
+    },
+    {
+      "name": "WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v4.zip",
+      "sha256": "ec4c6feb7183dacbb56996d6b79adddbb2d29e781e5860315324a8253329882a"
+    },
+    {
+      "name": "private-analysis-1.3.0-20261022/local-wechat-private-analysis-1.3.0-windows-x64.zip",
+      "sha256": "a23545368dbb76ccd19ac86343a9fe67b065546e3d79d76fa26e1536ad24ce68"
+    },
+    {
+      "name": "private-analysis-1.3.0-20261022/local-wecom-private-analysis-1.3.0-windows-x64.zip",
+      "sha256": "f4b5d1de292e1ef9fb7a0900495a71c90df9e49876c4e5398b84ab81d7a74797"
+    },
+    {
+      "name": "WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v5.zip",
+      "sha256": "a5dafefd911bbaf811a3eee75c4b35e039607a5e86bb617eec53d3a6dc875ada"
+    },
+    {
+      "name": "private-analysis-1.4.0-20261022/local-wechat-private-analysis-1.4.0-windows-x64.zip",
+      "sha256": "590c07db5de29595a5a34b8bf4f1ac05644ad77700b98950f2382dadc5e80433"
+    },
+    {
+      "name": "private-analysis-1.4.0-20261022/local-wecom-private-analysis-1.4.0-windows-x64.zip",
+      "sha256": "58f15ba89ace28417ee890185693cac4b065dbb18993305566b1b78fbadc8456"
+    },
+    {
+      "name": "WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v6.zip",
+      "sha256": "8de46346a68f48ebe9b1813c2a670138416d4b8484e6fc84aa04d7539095ea3e"
+    },
+    {
+      "name": "private-analysis-1.5.0-20261022/local-wechat-private-analysis-1.5.0-windows-x64.zip",
+      "sha256": "83e52d1d796aadc0855be30bc8a6793c4ef3b84efc1d3ca1331fed380fbce717"
+    },
+    {
+      "name": "private-analysis-1.5.0-20261022/local-wecom-private-analysis-1.5.0-windows-x64.zip",
+      "sha256": "c58871f20e51f54ff87e1de60c7cff5657f77df68e0957207c5b186135701e06"
+    },
+    {
+      "name": "WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v7.zip",
+      "sha256": "8caf9064d79e028610ea272c2c3a9443f5e6022625e6c648d6bec86229a0cdd7"
+    },
+    {
+      "name": "private-analysis-1.6.0-20261022/local-wechat-private-analysis-1.6.0-windows-x64.zip",
+      "sha256": "b47fa33b56a56022e62debe4d38f99060689b1fec1ae995e16b2f58b78c7ce3b"
+    },
+    {
+      "name": "private-analysis-1.6.0-20261022/local-wecom-private-analysis-1.6.0-windows-x64.zip",
+      "sha256": "0d21f783374c77da48a9a9ca1ce7410916791ae25e29915a5c9ce2abc62df00f"
+    }
+  ],
+  "packages": [
+    {
+      "client": "wechat",
+      "name": "local-wechat-private-analysis-1.7.0-windows-x64.zip",
+      "bytes": 47167247,
+      "sha256": "417c0ebce0482834fa505130dbf449b2136e9cf15456b2266c90d4a6843a06ed"
+    },
+    {
+      "client": "wecom",
+      "name": "local-wecom-private-analysis-1.7.0-windows-x64.zip",
+      "bytes": 47167285,
+      "sha256": "1c9081d9ef53a9eb4f17a83ccf62edd9e69d0a7b732f48a5f648651abc7a6d91"
+    }
+  ],
+  "bundle": {
+    "name": "WeChat-WeCom-Private-Analysis-Windows-Delivery-20261022-v8.zip",
+    "bytes": 94405963,
+    "sha256": "46cd22bba71b582473f87cb3c89f0d15effa7987b2f303e4fdbadfa68a61b3ea",
+    "files": 21,
+    "crc": "passed",
+    "readback": "passed"
+  }
+}

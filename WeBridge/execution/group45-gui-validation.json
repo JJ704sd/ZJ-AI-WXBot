@@ -1,0 +1,16 @@
+{
+  "release": "v45",
+  "group": "gui",
+  "syntheticOnly": true,
+  "testsRun": 23,
+  "failures": 0,
+  "errors": 0,
+  "skipped": [],
+  "seconds": 135.27721450000536,
+  "modules": [
+    "test_group_export_location45.ExportLocationUI45Tests",
+    "test_group_ui42",
+    "test_offline_multiselect",
+    "test_private_main_design17"
+  ]
+}

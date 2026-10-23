@@ -1,0 +1,61 @@
+{
+  "release": "v46",
+  "syntheticOnly": true,
+  "eligibleCacheBytes": 603979776,
+  "targetBytes": 67108864,
+  "v45": {
+    "targetFound": false,
+    "seconds": 1.067021399969235,
+    "report": {
+      "scope": "selected_wecom_account_cache",
+      "indexedFiles": 9,
+      "recoveredReferences": 0,
+      "networkFetched": false,
+      "refreshedForExport": true,
+      "diagnostics": {
+        "digestBudgetLimited": 1
+      }
+    }
+  },
+  "v46": {
+    "targetFound": true,
+    "seconds": 1.0904404999455437,
+    "report": {
+      "scope": "selected_wecom_account_cache",
+      "indexedFiles": 9,
+      "recoveredReferences": 0,
+      "networkFetched": false,
+      "contentSearchComplete": true,
+      "singleFileLimitBytes": 104857600,
+      "refreshedForExport": true,
+      "diagnostics": {
+        "hashBytesRead": 603979776,
+        "filesHashed": 9,
+        "cacheReadErrors": 0,
+        "oversizeFiles": 0,
+        "changedDuringSearch": 0,
+        "digestIndexedFiles": 9
+      }
+    }
+  },
+  "v46SecondExport": {
+    "targetFound": true,
+    "seconds": 0.006704100058414042,
+    "report": {
+      "scope": "selected_wecom_account_cache",
+      "indexedFiles": 0,
+      "recoveredReferences": 0,
+      "networkFetched": false,
+      "contentSearchComplete": true,
+      "singleFileLimitBytes": 104857600,
+      "refreshedForExport": true,
+      "diagnostics": {
+        "hashCacheReused": 9,
+        "cacheReadErrors": 0,
+        "oversizeFiles": 0,
+        "changedDuringSearch": 0,
+        "digestIndexedFiles": 9
+      }
+    }
+  }
+}

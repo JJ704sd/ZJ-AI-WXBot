@@ -1,0 +1,21 @@
+{
+  "version": "1.5.0",
+  "syntheticOnly": true,
+  "samples": [
+    {
+      "sample": 1,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "sample": 2,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "sample": 3,
+      "failures": 0,
+      "errors": 0
+    }
+  ]
+}

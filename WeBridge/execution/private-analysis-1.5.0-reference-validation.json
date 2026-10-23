@@ -1,0 +1,34 @@
+{
+  "syntheticOnly": true,
+  "realAccountsRead": false,
+  "cases": [
+    {
+      "client": "wechat",
+      "oldExeRef": 1,
+      "newExeRef": 7,
+      "canonicalRefStagesCorrectMessage": true,
+      "nonAnalysisRefIsNull": true,
+      "nullIdFallsBackToMessageId": true,
+      "formalProfileCreated": false,
+      "pythonOnChildPath": false,
+      "exeSha256": {
+        "1.4.0": "454223ed1f0eea8ea8b3fc7e4c0a8c74537d49c989b6930181730b0b211c4cc8",
+        "1.5.0": "4a6c3aa319f737d15f65c509f364ea81a71e8993a75d5e3ce4b8dbea68582df2"
+      }
+    },
+    {
+      "client": "wecom",
+      "oldExeRef": 1,
+      "newExeRef": 7,
+      "canonicalRefStagesCorrectMessage": true,
+      "nonAnalysisRefIsNull": true,
+      "nullIdFallsBackToMessageId": true,
+      "formalProfileCreated": false,
+      "pythonOnChildPath": false,
+      "exeSha256": {
+        "1.4.0": "454223ed1f0eea8ea8b3fc7e4c0a8c74537d49c989b6930181730b0b211c4cc8",
+        "1.5.0": "4a6c3aa319f737d15f65c509f364ea81a71e8993a75d5e3ce4b8dbea68582df2"
+      }
+    }
+  ]
+}

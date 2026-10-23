@@ -1,0 +1,20 @@
+{
+  "version": "v43",
+  "client": "wechat",
+  "rows": 100000,
+  "syntheticOnly": true,
+  "phases": {
+    "snapshotAndLoad": 0.08853059995453805,
+    "parseAndCheckpoint": 17.619529000017792,
+    "approveSyntheticFixture": 0.49942669994197786,
+    "publish": 2.6408169000642374,
+    "restartRestore": 2.4960538999876007
+  },
+  "recordDigest": "58bd16158e89d1ef26f25e419c6336290343086b8f1e3738829293aafbaad79c",
+  "rowsVerified": 100000,
+  "progressEvents": 0,
+  "deferredReading": false,
+  "outputBytes": 403265133,
+  "restoredPublished": 1,
+  "initialWorkflowSeconds": 20.848303199978545
+}

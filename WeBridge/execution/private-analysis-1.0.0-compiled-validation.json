@@ -1,0 +1,54 @@
+{
+  "syntheticOnly": true,
+  "realAccountsRead": false,
+  "packages": [
+    {
+      "client": "wechat",
+      "files": 27,
+      "zipCrc": "passed",
+      "allFileHashes": "passed",
+      "compiledPrivateParsing": "passed",
+      "profilePrepareStageShow": "passed",
+      "candidateChineseRoundTrip": "passed",
+      "windowsPowerShellWrapper": "passed",
+      "crossClientRejected": true,
+      "nativeWindowCreated": true,
+      "defaultMode": "direct",
+      "emptyAccountResult": {
+        "ok": false,
+        "nativeWindowCreated": true,
+        "client": "wechat",
+        "conversationMode": "direct",
+        "release": "私聊 1.0.0",
+        "error": "首次使用：请重新选择本人微信账号并配置；旧配置不会自动导入。"
+      },
+      "formalProfileCreated": false,
+      "pythonOnChildPath": false,
+      "zipSha256": "1822c148d3c56a85cc7f27677720c8dbb249de93293cf1e0448519b7ebd4109e"
+    },
+    {
+      "client": "wecom",
+      "files": 27,
+      "zipCrc": "passed",
+      "allFileHashes": "passed",
+      "compiledPrivateParsing": "passed",
+      "profilePrepareStageShow": "passed",
+      "candidateChineseRoundTrip": "passed",
+      "windowsPowerShellWrapper": "passed",
+      "crossClientRejected": true,
+      "nativeWindowCreated": true,
+      "defaultMode": "direct",
+      "emptyAccountResult": {
+        "ok": false,
+        "nativeWindowCreated": true,
+        "client": "wecom",
+        "conversationMode": "direct",
+        "release": "私聊 1.0.0",
+        "error": "首次使用：请重新选择本人企业微信账号并配置；旧配置不会自动导入。"
+      },
+      "formalProfileCreated": false,
+      "pythonOnChildPath": false,
+      "zipSha256": "77e5b53193bc7ced879b439fb8eff97dae7192b83e5dd9d4e578410b473aff70"
+    }
+  ]
+}

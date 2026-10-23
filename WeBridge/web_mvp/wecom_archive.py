@@ -9,7 +9,9 @@ import sqlite3
 
 from database_adapter import _quote
 from database_snapshot import _hash_file
-from offline_chat import ArchiveError, LocalArchive, BEIJING, json_value
+from offline_chat import (ArchiveError, LocalArchive, BEIJING, json_value, integer_sql,
+                          timestamp_sql, source_integer, source_timestamp, source_identity,
+                          MIN_TIMESTAMP, MAX_TIMESTAMP)
 from wecom_content import typed_message, value, values, quote_entry, FORWARD_FIELDS
 from wecom_media import WeComMedia
 from offline_images import message_nodes
@@ -82,6 +84,8 @@ class WeComArchive(LocalArchive):
         return self.metadata
 
     def _check(self):
+        if self._integrity_deferred():
+            return
         if {p for p in self.root.glob('*.db')} != set(self.fingerprints) or any(_hash_file(p) != digest for p, digest in self.fingerprints.items()):
             raise ArchiveError('企微副本在读取期间变化，请重新加载。')
 
@@ -107,57 +111,110 @@ class WeComArchive(LocalArchive):
         streams, schemas = [], []
         for table in self.message_tables:
             db = stack.enter_context(closing(connect(self.root / 'message.db')))
+            layouts = self.__dict__.setdefault('_time_layouts', {})
+            layout_key = (table, chat)
+            if layout_key not in layouts:
+                lower, upper, invalid, fractional = db.execute(
+                    'SELECT min(send_time),max(send_time),sum(CASE WHEN typeof(send_time)!='
+                    "'integer' OR typeof(message_id)!='integer' THEN 1 ELSE 0 END),"
+                    'sum(CASE WHEN send_time>20000000000 AND send_time%1000!=0 THEN 1 ELSE 0 END) '
+                    'FROM ' + _quote(table) + ' WHERE conversation_id=?', (chat,)).fetchone()
+                scale = None
+                if lower is None and not invalid:
+                    scale = 1
+                elif not invalid:
+                    if MIN_TIMESTAMP <= lower <= upper <= 20000000000:
+                        scale = 1
+                    elif lower > 20000000000 and upper // 1000 <= MAX_TIMESTAMP and not fractional:
+                        # Subsecond rows require normalized ordering: raw time
+                        # order could disagree with the cross-table merge key.
+                        scale = 1000
+                layouts[layout_key] = scale
+            scale = layouts[layout_key]
             conditions, params = ['conversation_id=?'], [chat]
-            # Windows stores seconds; preserve raw values and support ms variants.
-            maximum = db.execute('SELECT max(send_time) FROM ' + _quote(table) + ' WHERE conversation_id=?', (chat,)).fetchone()[0]
-            scale = 1000 if (maximum or 0) > 20000000000 else 1
+            # Normalize each row: imported/migrated tables can mix seconds and
+            # milliseconds. A bad row must neither change all dates nor vanish.
+            date_conditions = []
             for operator, stamp in (('>=', low), ('<', high)):
                 if stamp is not None:
-                    conditions.append('send_time' + operator + '?')
-                    params.append(stamp * scale)
+                    date_conditions.append(('send_time' if scale else '__offline_timestamp') + operator + '?')
+                    params.append(stamp * scale if scale else stamp)
+            if date_conditions:
+                conditions.append(' AND '.join(date_conditions) if scale else
+                                  '((' + ' AND '.join(date_conditions) + ') OR __offline_timestamp IS NULL)')
             if server_id is not None:
                 conditions.append('server_id=?')
                 params.append(server_id)
-            cursor = db.execute('SELECT *,message_id AS local_id,send_time/' + str(scale) + ' AS create_time FROM '
-                                + _quote(table) + ' WHERE ' + ' AND '.join(conditions) + ' ORDER BY send_time,message_id', params)
+            inner = ('SELECT *,rowid AS __offline_rowid,message_id AS local_id,' +
+                     ('message_id' if scale else integer_sql('message_id')) + ' AS __offline_local_id,' +
+                     ('send_time/' + str(scale) if scale else timestamp_sql('send_time', milliseconds=True)) +
+                     ' AS __offline_timestamp FROM ' + _quote(table))
+            cursor = db.execute('SELECT *,__offline_timestamp AS create_time FROM (' + inner + ') WHERE ' +
+                                ' AND '.join(conditions) + (' ORDER BY send_time,message_id,__offline_rowid' if scale else
+                                ' ORDER BY __offline_timestamp IS NULL,__offline_timestamp,'
+                                '__offline_local_id IS NULL,__offline_local_id,__offline_rowid'), params)
             streams.append(self._stream(cursor, 'message.db', table))
             schemas.append({'database': 'message.db', 'table': table, 'columns': [r[1] for r in db.execute('PRAGMA table_info(' + _quote(table) + ')')]})
         return streams, schemas
 
     def _message(self, item, file, table, chat):
-        raw = {k: v for k, v in item.items() if k not in ('local_id', 'create_time')}
-        stamp, mid, sender = int(item['create_time']), int(item['message_id']), str(item['sender_id'])
-        result = typed_message(item['content'], item['content_type'], extra=item.get('extra_content', b''))
+        raw = {k: v for k, v in item.items() if k not in ('local_id', 'create_time') and not k.startswith('__offline_')}
+        stamp = item.get('__offline_timestamp', source_timestamp(item['send_time'], milliseconds=True))
+        mid = item.get('__offline_local_id', source_integer(item['message_id']))
+        sender = source_identity(item['sender_id'])
+        kind = source_integer(item['content_type'])
+        issues = [field for field, value in (('message_id', mid), ('send_time', stamp), ('content_type', kind)) if value is None]
+        if item['sender_id'] not in (None, '', b'') and not sender:
+            issues.append('sender_id')
+        result = typed_message(item['content'], kind, extra=item.get('extra_content', b''))
         for node, _, _ in message_nodes(result):
             quote = node.get('quote')
             if quote and not quote.get('senderName'):
                 name = self.member_names.get(chat['id'], {}).get(quote['senderId']) or self.contacts.get(quote['senderId'], '')
                 quote['senderName'] = quote['message']['senderName'] = name
-        own = bool(self.state['self_id'])
+        own = bool(self.state['self_id']) and bool(sender)
         result['mentions']['self'] = self.state['self_id'] in result['mentions']['ids'] if own else None
         try:
-            iso = datetime.fromtimestamp(stamp, BEIJING).isoformat()
+            iso = datetime.fromtimestamp(stamp, BEIJING).isoformat() if stamp is not None else None
         except (OverflowError, ValueError, OSError):
             iso = None
+            stamp = None
+            if 'send_time' not in issues:
+                issues.append('send_time')
+        if issues:
+            result.update(metadataIssues=issues, contentParseStatus=result['parseStatus'], parseStatus='invalid_metadata')
+        identifier = str(mid) if mid is not None else 'rowid:' + str(item['__offline_rowid'])
         return {'schemaVersion': 1, 'client': 'wecom', 'chatId': chat['id'], 'chatName': chat['name'],
-                'id': file + '|' + table + '|' + str(mid), 'localId': mid, 'serverId': str(item['server_id']),
-                'timestamp': stamp, 'time': iso, 'localType': item['content_type'], 'senderId': sender,
+                'id': file + '|' + table + '|' + identifier, 'localId': mid, 'serverId': source_identity(item['server_id']),
+                'timestamp': stamp, 'time': iso, 'localType': kind, 'senderId': sender,
                 'senderName': self.member_names.get(chat['id'], {}).get(sender) or self.contacts.get(sender, sender),
-                'senderIdentityBasis': 'conversation_user_table/user_table', 'senderConflict': False,
+                'senderIdentityBasis': 'conversation_user_table/user_table' if sender else 'unknown', 'senderConflict': False,
                 'isSelf': sender == self.state['self_id'] if own else None,
                 'direction': ('outgoing' if sender == self.state['self_id'] else 'incoming') if own else 'unknown',
                 **result,
                 'decodeStatus': 'ok' if result['parseStatus'] in ('ok', 'plain_system') else 'partially_supported',
                 'decodeAttempts': [], 'rawContent': '', 'rawColumns': {k: json_value(v) for k, v in raw.items()},
-                'provenance': {'database': file, 'table': table, 'localId': mid}}
+                'provenance': {'database': file, 'table': table, 'localId': mid,
+                               'sourceRowId': item.get('__offline_rowid')}}
 
     def _link_quote(self, row, destination, copy_media, visited=None, depth=0):
+        if depth >= 10:
+            return
+        # Embedded occurrences have their own quote metadata but inherit the
+        # enclosing chat boundary. Never search another conversation for them.
+        for number, child in enumerate(row.get('record', {}).get('items', [])):
+            nested = {**child, 'chatId': row['chatId'], 'id': row['id'] + ':part:' + str(number)}
+            self._link_quote(nested, destination, copy_media, visited, depth + 1)
+            for key in ('quote', 'parseStatus'):
+                if key in nested:
+                    child[key] = nested[key]
         quote = row.get('quote')
         if not quote:
             return
         token = quote.get('sourceToken')
+        identifier = quote.get('sourceIdentifier')
         quote['sourceLinkStatus'] = 'source_id_unavailable'
-        if not token or depth >= 10:
+        if not (token or identifier):
             return
         chat = row['chatId']
         cached_chat, index = getattr(self, '_quote_sources', (None, {}))
@@ -168,24 +225,38 @@ class WeComArchive(LocalArchive):
                 for table in TABLES:
                     if table not in available:
                         continue
-                    for item in db.execute('SELECT *,send_time AS create_time FROM '+_quote(table)+' WHERE conversation_id=?', (chat,)):
-                        record = dict(item)
-                        stamp = int(record['send_time'])
-                        record['create_time'] = stamp // 1000 if stamp > 20000000000 else stamp
-                        candidate = value(value(record.get('extra_content', b''), 3045), 1)
+                    columns = {entry[1] for entry in db.execute('PRAGMA table_info(' + _quote(table) + ')')}
+                    if 'extra_content' not in columns:
+                        continue
+                    # INTEGER PRIMARY KEY aliases rowid; name the result explicitly.
+                    for item in db.execute('SELECT rowid AS __offline_rowid,extra_content FROM '+_quote(table)+' WHERE conversation_id=?', (chat,)):
+                        candidate = value(value(item['extra_content'], 3045), 1)
                         if candidate:
-                            index.setdefault(candidate, []).append((record, table))
+                            index.setdefault(('legacy', candidate), []).append((item['__offline_rowid'], table))
+                        key = value(value(value(item['extra_content'], 3045), 3), 3)
+                        if key:
+                            index.setdefault(('message_key', key), []).append((item['__offline_rowid'], table))
             self._quote_sources = chat, index
         candidates = []
-        for item, table in index.get(token.encode('ascii'), []):
-            stamp = int(item['send_time'])
-            stamp = stamp // 1000 if stamp > 20000000000 else stamp
-            if (int(item['content_type']) != quote['sourceType'] or str(item['sender_id']) != quote['senderId'] or
-                    stamp != quote['sourceTimestamp'] or
-                    (quote.get('contentSha256') and (not isinstance(item['content'], bytes) or
-                     hashlib.sha256(item['content']).hexdigest() != quote['contentSha256']))):
-                continue
-            candidates.append((item, table))
+        locations = index.get(('message_key', identifier.encode('utf8')), []) if identifier else index.get(('legacy', token.encode('ascii')), [])
+        if locations:
+            # Keep message bodies out of the group-wide index. Fetch only the
+            # token's candidates, then apply the same exact matching rules.
+            with closing(connect(self.root / 'message.db')) as db:
+                for rowid, table in locations:
+                    found = db.execute('SELECT *,rowid AS __offline_rowid FROM ' + _quote(table) +
+                                       ' WHERE rowid=? AND conversation_id=?', (rowid, chat)).fetchone()
+                    if found is None:
+                        continue
+                    item = dict(found)
+                    stamp = source_timestamp(item['send_time'], milliseconds=True)
+                    item['create_time'] = stamp
+                    if (stamp is None or (quote['sourceType'] != -1 and source_integer(item['content_type']) != quote['sourceType']) or source_identity(item['sender_id']) != quote['senderId'] or
+                            stamp != quote['sourceTimestamp'] or
+                            (quote.get('contentSha256') and (not isinstance(item['content'], bytes) or
+                             hashlib.sha256(item['content']).hexdigest() != quote['contentSha256']))):
+                        continue
+                    candidates.append((item, table))
         if len(candidates) != 1:
             quote['sourceLinkStatus'] = 'ambiguous_source' if candidates else 'source_not_found'
             return
@@ -197,7 +268,7 @@ class WeComArchive(LocalArchive):
             return
         quote.update(sourceLinkStatus='matched_local_source', sourceMessageId=source['id'],
                      sourceLocalId=source['localId'], sourceProvenance=source['provenance'])
-        if quote['resolutionStatus'] == 'embedded' or source['decodeStatus'] != 'ok':
+        if quote['resolutionStatus'] == 'embedded' or source['decodeStatus'] != 'ok' or source.get('metadataIssues'):
             return
         if copy_media:
             self._media(source, destination, Counter())

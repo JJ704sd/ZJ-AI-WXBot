@@ -1,0 +1,478 @@
+{
+  "scope": "SQLite select and streaming heapq merge only, excluding parse/render/decryption",
+  "rowsPerSource": 100000,
+  "samplesEach": 3,
+  "cache": "ordinary Windows filesystem cache, alternating order",
+  "index": "matching conversation/time/id index in every fixture",
+  "firstProbe": "current_first clears only the snapshot layout cache before timing; SQL probe included",
+  "reuse": "current_reuse uses the layout cached by the immediately preceding current_first sample",
+  "queryBoundary": "Normal integer seconds or exact-second milliseconds retain the raw time index. Mixed, invalid or subsecond millisecond tables use SQLite CASE normalization and a temporary sort; no Python full-table materialization. Initial layout probe scans the selected table or conversation, even when the requested date interval is small.",
+  "summary": [
+    {
+      "client": "wechat",
+      "mode": "normal",
+      "baseline": {
+        "medianSeconds": 0.7068284000270069,
+        "rows": 100000,
+        "unknownTimeRows": 0,
+        "error": null,
+        "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff"
+      },
+      "current_first": {
+        "medianSeconds": 0.8690851998981088,
+        "rows": 100000,
+        "unknownTimeRows": 0,
+        "error": null,
+        "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff"
+      },
+      "current_reuse": {
+        "medianSeconds": 0.7270874999230728,
+        "rows": 100000,
+        "unknownTimeRows": 0,
+        "error": null,
+        "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff"
+      },
+      "normalResultUnchanged": true
+    },
+    {
+      "client": "wechat",
+      "mode": "mixed",
+      "baseline": {
+        "medianSeconds": 0.5422655999427661,
+        "rows": 99900,
+        "unknownTimeRows": 0,
+        "error": null,
+        "orderedIdentityDigest": "6dbc141b968ccd5c6687dc3ac22f17137843f392cd9ff06d7d7a8f6302f63fce"
+      },
+      "current_first": {
+        "medianSeconds": 0.7501183999702334,
+        "rows": 100000,
+        "unknownTimeRows": 100,
+        "error": null,
+        "orderedIdentityDigest": "03866d9f845f468c548728e0b3bc6c8e10717056ed5b971c32b61a053bef9975"
+      },
+      "current_reuse": {
+        "medianSeconds": 0.7569285000208765,
+        "rows": 100000,
+        "unknownTimeRows": 100,
+        "error": null,
+        "orderedIdentityDigest": "03866d9f845f468c548728e0b3bc6c8e10717056ed5b971c32b61a053bef9975"
+      },
+      "normalResultUnchanged": null
+    },
+    {
+      "client": "wecom",
+      "mode": "normal",
+      "baseline": {
+        "medianSeconds": 0.6618134999880567,
+        "rows": 100000,
+        "unknownTimeRows": 0,
+        "error": null,
+        "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd"
+      },
+      "current_first": {
+        "medianSeconds": 0.8637005999917164,
+        "rows": 100000,
+        "unknownTimeRows": 0,
+        "error": null,
+        "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd"
+      },
+      "current_reuse": {
+        "medianSeconds": 0.80973229999654,
+        "rows": 100000,
+        "unknownTimeRows": 0,
+        "error": null,
+        "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd"
+      },
+      "normalResultUnchanged": true
+    },
+    {
+      "client": "wecom",
+      "mode": "mixed",
+      "baseline": {
+        "medianSeconds": 0.0008483000565320253,
+        "rows": 0,
+        "unknownTimeRows": 0,
+        "error": "TypeError",
+        "orderedIdentityDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "current_first": {
+        "medianSeconds": 1.0920425000367686,
+        "rows": 100000,
+        "unknownTimeRows": 100,
+        "error": null,
+        "orderedIdentityDigest": "a9ad777ae711f3b6e26d2180b0106d508178eb33e7b546eadbfc7e9eb3b9b771"
+      },
+      "current_reuse": {
+        "medianSeconds": 1.0236455999547616,
+        "rows": 100000,
+        "unknownTimeRows": 100,
+        "error": null,
+        "orderedIdentityDigest": "a9ad777ae711f3b6e26d2180b0106d508178eb33e7b546eadbfc7e9eb3b9b771"
+      },
+      "normalResultUnchanged": null
+    }
+  ],
+  "samples": [
+    {
+      "client": "wechat",
+      "mode": "normal",
+      "implementation": "baseline",
+      "seconds": 0.7068284000270069,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "normal",
+      "implementation": "current_first",
+      "seconds": 0.8920086999423802,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "normal",
+      "implementation": "current_reuse",
+      "seconds": 0.8010818000184372,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "normal",
+      "implementation": "current_first",
+      "seconds": 0.8690851998981088,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "normal",
+      "implementation": "current_reuse",
+      "seconds": 0.7270874999230728,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "normal",
+      "implementation": "baseline",
+      "seconds": 0.7204963999101892,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "normal",
+      "implementation": "baseline",
+      "seconds": 0.6472054000478238,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "normal",
+      "implementation": "current_first",
+      "seconds": 0.662444100016728,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "normal",
+      "implementation": "current_reuse",
+      "seconds": 0.6797613999806345,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "69410abbef15ae154dd6e15035104946e109e621c447cfa23cd2b61a1a6191ff",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "mixed",
+      "implementation": "baseline",
+      "seconds": 0.48189880000427365,
+      "rows": 99900,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "6dbc141b968ccd5c6687dc3ac22f17137843f392cd9ff06d7d7a8f6302f63fce",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "mixed",
+      "implementation": "current_first",
+      "seconds": 0.7006413000635803,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "03866d9f845f468c548728e0b3bc6c8e10717056ed5b971c32b61a053bef9975",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "mixed",
+      "implementation": "current_reuse",
+      "seconds": 0.7556385999778286,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "03866d9f845f468c548728e0b3bc6c8e10717056ed5b971c32b61a053bef9975",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "mixed",
+      "implementation": "current_first",
+      "seconds": 0.7501183999702334,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "03866d9f845f468c548728e0b3bc6c8e10717056ed5b971c32b61a053bef9975",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "mixed",
+      "implementation": "current_reuse",
+      "seconds": 0.8332189000211656,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "03866d9f845f468c548728e0b3bc6c8e10717056ed5b971c32b61a053bef9975",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "mixed",
+      "implementation": "baseline",
+      "seconds": 0.5648482999531552,
+      "rows": 99900,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "6dbc141b968ccd5c6687dc3ac22f17137843f392cd9ff06d7d7a8f6302f63fce",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "mixed",
+      "implementation": "baseline",
+      "seconds": 0.5422655999427661,
+      "rows": 99900,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "6dbc141b968ccd5c6687dc3ac22f17137843f392cd9ff06d7d7a8f6302f63fce",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "mixed",
+      "implementation": "current_first",
+      "seconds": 0.7745509999804199,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "03866d9f845f468c548728e0b3bc6c8e10717056ed5b971c32b61a053bef9975",
+      "error": null
+    },
+    {
+      "client": "wechat",
+      "mode": "mixed",
+      "implementation": "current_reuse",
+      "seconds": 0.7569285000208765,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "03866d9f845f468c548728e0b3bc6c8e10717056ed5b971c32b61a053bef9975",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "normal",
+      "implementation": "baseline",
+      "seconds": 0.7571170999435708,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "normal",
+      "implementation": "current_first",
+      "seconds": 0.8637005999917164,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "normal",
+      "implementation": "current_reuse",
+      "seconds": 0.80973229999654,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "normal",
+      "implementation": "current_first",
+      "seconds": 0.9555033999495208,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "normal",
+      "implementation": "current_reuse",
+      "seconds": 0.8153554999735206,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "normal",
+      "implementation": "baseline",
+      "seconds": 0.6574897000100464,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "normal",
+      "implementation": "baseline",
+      "seconds": 0.6618134999880567,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "normal",
+      "implementation": "current_first",
+      "seconds": 0.8279530999716371,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "normal",
+      "implementation": "current_reuse",
+      "seconds": 0.7722835000604391,
+      "rows": 100000,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "1b8e2b9cd5199c9725ac92f7516bca4ae3e38005e1991f4d93b93890394b3dfd",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "mixed",
+      "implementation": "baseline",
+      "seconds": 0.0005105000454932451,
+      "rows": 0,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "error": "TypeError"
+    },
+    {
+      "client": "wecom",
+      "mode": "mixed",
+      "implementation": "current_first",
+      "seconds": 1.0920425000367686,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "a9ad777ae711f3b6e26d2180b0106d508178eb33e7b546eadbfc7e9eb3b9b771",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "mixed",
+      "implementation": "current_reuse",
+      "seconds": 1.0617952999891713,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "a9ad777ae711f3b6e26d2180b0106d508178eb33e7b546eadbfc7e9eb3b9b771",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "mixed",
+      "implementation": "current_first",
+      "seconds": 1.1556334999622777,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "a9ad777ae711f3b6e26d2180b0106d508178eb33e7b546eadbfc7e9eb3b9b771",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "mixed",
+      "implementation": "current_reuse",
+      "seconds": 0.9984995999839157,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "a9ad777ae711f3b6e26d2180b0106d508178eb33e7b546eadbfc7e9eb3b9b771",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "mixed",
+      "implementation": "baseline",
+      "seconds": 0.0008589000208303332,
+      "rows": 0,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "error": "TypeError"
+    },
+    {
+      "client": "wecom",
+      "mode": "mixed",
+      "implementation": "baseline",
+      "seconds": 0.0008483000565320253,
+      "rows": 0,
+      "unknownTimeRows": 0,
+      "orderedIdentityDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "error": "TypeError"
+    },
+    {
+      "client": "wecom",
+      "mode": "mixed",
+      "implementation": "current_first",
+      "seconds": 0.9777712000068277,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "a9ad777ae711f3b6e26d2180b0106d508178eb33e7b546eadbfc7e9eb3b9b771",
+      "error": null
+    },
+    {
+      "client": "wecom",
+      "mode": "mixed",
+      "implementation": "current_reuse",
+      "seconds": 1.0236455999547616,
+      "rows": 100000,
+      "unknownTimeRows": 100,
+      "orderedIdentityDigest": "a9ad777ae711f3b6e26d2180b0106d508178eb33e7b546eadbfc7e9eb3b9b771",
+      "error": null
+    }
+  ]
+}

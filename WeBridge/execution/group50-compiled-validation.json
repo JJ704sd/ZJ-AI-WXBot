@@ -1,0 +1,127 @@
+{
+  "version": "v50",
+  "skillVersion": "1.36.0",
+  "syntheticOnly": true,
+  "packages": [
+    {
+      "archive": "local-chat-review-v50-20261023-windows-x64.zip",
+      "files": 27,
+      "sha256": "662f094c4297dc66c168299857fc8f7109b3765a9bfedb576abae2bf36b1581c"
+    },
+    {
+      "archive": "WeChat-Archive-Skill-1.36.0-Windows-x64.zip",
+      "files": 32,
+      "sha256": "3d1e95c2538e2e65ce84668117efa07c8089872d44d59e156407ef86d17f6966"
+    },
+    {
+      "archive": "WeCom-Archive-Skill-1.36.0-Windows-x64.zip",
+      "files": 33,
+      "sha256": "a2ffc27663fd4fe979747bedfb70876c877d4e3b4f3b8abb99056b6825bcdced"
+    }
+  ],
+  "clients": [
+    {
+      "client": "wechat",
+      "capabilities": {
+        "schemaVersion": 1,
+        "privateAnalysis": false,
+        "conversationMode": "group",
+        "role": "desktop",
+        "version": "1.36.0",
+        "release": "v50",
+        "diagnosticExport": true,
+        "contentRecovery": {
+          "supplementDirectory": true,
+          "windowsOCR": true,
+          "passwordDocuments": [
+            "pdf",
+            "docx",
+            "xlsx",
+            "pptx"
+          ],
+          "automaticCloudDownload": false
+        }
+      },
+      "rows": 11,
+      "jsonAndJsonlEquivalent": true,
+      "markdownRowIdsMatch": true,
+      "exportArtifactHashesMatch": true,
+      "analysisPresent": true,
+      "nativeReadingVerified": true,
+      "chosenDirectoryRemembered": true,
+      "chosenDirectoryWaitsForReview": true,
+      "supplementRecovery": 7,
+      "nativeOCRImageAndEncryptedPDF": true,
+      "officeKnownPassword": true,
+      "passwordNotExported": true,
+      "embeddedWordExcelPowerPointOCR": true,
+      "hybridPDFNativeAndOCR": true,
+      "multipageTIFF": true,
+      "misnamedImageAttachment": true,
+      "ocrLinesInAnalysis": true,
+      "diagnosticZipExported": true,
+      "diagnosticFailureCaptured": true,
+      "diagnosticSecretsExcluded": true,
+      "original101MiBStreamed": true,
+      "previewOCRRemainsMissingOriginal": true,
+      "deduplicatedRecoveryQueue": true,
+      "humanReviewNotFabricated": true,
+      "mixedPlainAndEncryptedSource": true,
+      "perDatabaseKeys": true,
+      "unknownTimeRecordPreserved": true,
+      "rangeUncertaintyReported": true
+    },
+    {
+      "client": "wecom",
+      "capabilities": {
+        "schemaVersion": 1,
+        "privateAnalysis": false,
+        "conversationMode": "group",
+        "role": "desktop",
+        "version": "1.36.0",
+        "release": "v50",
+        "diagnosticExport": true,
+        "contentRecovery": {
+          "supplementDirectory": true,
+          "windowsOCR": true,
+          "passwordDocuments": [
+            "pdf",
+            "docx",
+            "xlsx",
+            "pptx"
+          ],
+          "automaticCloudDownload": false
+        }
+      },
+      "rows": 14,
+      "jsonAndJsonlEquivalent": true,
+      "markdownRowIdsMatch": true,
+      "exportArtifactHashesMatch": true,
+      "analysisPresent": true,
+      "nativeReadingVerified": true,
+      "chosenDirectoryRemembered": true,
+      "chosenDirectoryWaitsForReview": true,
+      "supplementRecovery": 7,
+      "nativeOCRImageAndEncryptedPDF": true,
+      "officeKnownPassword": true,
+      "passwordNotExported": true,
+      "embeddedWordExcelPowerPointOCR": true,
+      "hybridPDFNativeAndOCR": true,
+      "multipageTIFF": true,
+      "misnamedImageAttachment": true,
+      "ocrLinesInAnalysis": true,
+      "diagnosticZipExported": true,
+      "diagnosticFailureCaptured": true,
+      "diagnosticSecretsExcluded": true,
+      "original101MiBStreamed": true,
+      "previewOCRRemainsMissingOriginal": true,
+      "deduplicatedRecoveryQueue": true,
+      "humanReviewNotFabricated": true,
+      "mixedPlainAndEncryptedSource": true,
+      "perDatabaseKeys": true,
+      "unknownTimeRecordPreserved": true,
+      "rangeUncertaintyReported": true
+    }
+  ],
+  "priorDeliveryZipsUnchanged": 39
+}

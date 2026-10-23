@@ -26,11 +26,11 @@ NOTES = {
     'scan_timeout': '本次只读取钥已超时，未生成不完整结果。',
     'scan_budget_exceeded': '达到只读取钥的资源上限，未生成不完整结果。',
     'source_changed': '取钥期间数据库发生变化，未生成不完整结果。',
-    'source_not_encrypted': '所选数据包含明文或不支持的库，无需或无法按本模式取钥。',
+    'source_not_encrypted': '所选数据已是明文，或存在不支持的文件头；明文副本可直接加载，无需恢复密钥。',
 }
 
 
-def _worker(source, include_media, timeout, budget, pipe):
+def _worker(source, include_media, timeout, budget, pipe, include_voice=False):
     with open(os.devnull, 'w') as sink:
         for descriptor in (1, 2):
             try:
@@ -41,7 +41,7 @@ def _worker(source, include_media, timeout, budget, pipe):
         try:
             from acquire_database_keys import collect_keys, WindowsDependencies, AcquireError
             result = collect_keys(source, WindowsDependencies(), timeout=timeout,
-                                  max_scan_bytes=budget, include_media=include_media)
+                                  max_scan_bytes=budget, include_media=include_media, include_voice=include_voice)
             image_keys, image_code = [], 'not_recovered'
             try:
                 from acquire_image_key import scan
@@ -59,10 +59,10 @@ def _worker(source, include_media, timeout, budget, pipe):
             pipe.close()
 
 
-def _collect(source, include_media, timeout, budget):
+def _collect(source, include_media, timeout, budget, include_voice=False):
     context = multiprocessing.get_context('spawn')
     incoming, outgoing = context.Pipe(duplex=False)
-    worker = context.Process(target=_worker, args=(str(source), include_media, timeout, budget, outgoing))
+    worker = context.Process(target=_worker, args=(str(source), include_media, timeout, budget, outgoing, include_voice))
     try:
         worker.start()
         outgoing.close()
@@ -84,7 +84,8 @@ def _collect(source, include_media, timeout, budget):
             worker.close()
 
 
-def recover_key_file(source_root, directory, *, allow_process_read=False, include_media=True, timeout=30, budget_mib=4096):
+def recover_key_file(source_root, directory, *, allow_process_read=False, include_media=True,
+                     include_voice=False, timeout=30, budget_mib=4096):
     if allow_process_read is not True:
         raise ArchiveError('恢复密钥需要用户明确选择只读访问本机当前微信进程。')
     if not isinstance(timeout, int) or not 5 <= timeout <= 90 or not isinstance(budget_mib, int) or not 64 <= budget_mib <= 4096:
@@ -98,11 +99,16 @@ def recover_key_file(source_root, directory, *, allow_process_read=False, includ
     if directory == account or directory.is_relative_to(account):
         raise ArchiveError('密钥和程序数据不能写入微信账号目录。')
     try:
-        _, databases, _ = inventory(source, include_media)
-        read_first_pages(databases)
-        result = _collect(source, include_media, timeout, budget_mib * 1024 * 1024)
+        _, databases, _ = inventory(source, include_media, include_voice)
+        pages = read_first_pages(databases)
+        result = _collect(source, include_media, timeout, budget_mib * 1024 * 1024,
+                          **({'include_voice': True} if include_voice else {}))
         # Re-authenticate after IPC and before writing a new private file.
-        keys = matching_keys(read_first_pages(databases), [(row['key_hex'], row['salt_hex']) for row in result['keys']])
+        _, current_databases, _ = inventory(source, include_media, include_voice)
+        current_pages = read_first_pages(current_databases)
+        if current_databases != databases or set(current_pages) != set(pages):
+            raise AcquireError('source_changed')
+        keys = matching_keys(current_pages, [(row['key_hex'], row['salt_hex']) for row in result['keys']])
     except AcquireError as error:
         raise ArchiveError(NOTES.get(error.code, '所选数据或取钥结果未通过校验。')) from None
     folder = directory / 'keys'
@@ -115,5 +121,6 @@ def recover_key_file(source_root, directory, *, allow_process_read=False, includ
         value['imageKeys'] = result['imageKeys']
     with path.open('x', encoding='utf-8') as handle:
         json.dump(value, handle, ensure_ascii=True, separators=(',', ':'))
-    return {'keyFile': str(path), 'databaseCount': len(databases), 'matchedCount': len(databases),
+    return {'keyFile': str(path), 'databaseCount': len(databases), 'matchedCount': len(current_pages),
+            'plaintextCount': len(databases) - len(current_pages),
             'imageRecovery': result.get('imageRecovery', 'not_recovered')}

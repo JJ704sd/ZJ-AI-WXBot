@@ -1,0 +1,64 @@
+{
+  "syntheticOnly": true,
+  "realAccountsRead": false,
+  "cases": [
+    {
+      "client": "wechat",
+      "oldVersion": "1.2.0",
+      "newVersion": "1.7.0",
+      "oldExeSha256": "07f0c540e1a6026e599935dc144cedf6cf668eab25603bebda6110567ebbadd7",
+      "preFixExeSha256": "d740336a993488aff7abe5fffc3badf409a1272bbd40bc845105a0f43bc6259b",
+      "newExeSha256": "a9cf43e8c3c643ca2e5a4032ff278906174845e5c534250db0c951d9cd45998f",
+      "preFix13StageRejected": true,
+      "preFix13FilesUnchanged": true,
+      "requestIdPreserved": true,
+      "candidateIdPreserved": true,
+      "sourceIdPreserved": true,
+      "requestFileBytesUnchanged": true,
+      "candidateFileBytesUnchanged": true,
+      "legacyCandidateReopenedAndConfirmed": true,
+      "confirmedReadAndUnchangedPrepare": true,
+      "booleanEvidenceRejected": true,
+      "statisticsCoverFullMessageSpan": true,
+      "pythonOnChildPath": false,
+      "confirmationPerformedBy": "synthetic_test_API_only",
+      "legacyRequestTimeRange": {
+        "start": "2026-10-22T09:00:00+08:00",
+        "end": "2026-10-22T09:00:00+08:00"
+      },
+      "statisticsTimeRange": {
+        "start": "2026-10-22T09:00:00+08:00",
+        "end": "2026-10-23T10:00:00+08:00"
+      }
+    },
+    {
+      "client": "wecom",
+      "oldVersion": "1.2.0",
+      "newVersion": "1.7.0",
+      "oldExeSha256": "07f0c540e1a6026e599935dc144cedf6cf668eab25603bebda6110567ebbadd7",
+      "preFixExeSha256": "d740336a993488aff7abe5fffc3badf409a1272bbd40bc845105a0f43bc6259b",
+      "newExeSha256": "a9cf43e8c3c643ca2e5a4032ff278906174845e5c534250db0c951d9cd45998f",
+      "preFix13StageRejected": true,
+      "preFix13FilesUnchanged": true,
+      "requestIdPreserved": true,
+      "candidateIdPreserved": true,
+      "sourceIdPreserved": true,
+      "requestFileBytesUnchanged": true,
+      "candidateFileBytesUnchanged": true,
+      "legacyCandidateReopenedAndConfirmed": true,
+      "confirmedReadAndUnchangedPrepare": true,
+      "booleanEvidenceRejected": true,
+      "statisticsCoverFullMessageSpan": true,
+      "pythonOnChildPath": false,
+      "confirmationPerformedBy": "synthetic_test_API_only",
+      "legacyRequestTimeRange": {
+        "start": "2026-10-22T09:00:00+08:00",
+        "end": "2026-10-22T09:00:00+08:00"
+      },
+      "statisticsTimeRange": {
+        "start": "2026-10-22T09:00:00+08:00",
+        "end": "2026-10-23T10:00:00+08:00"
+      }
+    }
+  ]
+}

@@ -11,7 +11,7 @@ from offline_desktop import CONFIG_FIELDS, DesktopSession, safe_issue
 
 MAX_REQUEST_BYTES = 65536
 TASK_FIELDS = {'version', 'action', 'source', 'roots', 'chatId', 'chatName', 'startDate', 'endDate', 'copyMedia',
-               'allowProcessRead', 'timeoutSeconds', 'scanBudgetMiB', 'client'}
+               'allowProcessRead', 'timeoutSeconds', 'scanBudgetMiB', 'client', 'conversationMode'}
 
 
 def execute(task, directory):
@@ -19,6 +19,8 @@ def execute(task, directory):
         raise ArchiveError('请求格式或版本不支持；需要 version=1 的本地任务。')
     action = task.get('action')
     client = task.get('client', 'wechat')
+    from offline_direct import resolve_packaged_mode
+    mode = resolve_packaged_mode(task.get('conversationMode'))
     if client not in ('wechat', 'wecom'):
         raise ArchiveError('客户端类型必须为 wechat 或 wecom。')
     if action not in ('discover', 'groups', 'export', 'recover_keys'):
@@ -43,14 +45,14 @@ def execute(task, directory):
                 raise ArchiveError('会话与日期筛选必须是字符串。')
         if 'copyMedia' in task and not isinstance(task['copyMedia'], bool):
             raise ArchiveError('copyMedia 必须为布尔值。')
-    session = DesktopSession(directory, client=client)
+    session = DesktopSession(directory, client=client, conversation_mode=mode)
     config = task.get('source')
     if config is not None:
         if not isinstance(config, dict) or set(config) - set(CONFIG_FIELDS):
             raise ArchiveError('数据设置只接受数据、已有密钥的文件路径及支持的选项。')
-        if any(not isinstance(config[name], bool) for name in ('includeMedia', 'includeVoice') if name in config):
+        if any(not isinstance(config[name], bool) for name in ('includeMedia', 'includeVoice', 'ocrEnabled', 'ocrImages') if name in config):
             raise ArchiveError('附件索引与语音选项必须为布尔值。')
-        if any(not isinstance(config[name], str) for name in ('sourceRoot', 'keyFile', 'imageKeyFile', 'selfId') if name in config):
+        if any(not isinstance(config[name], str) for name in ('sourceRoot', 'keyFile', 'imageKeyFile', 'selfId', 'supplementRoot', 'documentPasswordFile') if name in config):
             raise ArchiveError('数据和密钥设置必须为路径字符串，不接受密钥正文。')
         if action == 'recover_keys':
             if client == 'wecom':
@@ -59,7 +61,8 @@ def execute(task, directory):
                 from portable_key_recovery import recover_key_file
             recovered = recover_key_file(config.get('sourceRoot', ''), directory, allow_process_read=True,
                 include_media=config.get('includeMedia', True), timeout=task.get('timeoutSeconds', 30),
-                budget_mib=task.get('scanBudgetMiB', 512))
+                budget_mib=task.get('scanBudgetMiB', 512),
+                **({'include_voice': config.get('includeVoice', False)} if client == 'wechat' else {}))
             config = {**config, 'keyFile': recovered['keyFile'],
                       'imageKeyFile': '' if recovered['imageRecovery'] == 'verified_local_samples' else config.get('imageKeyFile', '')}
         info = session.open_source(config)
@@ -75,7 +78,7 @@ def execute(task, directory):
     if action == 'groups':
         return {'ok': True, 'action': action, 'groups': info['groups'],
                 'sourceStatus': info['message'], 'snapshotTime': info['snapshotTime'], 'coverage': info['coverage']}
-    selected = session.archive.select_chat(chat_id=task.get('chatId'), chat_name=task.get('chatName'))
+    selected = session.select_chat(chat_id=task.get('chatId'), chat_name=task.get('chatName'))
     result = session.export(selected['id'], task.get('startDate') or None, task.get('endDate') or None,
                             copy_media=task.get('copyMedia', True))
     return {'ok': True, 'action': action, **result}
@@ -107,6 +110,8 @@ def run_file(request, result, directory, *, client=None):
                 return 2  # Never write even an error report into the input account.
         value = execute(task, directory)
     except Exception as error:
+        from offline_startup import failure
+        failure(error,'cli_task_failed')
         value = {'ok': False, 'error': safe_issue(error)}
     try:
         result.parent.mkdir(parents=True, exist_ok=True)

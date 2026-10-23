@@ -1,0 +1,62 @@
+{
+  "syntheticOnly": true,
+  "realAccountsRead": false,
+  "packages": [
+    {
+      "client": "wechat",
+      "files": 27,
+      "zipCrc": "passed",
+      "allFileHashes": "passed",
+      "compiledPrivateParsing": "passed",
+      "profilePrepareStageShow": "passed",
+      "candidateChineseRoundTrip": "passed",
+      "windowsPowerShellWrapper": "passed",
+      "compiledInsightsAndReports": "passed",
+      "v1PersistentIdsCompatible": true,
+      "wrapperKeywordPagination": "passed",
+      "sourceReportWriteRejected": true,
+      "crossClientRejected": true,
+      "nativeWindowCreated": true,
+      "defaultMode": "direct",
+      "emptyAccountResult": {
+        "ok": false,
+        "nativeWindowCreated": true,
+        "client": "wechat",
+        "conversationMode": "direct",
+        "release": "私聊 1.1.0",
+        "error": "首次使用：请重新选择本人微信账号并配置；旧配置不会自动导入。"
+      },
+      "formalProfileCreated": false,
+      "pythonOnChildPath": false,
+      "zipSha256": "59cbcfc18e5a12d5ae9b3435db6e468aec1ca557604035a2fc6f9314e4abe46a"
+    },
+    {
+      "client": "wecom",
+      "files": 27,
+      "zipCrc": "passed",
+      "allFileHashes": "passed",
+      "compiledPrivateParsing": "passed",
+      "profilePrepareStageShow": "passed",
+      "candidateChineseRoundTrip": "passed",
+      "windowsPowerShellWrapper": "passed",
+      "compiledInsightsAndReports": "passed",
+      "v1PersistentIdsCompatible": true,
+      "wrapperKeywordPagination": "passed",
+      "sourceReportWriteRejected": true,
+      "crossClientRejected": true,
+      "nativeWindowCreated": true,
+      "defaultMode": "direct",
+      "emptyAccountResult": {
+        "ok": false,
+        "nativeWindowCreated": true,
+        "client": "wecom",
+        "conversationMode": "direct",
+        "release": "私聊 1.1.0",
+        "error": "首次使用：请重新选择本人企业微信账号并配置；旧配置不会自动导入。"
+      },
+      "formalProfileCreated": false,
+      "pythonOnChildPath": false,
+      "zipSha256": "96c8928127b4ab8b02564e7503814efb085b5140aba4c36bde195ed026fe254a"
+    }
+  ]
+}

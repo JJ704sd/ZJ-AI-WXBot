@@ -152,7 +152,7 @@ def image_key(config):
     raise ValueError('图片密钥文件无效或不属于当前账号。')
 
 
-def resolve_local(snapshot, config, group, row, part='', *, recovery=None):
+def resolve_local(snapshot, config, group, row, part='', *, recovery=None, destination=None):
     from media_container import media_type
     from local_image_keys import ImageKeys
     kind, filename, expected = descriptor(row, part)
@@ -181,6 +181,14 @@ def resolve_local(snapshot, config, group, row, part='', *, recovery=None):
         if not path.is_file():
             continue
         before = path.stat()
+        if destination is not None and kind in ('file','video') and expected and not preview:
+            from offline_media_copy import copy_original
+            result=copy_original(path,Path(destination),expected,filename,kind)
+            if result:
+                if recovered:
+                    result.update(recoveredLocally=True,matchedBy='full_content_md5');recovery.recovered+=1
+                return result,None
+            continue
         if before.st_size <= 0 or before.st_size > LIMIT:
             issue = '附件为空或超过 100 MB 上限。'; continue
         with path.open('rb') as stream:

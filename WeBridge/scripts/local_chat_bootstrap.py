@@ -13,6 +13,9 @@ def run():
         except (ValueError,IndexError):return default
     from offline_profiles import ClientBindingError,default_directory,resolve_client
     try:
+        if '--capabilities' in sys.argv:
+            from local_chat_app import main
+            return main()
         client=resolve_client(argument('--client'))
         directory=argument('--data-dir') or default_directory(client)
         begin(directory,client)

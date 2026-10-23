@@ -1,0 +1,52 @@
+{
+  "release": "v51",
+  "skillVersion": "1.37.0",
+  "testsPassed": 6,
+  "priorDeliveryZipsUnchanged": 43,
+  "suite": {
+    "path": "build/WeChat-WeCom-Archive-Windows-Delivery-20261023-v51.zip",
+    "bytes": 99851184,
+    "sha256": "ddd985c53f01a734f674a7acea1bb0d7df442ec6a7a41a779505c95ad99f159c",
+    "entries": 19
+  },
+  "packages": [
+    {
+      "archive": "local-chat-review-v51-20261023-windows-x64.zip",
+      "files": 27,
+      "sha256": "e163cfba45de58456cc2818ae83b583305167afb4fe12366776621cfa30aaafa"
+    },
+    {
+      "archive": "WeChat-Archive-Skill-1.37.0-Windows-x64.zip",
+      "files": 32,
+      "sha256": "05f4a2c2e678c72efde5e2b82efa9574181975a0a1afadf0d86aa6193fb253b9"
+    },
+    {
+      "archive": "WeCom-Archive-Skill-1.37.0-Windows-x64.zip",
+      "files": 33,
+      "sha256": "deb8c5784f9922eb2254f2c1d1623e082c63f3bd177bff0fa801defad911f4c8"
+    }
+  ],
+  "exeSha256": "269dc6b85591824f8967526b743fcdbb930b9b6cd0d5799cc86586811beaba12",
+  "clients": [
+    {
+      "client": "wechat",
+      "rows": 1,
+      "nativeReadingVerified": true,
+      "reviewRequired": true,
+      "artifactHashesVerified": true,
+      "integerPrimaryKeyQuoteFamilies": 0
+    },
+    {
+      "client": "wecom",
+      "rows": 4,
+      "nativeReadingVerified": true,
+      "reviewRequired": true,
+      "artifactHashesVerified": true,
+      "integerPrimaryKeyQuoteFamilies": 2
+    }
+  ],
+  "limitations": [
+    "Synthetic validation only; remote host acceptance pending",
+    "No unrelated media/OCR/full-UI or full-repository regression run"
+  ]
+}

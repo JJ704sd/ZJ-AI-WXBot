@@ -1,0 +1,20 @@
+{
+  "version": "v44",
+  "client": "wecom",
+  "rows": 100000,
+  "syntheticOnly": true,
+  "phases": {
+    "snapshotAndLoad": 0.14581679995171726,
+    "parseAndCheckpoint": 14.96623100002762,
+    "approveSyntheticFixture": 0.48623549996409565,
+    "publish": 2.5474361000815406,
+    "restartRestore": 2.3459004999604076
+  },
+  "recordDigest": "aa0448567405936d9858d8fc91feda79203555d6045077aec53908f5efe766a9",
+  "rowsVerified": 100000,
+  "progressEvents": 58,
+  "deferredReading": true,
+  "outputBytes": 370181231,
+  "restoredPublished": 1,
+  "initialWorkflowSeconds": 18.145719400024973
+}

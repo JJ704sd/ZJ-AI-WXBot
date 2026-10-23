@@ -1,0 +1,21 @@
+{
+  "release": "v45",
+  "group": "core",
+  "syntheticOnly": true,
+  "testsRun": 63,
+  "failures": 0,
+  "errors": 0,
+  "skipped": [],
+  "seconds": 40.28443769994192,
+  "modules": [
+    "test_group_export_location45.ExportLocation45Tests",
+    "test_offline_progress",
+    "test_group_export_recovery42",
+    "test_group_integrity44",
+    "test_offline_batch_review",
+    "test_offline_desktop",
+    "test_private_export_recovery17",
+    "test_runtime_identity",
+    "test_windows_hook_smoke.SourceBindingTests"
+  ]
+}

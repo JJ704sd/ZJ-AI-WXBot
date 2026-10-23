@@ -1,6 +1,6 @@
 """Bounded, read-only Windows WeCom DbKeyManager recovery for one DB owner.
 No injection, debugger, process writes, elevation, network or disk-wide search.
-Only candidates verified against every selected encrypted database are saved.
+Only a complete mapping verified against each selected encrypted database is saved.
 """
 import ctypes
 from ctypes import wintypes as W
@@ -53,13 +53,21 @@ def manager_vtables(image):
         raise SnapshotError('当前企微可执行文件的密钥管理布局暂不支持；可选择已有企微密钥或已解密副本。') from None
 
 
-def string_profile_key(regions, read, pages, *, limit=4096):
-    """Verify bounded MSVC32 string objects when the profile manager is absent.
+def _match_material(material, pages, verified):
+    for key in (password_key(material), material):
+        cipher = WeComCipher(key)
+        for name, page in pages.items():
+            if name not in verified and cipher.verifies(page):
+                verified[name] = key
+
+
+def string_database_keys(regions, read, pages, *, limit=4096):
+    """Return a complete per-database match from bounded MSVC32 strings.
 
     The caller supplies a budgeted reader for one already verified owner.
-    Only a key authenticating every explicitly selected database page is returned.
+    A partial match is never returned as a usable result.
     """
-    seen = set()
+    seen, verified = set(), {}
     for begin, size, kind in regions:
         if kind != 0x20000:  # Private data, not image or unrelated mapped files.
             continue
@@ -79,10 +87,17 @@ def string_profile_key(regions, read, pages, *, limit=4096):
                 seen.add(material)
                 if len(seen) > limit:
                     raise SnapshotError('密钥候选超过本次上限，未返回任何材料。')
-                for key in (material, password_key(material)):
-                    if pages and all(WeComCipher(key).verifies(page) for page in pages.values()):
-                        return key
+                _match_material(material, pages, verified)
+                if pages and len(verified) == len(pages):
+                    return verified
     return None
+
+
+def string_profile_key(regions, read, pages, *, limit=4096):
+    """Compatibility seam for account-name readers requiring one common key."""
+    verified = string_database_keys(regions, read, pages, limit=limit)
+    keys = set(verified.values()) if verified else set()
+    return next(iter(keys)) if len(keys) == 1 else None
 
 
 def _recover_key(source_root, directory, *, allow_process_read=False, include_media=True, timeout=30, budget_mib=512,
@@ -134,7 +149,7 @@ def _recover_key(source_root, directory, *, allow_process_read=False, include_me
     handle = kernel.OpenProcess(0x410, False, pid)
     if not handle:
         raise SnapshotError('系统不允许只读访问该企微进程，请使用有读取权限的本机用户。')
-    deadline, read_bytes, verified = time.monotonic() + timeout, 0, None
+    deadline, read_bytes, verified = time.monotonic() + timeout, 0, {}
     def read(address, size):
         nonlocal read_bytes
         if time.monotonic() > deadline or read_bytes + size > budget_mib * 1024 * 1024:
@@ -197,38 +212,42 @@ def _recover_key(source_root, directory, *, allow_process_read=False, include_me
                             candidates.add(material)
                             if len(candidates) > 256:
                                 raise SnapshotError('企微密钥管理对象过多，未保存候选值。')
-                            for key in (password_key(material), material):
-                                if all(WeComCipher(key).verifies(page) for page in pages.values()):
-                                    verified = key
-                                    break
-                            if verified:
+                            _match_material(material, pages, verified)
+                            if len(verified) == len(pages):
                                 break
-                        if verified:
+                        if len(verified) == len(pages):
                             break
-                    if verified:
+                    if len(verified) == len(pages):
                         break
-                if verified:
+                if len(verified) == len(pages):
                     break
-            if verified:
+            if len(verified) == len(pages):
                 break
-        if not verified:
-            verified = string_profile_key(regions, read, pages)
+        if len(verified) != len(pages):
+            remaining = {name: page for name, page in pages.items() if name not in verified}
+            verified.update(string_database_keys(regions, read, remaining) or {})
     finally:
         kernel.CloseHandle(handle)
-    if not verified or WindowsDependencies._file_owners(owned) != owners:
+    if len(verified) != len(pages) or WindowsDependencies._file_owners(owned) != owners:
         raise SnapshotError('未找到通过全部企微库校验的密钥，或账号进程已变化；当前客户端布局可能不支持。')
-    for name in pages:
+    current_names = ['user.db'] if profile_only else [name for name in inventory(source, include_media) if not name.endswith('-wal')]
+    if current_names != names:
+        raise SnapshotError('企微数据库清单在取钥期间变化，未保存密钥。')
+    for name in names:
         with (source / name).open('rb') as stream:
-            if not WeComCipher(verified).verifies(stream.read(len(pages[name]))):
+            first = stream.read(65536)
+            size = page_size(first)
+            if ((name not in pages and not first.startswith(SQLITE_HEADER)) or
+                    (name in pages and not WeComCipher(verified[name]).verifies(first[:size]))):
                 raise SnapshotError('企微数据库取钥后复核失败，未保存密钥。')
-    return verified, list(pages)
+    return verified, names
 
 
 def recover_profile_key(source_root, temporary, *, expected_owner, allow_process_read=False, timeout=30, budget_mib=512):
     """Return one transient user.db key; never write it or open message DBs."""
-    key, _names = _recover_key(source_root, temporary, allow_process_read=allow_process_read,
+    keys, _names = _recover_key(source_root, temporary, allow_process_read=allow_process_read,
                               timeout=timeout, budget_mib=budget_mib, profile_only=True, expected_owner=expected_owner)
-    return key
+    return keys['user.db']
 
 
 def recover_key_file(source_root, directory, *, allow_process_read=False, include_media=True, timeout=30, budget_mib=512):
@@ -242,5 +261,6 @@ def recover_key_file(source_root, directory, *, allow_process_read=False, includ
         raise SnapshotError('程序密钥目录存在越界链接。')
     target = folder / ('wecom-' + datetime.now().strftime('%Y%m%d-%H%M%S') + '-' + uuid.uuid4().hex[:8] + '.json')
     with target.open('x', encoding='utf8') as stream:
-        json.dump({'wecomKeys': [{'database': name, 'key_hex': verified.hex()} for name in names]}, stream)
-    return {'keyFile': str(target), 'databaseCount': len(names), 'matchedCount': len(names), 'imageRecovery': 'wecom_cache_no_separate_key'}
+        json.dump({'wecomKeys': [{'database': name, 'key_hex': key.hex()} for name, key in verified.items()]}, stream)
+    return {'keyFile': str(target), 'databaseCount': len(names), 'matchedCount': len(verified),
+            'plaintextCount': len(names) - len(verified), 'imageRecovery': 'wecom_cache_no_separate_key'}

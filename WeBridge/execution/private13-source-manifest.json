@@ -1,0 +1,65 @@
+{
+  "version": "1.3.0",
+  "files": [
+    {
+      "path": "scripts/local_chat_app.py",
+      "sha256": "0905fa7c29e54c24c19646822216b132ce0dac158f140139b83f66b456622d01"
+    },
+    {
+      "path": "scripts/private_chat.py",
+      "sha256": "b0b73dcbfe613c9d206565033182e3b38c8a3535e68cb382824cc33bca6ee82d"
+    },
+    {
+      "path": "scripts/package_private_chat.py",
+      "sha256": "bfb1bbfaac1f1419e861605dee983b366afd95e48e574fa1ca4122a3ebeb3ed0"
+    },
+    {
+      "path": "web_mvp/private_profiles.py",
+      "sha256": "c8a33dd5ac3972a5405905746536a25c61953e2fe11679c0e2660075f9fda375"
+    },
+    {
+      "path": "web_mvp/private_profile_ui.py",
+      "sha256": "2a5cebbf1e5bb5dadfcba02aab06a0f1e4f10e753a49f35f98f6ae3617f2499a"
+    },
+    {
+      "path": "web_mvp/private_insights_ui.py",
+      "sha256": "192b1ae992ff503deaee0cba925e2044611ab02a563435e93e04377b396a89e7"
+    },
+    {
+      "path": "web_mvp/private_insights.py",
+      "sha256": "c2befedb4c2d641f6adb144be30300773d07b101bca8a83242524d9dc2c0365a"
+    },
+    {
+      "path": "web_mvp/private_theme.py",
+      "sha256": "436103a568788ab283b3f70b62d16a1e248376c4c8d35d295dcfe9bc21494a55"
+    },
+    {
+      "path": "web_mvp/test_private_saved_view.py",
+      "sha256": "cbe480252dd05e2741bab0b32005650bbdf8edb446d69b6483a3472f594c6459"
+    },
+    {
+      "path": "web_mvp/test_private_profiles.py",
+      "sha256": "c2f343dee7515c6724ca62c8145075932ad1e49993d1de3722beb501667ed51f"
+    },
+    {
+      "path": "web_mvp/test_private_insights_ui.py",
+      "sha256": "275bb7757699f46a4bf9d62679cba2b1ac69473702c68695979fa9b02a90bb28"
+    },
+    {
+      "path": "web_mvp/test_offline_setup_integration.py",
+      "sha256": "81aa0032501d2983a7225923422e57b6eae4a5eb5b51e69f4844337cb0c15a45"
+    },
+    {
+      "path": "web_mvp/test_offline_target_search.py",
+      "sha256": "7504550ed037c4ee85026fdbb35a80071f6d54ca827b34119b94499732b609df"
+    },
+    {
+      "path": "skills/local-wechat-private-analysis/SKILL.md",
+      "sha256": "e0608d7709ac44f9fb422f157b6679064ac162bb22865bc02208cc757506e1b2"
+    },
+    {
+      "path": "skills/local-wecom-private-analysis/SKILL.md",
+      "sha256": "96270d6c9f0049c3ae55fd6fbf1a56b68c0e1d7d7941088728f0efc569633328"
+    }
+  ]
+}

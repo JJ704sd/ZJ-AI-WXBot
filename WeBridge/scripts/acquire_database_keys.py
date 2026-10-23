@@ -44,7 +44,7 @@ class AcquireError(ValueError):
         super().__init__(self.code)
 
 
-def inventory(source_root, include_media=False):
+def inventory(source_root, include_media=False, include_voice=False):
     """Inspect names only in the explicit account root and known child dirs."""
     try:
         root = Path(source_root).expanduser().resolve(strict=True)
@@ -53,6 +53,8 @@ def inventory(source_root, include_media=False):
         entries = list(root.iterdir())
         folders = [root]
         pattern = re.compile(r'(?:contact|session|(?:biz_)?message_\d+|message_resource|hardlink)\.db\Z', re.I) if include_media else BUSINESS_DB
+        if include_voice:
+            pattern = re.compile('(?:' + pattern.pattern.removesuffix('\\Z') + r'|media_\d+\.db)\Z', re.I)
         directories = BUSINESS_DIRS | {'hardlink'} if include_media else BUSINESS_DIRS
         for entry in entries:
             if entry.name.lower() in directories and entry.is_dir():
@@ -83,14 +85,24 @@ def inventory(source_root, include_media=False):
 
 
 def read_first_pages(databases):
+    """Return encrypted pages only; plaintext is checked fully by the snapshot."""
     pages = {}
     try:
         for path in databases:
             with path.open('rb') as stream:
                 page = stream.read(PAGE_SIZE)
-            if len(page) != PAGE_SIZE or page.startswith(b'SQLite format 3\0'):
+            if page.startswith(b'SQLite format 3\0'):
+                size = int.from_bytes(page[16:18], 'big')
+                size = 65536 if size == 1 else size
+                if (len(page) < 100 or page[21:24] != b'\x40\x20\x20' or
+                        not 512 <= size <= 65536 or size & (size - 1) or path.stat().st_size % size):
+                    raise AcquireError('source_not_encrypted')
+                continue
+            if len(page) != PAGE_SIZE:
                 raise AcquireError('source_not_encrypted')
             pages[path] = page
+        if not pages:
+            raise AcquireError('source_not_encrypted')
         return pages
     except AcquireError:
         raise
@@ -135,27 +147,29 @@ def matching_keys(pages, candidates):
     return [{'key_hex': key, 'salt_hex': salt} for key, salt in sorted(verified)]
 
 
-def collect_keys(source_root, dependencies, *, max_scan_bytes=4096 * 1024 * 1024, timeout=90, include_media=False):
+def collect_keys(source_root, dependencies, *, max_scan_bytes=4096 * 1024 * 1024, timeout=90,
+                 include_media=False, include_voice=False):
     """Dependency-injected seam for synthetic tests; performs no output writes."""
     try:
-        root, databases, owned_files = inventory(source_root, include_media)
-        owner = dependencies.owner(owned_files)
+        root, databases, owned_files = inventory(source_root, include_media, include_voice)
         pages = read_first_pages(databases)
+        owner = dependencies.owner(owned_files)
         candidates = dependencies.scan(owner[0], expected_start_time=owner[1], max_scan_bytes=max_scan_bytes, timeout=timeout)
         keys = matching_keys(pages, candidates)
         # Ignore unrelated process candidates after matching; only verified keys
         # can cross the worker IPC boundary and reach the new JSON file.
         del candidates
-        current_root, current_databases, current_owned = inventory(root, include_media)
+        current_root, current_databases, current_owned = inventory(root, include_media, include_voice)
         if current_root != root or current_databases != databases or current_owned != owned_files:
             raise AcquireError('source_changed')
         if dependencies.owner(current_owned) != owner:
             raise AcquireError('owner_changed')
         current_pages = read_first_pages(current_databases)
-        if any(current_pages[path][:16] != pages[path][:16] for path in databases):
+        if set(current_pages) != set(pages) or any(current_pages[path][:16] != pages[path][:16] for path in pages):
             raise AcquireError('source_changed')
         verified = matching_keys(current_pages, [(row['key_hex'], row['salt_hex']) for row in keys])
-        return {'keys': verified, 'databaseCount': len(databases), 'matchedCount': len(databases)}
+        return {'keys': verified, 'databaseCount': len(databases), 'matchedCount': len(pages),
+                'plaintextCount': len(databases) - len(pages)}
     except AcquireError:
         raise
     except Exception:
@@ -378,14 +392,15 @@ class WindowsDependencies:
         return scanner.scan_owned_process(pid, process_factory=factory)
 
 
-def _worker(source_root, result_pipe, budget, timeout, include_media=False):
+def _worker(source_root, result_pipe, budget, timeout, include_media=False, include_voice=False):
     # Redirect all incidental library output. Keys travel only in this private
     # parent/child connection after HMAC filtering, never stdout or stderr.
     with open(os.devnull, 'w') as sink:
         os.dup2(sink.fileno(), 1); os.dup2(sink.fileno(), 2)
         sys.stdout = sink; sys.stderr = sink
         try:
-            result = collect_keys(source_root, WindowsDependencies(), max_scan_bytes=budget, timeout=timeout, include_media=include_media)
+            result = collect_keys(source_root, WindowsDependencies(), max_scan_bytes=budget, timeout=timeout,
+                                  include_media=include_media, include_voice=include_voice)
             result_pipe.send({'ok': True, **result})
         except AcquireError as exc:
             result_pipe.send({'ok': False, 'code': exc.code})
@@ -395,10 +410,10 @@ def _worker(source_root, result_pipe, budget, timeout, include_media=False):
             result_pipe.close()
 
 
-def run_worker(source_root, budget, timeout, include_media=False):
+def run_worker(source_root, budget, timeout, include_media=False, include_voice=False):
     context = multiprocessing.get_context('spawn')
     incoming, outgoing = context.Pipe(duplex=False)
-    worker = context.Process(target=_worker, args=(str(source_root), outgoing, budget, timeout, include_media))
+    worker = context.Process(target=_worker, args=(str(source_root), outgoing, budget, timeout, include_media, include_voice))
     try:
         worker.start(); outgoing.close()
         if not incoming.poll(timeout):
@@ -428,6 +443,7 @@ def main(argv=None):
     parser = SafeParser(description='Optional Windows x64 key bootstrap. Requires sibling poc/wechat_agent_poc; scans only the unique owner of the explicitly selected account business DB/WAL files. Never logs key values.')
     parser.add_argument('--source-root', required=True, help='Explicit account db_storage directory; no account discovery')
     parser.add_argument('--include-media', action='store_true', help='Also authenticate hardlink and message_resource indexes for the same account')
+    parser.add_argument('--include-voice', action='store_true', help='Also authenticate the selected account media_N.db voice databases')
     parser.add_argument('--output-file', required=True, help='New .json file directly inside WeBridge/.secrets; existing files are refused')
     parser.add_argument('--timeout', type=int, default=90, help='Worker time limit, 5..300 seconds (default 90)')
     parser.add_argument('--max-scan-mib', type=int, default=4096, help='Read budget, 64..16384 MiB (default 4096)')
@@ -436,8 +452,8 @@ def main(argv=None):
         if not 5 <= args.timeout <= 300 or not 64 <= args.max_scan_mib <= 16384:
             raise AcquireError('scan_budget_exceeded')
         validate_output(args.output_file)
-        root, _, _ = inventory(args.source_root, args.include_media)
-        result = run_worker(root, args.max_scan_mib * 1024 * 1024, args.timeout, args.include_media)
+        root, _, _ = inventory(args.source_root, args.include_media, args.include_voice)
+        result = run_worker(root, args.max_scan_mib * 1024 * 1024, args.timeout, args.include_media, args.include_voice)
         write_keys(args.output_file, result['keys'])
         print(json.dumps({'status': 'ok', 'databaseCount': result['databaseCount'], 'matchedCount': result['matchedCount']}))
         return 0

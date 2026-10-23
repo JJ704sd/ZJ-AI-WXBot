@@ -1,0 +1,86 @@
+{
+  "release": "v46",
+  "skillVersion": "1.32.0",
+  "date": "2026-10-23",
+  "syntheticTestsPassed": 146,
+  "priorDeliveryZipsUnchanged": 23,
+  "suite": {
+    "path": "build/WeChat-WeCom-Archive-Windows-Delivery-20261023-v46.zip",
+    "bytes": 99268228,
+    "sha256": "3de8abb24ec958dacaa43724b5704a1b2d5e10aef8287e1e9c96ddc3cc1ae195",
+    "entries": 21
+  },
+  "desktopExeSha256": "e9b390fa244dbc43cd74fe43a103429dce000010595f340b34055a559d47a83c",
+  "packages": [
+    {
+      "archive": "local-chat-review-v46-20261023-windows-x64.zip",
+      "files": 25,
+      "sha256": "463b067aa275e9e6c4cbd183235ac3591d02b4957b9b2ca701e99d3f421b65bf"
+    },
+    {
+      "archive": "WeChat-Archive-Skill-1.32.0-Windows-x64.zip",
+      "files": 30,
+      "sha256": "0ad1c5fcc61a288198327019ac8cdfcbfb456771ada7d417b9bf11b1cc82c86a"
+    },
+    {
+      "archive": "WeCom-Archive-Skill-1.32.0-Windows-x64.zip",
+      "files": 31,
+      "sha256": "09dcb379c8cff7e4aff60bfa3f09b53b38ac76453c6fddcd657e1d41003731dc"
+    }
+  ],
+  "nativeClients": [
+    {
+      "client": "wechat",
+      "capabilities": {
+        "schemaVersion": 1,
+        "privateAnalysis": false,
+        "conversationMode": "group",
+        "role": "desktop",
+        "version": "1.32.0",
+        "release": "v46"
+      },
+      "rows": 2,
+      "jsonAndJsonlEquivalent": true,
+      "markdownRowIdsMatch": true,
+      "exportArtifactHashesMatch": true,
+      "analysisPresent": true,
+      "nativeReadingVerified": true,
+      "chosenDirectoryRemembered": true,
+      "chosenDirectoryWaitsForReview": true,
+      "humanReviewNotFabricated": true,
+      "mixedPlainAndEncryptedSource": true,
+      "perDatabaseKeys": true,
+      "unknownTimeRecordPreserved": true,
+      "rangeUncertaintyReported": true
+    },
+    {
+      "client": "wecom",
+      "capabilities": {
+        "schemaVersion": 1,
+        "privateAnalysis": false,
+        "conversationMode": "group",
+        "role": "desktop",
+        "version": "1.32.0",
+        "release": "v46"
+      },
+      "rows": 5,
+      "jsonAndJsonlEquivalent": true,
+      "markdownRowIdsMatch": true,
+      "exportArtifactHashesMatch": true,
+      "analysisPresent": true,
+      "nativeReadingVerified": true,
+      "chosenDirectoryRemembered": true,
+      "chosenDirectoryWaitsForReview": true,
+      "humanReviewNotFabricated": true,
+      "mixedPlainAndEncryptedSource": true,
+      "perDatabaseKeys": true,
+      "unknownTimeRecordPreserved": true,
+      "rangeUncertaintyReported": true
+    }
+  ],
+  "limitations": [
+    "No real process key recovery or new real-account export; authorized ZIP reparse was read-only",
+    "WorkBuddy import and hardware power loss not tested",
+    "Not a full repository test suite or a real account success-rate estimate"
+  ]
+}

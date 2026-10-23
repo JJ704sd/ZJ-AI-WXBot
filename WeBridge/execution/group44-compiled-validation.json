@@ -1,0 +1,69 @@
+{
+  "version": "v44",
+  "skillVersion": "1.30.0",
+  "syntheticOnly": true,
+  "packages": [
+    {
+      "archive": "local-chat-review-v44-20261023-windows-x64.zip",
+      "files": 25,
+      "sha256": "fc63496ec6627b0974f21a469283a867f9ccd1d80ad48144f7a5758230433bff"
+    },
+    {
+      "archive": "WeChat-Archive-Skill-1.30.0-Windows-x64.zip",
+      "files": 30,
+      "sha256": "82bc7972c3cb482a92275942e6865bf5ac6546722e35c3c43245f838b917e93e"
+    },
+    {
+      "archive": "WeCom-Archive-Skill-1.30.0-Windows-x64.zip",
+      "files": 31,
+      "sha256": "d8e45419109e756aab706e1ae8d9e7c68cd5f1da20e07fef7b693af0cefab23b"
+    }
+  ],
+  "clients": [
+    {
+      "client": "wechat",
+      "capabilities": {
+        "schemaVersion": 1,
+        "privateAnalysis": false,
+        "conversationMode": "group",
+        "role": "desktop",
+        "version": "1.30.0",
+        "release": "v44"
+      },
+      "rows": 2,
+      "jsonAndJsonlEquivalent": true,
+      "markdownRowIdsMatch": true,
+      "exportArtifactHashesMatch": true,
+      "analysisPresent": true,
+      "nativeReadingVerified": true,
+      "humanReviewNotFabricated": true,
+      "mixedPlainAndEncryptedSource": true,
+      "perDatabaseKeys": true,
+      "unknownTimeRecordPreserved": true,
+      "rangeUncertaintyReported": true
+    },
+    {
+      "client": "wecom",
+      "capabilities": {
+        "schemaVersion": 1,
+        "privateAnalysis": false,
+        "conversationMode": "group",
+        "role": "desktop",
+        "version": "1.30.0",
+        "release": "v44"
+      },
+      "rows": 3,
+      "jsonAndJsonlEquivalent": true,
+      "markdownRowIdsMatch": true,
+      "exportArtifactHashesMatch": true,
+      "analysisPresent": true,
+      "nativeReadingVerified": true,
+      "humanReviewNotFabricated": true,
+      "mixedPlainAndEncryptedSource": true,
+      "perDatabaseKeys": true,
+      "unknownTimeRecordPreserved": true,
+      "rangeUncertaintyReported": true
+    }
+  ],
+  "priorDeliveryZipsUnchanged": 15
+}
